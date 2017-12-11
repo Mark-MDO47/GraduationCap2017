@@ -41,7 +41,7 @@ prjcap_ledring_nrw  = 70;         // length of narrow side of rectangle for atta
 prjcap_ledring_wid  = 85;         // length of wide side of rectangle for attachment points
 prjcap_ledring_diag = sqrt(prjcap_ledring_nrw*prjcap_ledring_nrw + prjcap_ledring_wid*prjcap_ledring_wid);          // diagonal
 prjcap_ledring_diag_angle = atan(prjcap_ledring_wid/prjcap_ledring_nrw); // default is degrees
-prjcap_ledring_hol  = 1.5;        // diameter of hole for attachment points
+prjcap_ledring_hol  = 1.25;        // diameter of hole for attachment points
 
 prjcap_cap_edge2ctr = prjcap_ledring_outside/2;
 prjcap_cap_edge2wid_attach = prjcap_cap_edge2ctr-prjcap_ledring_nrw/2;
@@ -61,6 +61,7 @@ module prjcap_stick(x) {
 //    the WIDE dimension spans the Y axis, the NARROW dimension spans the X axis
 module prjcap_oneframe() {
    stick_height = prjcap_mount_armwidth_div2/2+prjcap_mount_armwidth;
+   stick_height_plus = stick_height + 1;
    union() {
       translate([0,-prjcap_ledring_wid/2,stick_height]) prjcap_stick(prjcap_ledring_nrw+prjcap_mount_overlap);
       translate([0,+prjcap_ledring_wid/2,stick_height]) prjcap_stick(prjcap_ledring_nrw+prjcap_mount_overlap);
@@ -68,10 +69,14 @@ module prjcap_oneframe() {
       translate([-prjcap_ledring_nrw/2,0,stick_height]) rotate([0,0,90])prjcap_stick(prjcap_ledring_wid+prjcap_mount_overlap);
       translate([0,0,stick_height])rotate([0,0,+prjcap_ledring_diag_angle])prjcap_stick(prjcap_ledring_diag);
       translate([0,0,stick_height])rotate([0,0,-prjcap_ledring_diag_angle])prjcap_stick(prjcap_ledring_diag);
-      translate([+prjcap_ledring_nrw/2,+prjcap_ledring_wid/2,stick_height/2]) roundCornersCube(prjcap_mount_overlap,prjcap_mount_overlap,stick_height, prjcap_mount_armwidth_div2);
-      translate([+prjcap_ledring_nrw/2,-prjcap_ledring_wid/2,stick_height/2]) roundCornersCube(prjcap_mount_overlap,prjcap_mount_overlap,stick_height, prjcap_mount_armwidth_div2);
-      translate([-prjcap_ledring_nrw/2,+prjcap_ledring_wid/2,stick_height/2]) roundCornersCube(prjcap_mount_overlap,prjcap_mount_overlap,stick_height, prjcap_mount_armwidth_div2);
-      translate([-prjcap_ledring_nrw/2,-prjcap_ledring_wid/2,stick_height/2]) roundCornersCube(prjcap_mount_overlap,prjcap_mount_overlap,stick_height, prjcap_mount_armwidth_div2);
+      translate([+prjcap_ledring_nrw/2,+prjcap_ledring_wid/2,stick_height_plus/2]) roundCornersCube(prjcap_mount_overlap,prjcap_mount_overlap,stick_height_plus, prjcap_mount_armwidth_div2);
+      translate([+prjcap_ledring_nrw/2,-prjcap_ledring_wid/2,stick_height_plus/2]) roundCornersCube(prjcap_mount_overlap,prjcap_mount_overlap,stick_height_plus, prjcap_mount_armwidth_div2);
+      translate([-prjcap_ledring_nrw/2,+prjcap_ledring_wid/2,stick_height_plus/2]) roundCornersCube(prjcap_mount_overlap,prjcap_mount_overlap,stick_height_plus, prjcap_mount_armwidth_div2);
+      translate([-prjcap_ledring_nrw/2,-prjcap_ledring_wid/2,stick_height_plus/2]) roundCornersCube(prjcap_mount_overlap,prjcap_mount_overlap,stick_height_plus, prjcap_mount_armwidth_div2);
+      translate([+prjcap_ledring_nrw/2,+prjcap_ledring_wid/2,stick_height_plus]) roundCornersCube(prjcap_ledring_hol,prjcap_ledring_hol,stick_height_plus, prjcap_ledring_hol/2);
+      translate([+prjcap_ledring_nrw/2,-prjcap_ledring_wid/2,stick_height_plus]) roundCornersCube(prjcap_ledring_hol,prjcap_ledring_hol,stick_height_plus, prjcap_ledring_hol/2);
+      translate([-prjcap_ledring_nrw/2,+prjcap_ledring_wid/2,stick_height_plus]) roundCornersCube(prjcap_ledring_hol,prjcap_ledring_hol,stick_height_plus, prjcap_ledring_hol/2);
+      translate([-prjcap_ledring_nrw/2,-prjcap_ledring_wid/2,stick_height_plus]) roundCornersCube(prjcap_ledring_hol,prjcap_ledring_hol,stick_height_plus, prjcap_ledring_hol/2);
    }
 }  // end prjcap_oneframe
 
