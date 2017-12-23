@@ -8,7 +8,7 @@ Kudos to Daniel Garcia and Mark Kriegsman for the FANTASTIC Arduino FastLED libr
   https://github.com/FastLED/FastLED
   https://github.com/FastLED/FastLED/blob/master/examples/Fire2012WithPalette/Fire2012WithPalette.ino
 
-Some mods were made to the Arduino by me to adapt to circular rings and also to add some patterns like spinners
+Some mods were made to the Arduino code by me to adapt to circular rings and also to add some patterns like spinners
 
 Here is a (somewhat) spec on the 2812b LEDs
 https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf
