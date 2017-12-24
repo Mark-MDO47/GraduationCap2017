@@ -11,4 +11,7 @@ Kudos to Daniel Garcia and Mark Kriegsman for the FANTASTIC Arduino FastLED libr
 Some mods were made to the Arduino code by me to adapt to circular rings and also to add some patterns like spinners
 
 Here is a (somewhat) spec on the 2812b LEDs
-https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf
+  https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf
+
+Calculating wire size (Google for instance wire gauge ampacity 5v dc):
+  https://electronics.stackexchange.com/questions/148648/minimum-wire-gauge-for-5-volt-5-amp-system
