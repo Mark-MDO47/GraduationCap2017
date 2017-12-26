@@ -15,3 +15,6 @@ Here is a (somewhat) spec on the 2812b LEDs
 
 Calculating wire size (Google for instance wire gauge ampacity 5v dc):
   https://electronics.stackexchange.com/questions/148648/minimum-wire-gauge-for-5-volt-5-amp-system
+
+Calculating power:
+  https://learn.adafruit.com/digital-led-strip/powering
