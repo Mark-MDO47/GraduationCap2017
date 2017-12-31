@@ -1,0 +1,382 @@
+EESchema Schematic File Version 2
+LIBS:power
+LIBS:device
+LIBS:switches
+LIBS:relays
+LIBS:transistors
+LIBS:conn
+LIBS:linear
+LIBS:regul
+LIBS:74xx
+LIBS:cmos4000
+LIBS:adc-dac
+LIBS:memory
+LIBS:xilinx
+LIBS:microcontrollers
+LIBS:dsp
+LIBS:microchip
+LIBS:analog_switches
+LIBS:motorola
+LIBS:texas
+LIBS:intel
+LIBS:audio
+LIBS:interface
+LIBS:digital-audio
+LIBS:philips
+LIBS:display
+LIBS:cypress
+LIBS:siliconi
+LIBS:opto
+LIBS:atmel
+LIBS:contrib
+LIBS:valves
+LIBS:mdoLibrary
+LIBS:GradCap2017-cache
+EELAYER 25 0
+EELAYER END
+$Descr A 11000 8500
+encoding utf-8
+Sheet 1 1
+Title "Olson Graduation Cap 2017"
+Date "2017-12-26"
+Rev "---"
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L +12V #PWR?
+U 1 1 5A3DEBB7
+P 1250 3850
+F 0 "#PWR?" H 1250 3700 50  0001 C CNN
+F 1 "+12V" H 1250 3990 50  0000 C CNN
+F 2 "" H 1250 3850 50  0001 C CNN
+F 3 "" H 1250 3850 50  0001 C CNN
+	1    1250 3850
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR?
+U 1 1 5A3DEBCE
+P 1250 4950
+F 0 "#PWR?" H 1250 4700 50  0001 C CNN
+F 1 "GND" H 1250 4800 50  0000 C CNN
+F 2 "" H 1250 4950 50  0001 C CNN
+F 3 "" H 1250 4950 50  0001 C CNN
+	1    1250 4950
+	1    0    0    -1  
+$EndComp
+$Comp
+L LEDring Z?
+U 1 1 5A458774
+P 7750 3050
+F 0 "Z?" H 7750 3050 60  0000 C CNN
+F 1 "LEDring" H 7750 3200 60  0000 C CNN
+F 2 "" H 7750 3200 60  0001 C CNN
+F 3 "" H 7750 3200 60  0001 C CNN
+	1    7750 3050
+	1    0    0    -1  
+$EndComp
+$Comp
+L LEDring Z?
+U 1 1 5A458E53
+P 9600 3050
+F 0 "Z?" H 9600 3050 60  0000 C CNN
+F 1 "LEDring" H 9600 3200 60  0000 C CNN
+F 2 "" H 9600 3200 60  0001 C CNN
+F 3 "" H 9600 3200 60  0001 C CNN
+	1    9600 3050
+	1    0    0    -1  
+$EndComp
+$Comp
+L LEDring Z?
+U 1 1 5A458ECA
+P 6800 4850
+F 0 "Z?" H 6800 4850 60  0000 C CNN
+F 1 "LEDring" H 6800 5000 60  0000 C CNN
+F 2 "" H 6800 5000 60  0001 C CNN
+F 3 "" H 6800 5000 60  0001 C CNN
+	1    6800 4850
+	1    0    0    -1  
+$EndComp
+$Comp
+L LEDring Z?
+U 1 1 5A458F51
+P 8650 4850
+F 0 "Z?" H 8650 4850 60  0000 C CNN
+F 1 "LEDring" H 8650 5000 60  0000 C CNN
+F 2 "" H 8650 5000 60  0001 C CNN
+F 3 "" H 8650 5000 60  0001 C CNN
+	1    8650 4850
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R?
+U 1 1 5A459198
+P 4900 2200
+F 0 "R?" V 4980 2200 50  0000 C CNN
+F 1 "220 ohm" V 4800 2200 50  0000 C CNN
+F 2 "" V 4830 2200 50  0001 C CNN
+F 3 "" H 4900 2200 50  0001 C CNN
+	1    4900 2200
+	0    1    1    0   
+$EndComp
+$Comp
+L UBEC J?
+U 1 1 5A459C5D
+P 2050 4450
+F 0 "J?" H 2050 4450 60  0000 C CNN
+F 1 "UBEC" H 2050 4550 60  0000 C CNN
+F 2 "" H 2050 4450 60  0001 C CNN
+F 3 "" H 2050 4450 60  0001 C CNN
+	1    2050 4450
+	1    0    0    -1  
+$EndComp
+$Comp
+L UBEC J?
+U 1 1 5A459D02
+P 2050 6250
+F 0 "J?" H 2050 6250 60  0000 C CNN
+F 1 "UBEC" H 2050 6350 60  0000 C CNN
+F 2 "" H 2050 6250 60  0001 C CNN
+F 3 "" H 2050 6250 60  0001 C CNN
+	1    2050 6250
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR?
+U 1 1 5A45A4D2
+P 1250 6950
+F 0 "#PWR?" H 1250 6700 50  0001 C CNN
+F 1 "GND" H 1250 6800 50  0000 C CNN
+F 2 "" H 1250 6950 50  0001 C CNN
+F 3 "" H 1250 6950 50  0001 C CNN
+	1    1250 6950
+	1    0    0    -1  
+$EndComp
+$Comp
+L +12V #PWR?
+U 1 1 5A45A52D
+P 1250 5550
+F 0 "#PWR?" H 1250 5400 50  0001 C CNN
+F 1 "+12V" H 1250 5690 50  0000 C CNN
+F 2 "" H 1250 5550 50  0001 C CNN
+F 3 "" H 1250 5550 50  0001 C CNN
+	1    1250 5550
+	1    0    0    -1  
+$EndComp
+Connection ~ 3050 6400
+Wire Wire Line
+	1250 6000 1250 5550
+Wire Wire Line
+	1550 6000 1250 6000
+Wire Wire Line
+	1250 6400 1250 6950
+Wire Wire Line
+	1550 6400 1250 6400
+Wire Wire Line
+	2750 6400 9550 6400
+Wire Wire Line
+	9450 3750 9450 5550
+Connection ~ 6750 5750
+Wire Wire Line
+	6650 5750 6750 5750
+Wire Wire Line
+	6650 5550 6650 5750
+Connection ~ 6850 6000
+Wire Wire Line
+	6850 5550 6850 6000
+Wire Wire Line
+	9550 6400 9550 3750
+Wire Wire Line
+	7700 3750 7700 6400
+Wire Wire Line
+	8700 6000 8700 5550
+Wire Wire Line
+	8600 6400 8600 5550
+Wire Wire Line
+	6750 5550 6750 6400
+Connection ~ 6750 6400
+Wire Wire Line
+	7800 6000 7800 3750
+Wire Wire Line
+	9650 6000 9650 3750
+Wire Wire Line
+	2750 6000 9650 6000
+Wire Wire Line
+	7900 4000 7900 3750
+Wire Wire Line
+	8500 5550 6950 5550
+Wire Wire Line
+	9450 5550 8800 5550
+Wire Wire Line
+	9750 3900 9750 3750
+Wire Wire Line
+	7600 3750 7600 3900
+Wire Wire Line
+	3050 4600 3050 6400
+Wire Wire Line
+	2750 4600 3050 4600
+Wire Wire Line
+	1250 4200 1550 4200
+Wire Wire Line
+	1250 3850 1250 4200
+Wire Wire Line
+	1250 4600 1550 4600
+Wire Wire Line
+	1250 4950 1250 4600
+Wire Wire Line
+	7600 3900 9750 3900
+Connection ~ 7700 6400
+Connection ~ 8600 6400
+Connection ~ 8700 6000
+Connection ~ 7800 6000
+$Comp
+L Arduino A?
+U 1 1 5A480803
+P 5950 2400
+F 0 "A?" H 5950 2400 60  0000 C CNN
+F 1 "Arduino" H 5950 2500 60  0000 C CNN
+F 2 "" H 5950 2400 60  0000 C CNN
+F 3 "" H 5950 2400 60  0000 C CNN
+	1    5950 2400
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7000 4000 7900 4000
+Wire Wire Line
+	3200 4200 2750 4200
+Wire Wire Line
+	3200 950  3200 4200
+Connection ~ 3400 6400
+Wire Wire Line
+	3400 6400 3400 2000
+Wire Wire Line
+	3400 2000 5350 2000
+Wire Wire Line
+	5050 2200 5350 2200
+Wire Wire Line
+	4750 2200 4500 2200
+Wire Wire Line
+	4500 2200 4500 1300
+Wire Wire Line
+	4500 1300 7000 1300
+Wire Wire Line
+	7000 1300 7000 4000
+Wire Wire Line
+	3200 950  6800 950 
+Wire Wire Line
+	6800 950  6800 2000
+Wire Wire Line
+	6800 2000 6550 2000
+$Comp
+L SW_PUSH SW?
+U 1 1 5A4908F2
+P 3600 3100
+F 0 "SW?" H 3750 3210 50  0000 C CNN
+F 1 "SW_PUSH" H 3600 3020 50  0000 C CNN
+F 2 "" H 3600 3100 60  0000 C CNN
+F 3 "" H 3600 3100 60  0000 C CNN
+	1    3600 3100
+	0    -1   -1   0   
+$EndComp
+$Comp
+L SW_PUSH SW?
+U 1 1 5A490A22
+P 4000 4300
+F 0 "SW?" H 4150 4410 50  0000 C CNN
+F 1 "SW_PUSH" H 4000 4220 50  0000 C CNN
+F 2 "" H 4000 4300 60  0000 C CNN
+F 3 "" H 4000 4300 60  0000 C CNN
+	1    4000 4300
+	0    -1   -1   0   
+$EndComp
+$Comp
+L SW_PUSH SW?
+U 1 1 5A490A65
+P 3800 3700
+F 0 "SW?" H 3950 3810 50  0000 C CNN
+F 1 "SW_PUSH" H 3800 3620 50  0000 C CNN
+F 2 "" H 3800 3700 60  0000 C CNN
+F 3 "" H 3800 3700 60  0000 C CNN
+	1    3800 3700
+	0    -1   -1   0   
+$EndComp
+$Comp
+L SW_PUSH SW?
+U 1 1 5A490D81
+P 4200 3100
+F 0 "SW?" H 4350 3210 50  0000 C CNN
+F 1 "SW_PUSH" H 4200 3020 50  0000 C CNN
+F 2 "" H 4200 3100 60  0000 C CNN
+F 3 "" H 4200 3100 60  0000 C CNN
+	1    4200 3100
+	0    -1   -1   0   
+$EndComp
+$Comp
+L SW_PUSH SW?
+U 1 1 5A490DC1
+P 4400 3700
+F 0 "SW?" H 4550 3810 50  0000 C CNN
+F 1 "SW_PUSH" H 4400 3620 50  0000 C CNN
+F 2 "" H 4400 3700 60  0000 C CNN
+F 3 "" H 4400 3700 60  0000 C CNN
+	1    4400 3700
+	0    -1   -1   0   
+$EndComp
+$Comp
+L SW_PUSH SW?
+U 1 1 5A490E07
+P 4600 4300
+F 0 "SW?" H 4750 4410 50  0000 C CNN
+F 1 "SW_PUSH" H 4600 4220 50  0000 C CNN
+F 2 "" H 4600 4300 60  0000 C CNN
+F 3 "" H 4600 4300 60  0000 C CNN
+	1    4600 4300
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	5350 2300 3600 2300
+Wire Wire Line
+	3600 2300 3600 2800
+Wire Wire Line
+	5350 2400 3800 2400
+Wire Wire Line
+	3800 2400 3800 3400
+Wire Wire Line
+	5350 2500 4000 2500
+Wire Wire Line
+	4000 2500 4000 4000
+Wire Wire Line
+	5350 2600 4200 2600
+Wire Wire Line
+	4200 2600 4200 2800
+Wire Wire Line
+	5350 2700 4400 2700
+Wire Wire Line
+	4400 2700 4400 3400
+Wire Wire Line
+	5350 2800 4600 2800
+Wire Wire Line
+	4600 2800 4600 4000
+Wire Wire Line
+	3600 3400 3600 6400
+Connection ~ 3600 6400
+Wire Wire Line
+	3800 4000 3800 6400
+Connection ~ 3800 6400
+Wire Wire Line
+	4000 4600 4000 6400
+Connection ~ 4000 6400
+Wire Wire Line
+	4200 3400 4200 6400
+Connection ~ 4200 6400
+Wire Wire Line
+	4400 4000 4400 6400
+Connection ~ 4400 6400
+Wire Wire Line
+	4600 4600 4600 6400
+Connection ~ 4600 6400
+$EndSCHEMATC
