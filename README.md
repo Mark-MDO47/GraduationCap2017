@@ -18,10 +18,13 @@ Calculating wire size (Google for instance wire gauge ampacity 5v dc):
 
 These LEDs use power that adds up. Can use this to estimate the power
    http://fastled.io/docs/3.1/group___power.html
+
      calculate_max_brightness_for_power_vmA(lots of parameters)
    https://github.com/FastLED/FastLED/blob/master/power_mgt.cpp
+
      static const uint8_t gRed_mW   = 16 * 5; // 16mA @ 5v = 80mW
      static const uint8_t gGreen_mW = 11 * 5; // 11mA @ 5v = 55mW
      static const uint8_t gBlue_mW  = 15 * 5; // 15mA @ 5v = 75mW
      static const uint8_t gDark_mW  =  1 * 5; //  1mA @ 5v =  5mW
+  
    about 42 milliamps per LED at max brightness WHITE
