@@ -7,6 +7,7 @@
 // I am using an Arduino Nano with a USB mini-B connector
 //   example: http://www.ebay.com/itm/Nano-V3-0-ATmega328P-5V-16M-CH340-Compatible-to-Arduino-Nano-V3-Without-Cable/201804111413?_trksid=p2141725.c100338.m3726&_trkparms=aid%3D222007%26algo%3DSIC.MBE%26ao%3D1%26asc%3D20150313114020%26meid%3Dea29973f227743f78772d7a22512af53%26pid%3D100338%26rk%3D1%26rkt%3D30%26sd%3D191602576205
 //            V3.0 ATmega328P 5V 16M CH340 Compatible to Arduino Nano V3
+//            32Kbyte Flash (program storage), 2Kbyte SRAM, 1Kbyte EEPROM
 //            http://www.mouser.com/pdfdocs/Gravitech_Arduino_Nano3_0.pdf
 //            http://www.pighixxx.com/test/pinouts/boards/nano.pdf
 //
@@ -18,6 +19,8 @@
 // Kudos to Daniel Garcia and Mark Kriegsman for the FANTASTIC Arduino FastLED library and examples!!!
 //    https://github.com/FastLED/FastLED
 //    https://github.com/FastLED/FastLED/blob/master/examples/Fire2012WithPalette/Fire2012WithPalette.ino
+//
+// Used some routines and modified routines from twit.tv Know-How  
 //
 // These LEDs use power that adds up. Can use this to estimate the power
 //   http://fastled.io/docs/3.1/group___power.html
@@ -42,8 +45,7 @@
 //    Keep Wires Short!
 //
 // useful FastLED functions
-// Dim a color by 25% (64/256ths)
-// eventually fading to full black
+// Dim a color by 25% (64/256ths) eventually fading to full black
 //   leds[i].fadeToBlackBy( 64 );
 //   fadeToBlackBy(leds, NUM_LEDS, 64;
 //
