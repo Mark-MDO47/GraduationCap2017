@@ -41,6 +41,12 @@
 //    Placing a small-ish resistor between your Arduino's data output and the WS2812's data input will help protect the data pin. A resistor between 220 and 470 O should do nicely. Try to place the resistor as close to the WS2812 as possible.
 //    Keep Wires Short!
 //
+// useful FastLED functions
+// Dim a color by 25% (64/256ths)
+// eventually fading to full black
+//   leds[i].fadeToBlackBy( 64 );
+//   fadeToBlackBy(leds, NUM_LEDS, 64;
+//
 // I am using 93-LED rings - four of them.
 // README for testing/debugging just one ring, or if need multiple Arduinos might go there
 #define NUM_RINGS 1
@@ -50,6 +56,9 @@
 // We'll be using Digital Data Pin #3 to control the WS2812 LEDs
 // We skip D2 to leave a space between our data and our GND connection
 #define LED_DATA_PIN 3
+#define LED_TYPE    WS2812
+#define COLOR_ORDER GRB
+#define FRAMES_PER_SECOND  120
 
 // pushbutton inputs are D4 to D9
 // README - the initialization code assumes these are contiguous and in order
@@ -66,9 +75,12 @@
 CRGB led_display[NUM_LEDS];
 
 int thePin;
+int smallCount, bigCount;
+int pattern, oldPattern;
 
 // setup()
 //   initializes FastLED library for our config
+//   initializes button pins
 //   initializes serial port
 void setup()
 {
@@ -85,13 +97,66 @@ void setup()
   // README if debugging we want serial port
   Serial.begin(9600);
   Serial.println("setup grad cap");
-  
-}
+
+  smallCount = 0;
+  bigCount = 0;
+  pattern = oldPattern = 1;
+} // end setup()
 
 void loop()
 {
 
-  FastLED.show();
-  
-  delay(100);
-}
+  pattern = checkButtons();
+  if (smallCount == 0)
+  {
+    doPattern();
+    FastLED.show();
+  }
+
+  delay(10);
+
+  smallCount += 1;
+  bigCount += 1;
+  if (smallCount > 9)
+  {
+    smallCount = 0;
+  }
+} // end loop()
+
+// returns pattern number 1 thru 6
+// does not change oldPattern or pattern directly
+int checkButtons()
+{
+  int val;
+  for (thePin = PSHBTN1; thePin <= PSHBTN6; thePin ++)
+  {
+    val = digitalRead(thePin);
+    if (LOW == val)
+    {
+      break;
+    }
+  }
+  if (PSHBTN6 < thePin)
+  {
+    return(oldPattern);
+  }
+  else
+  {
+    return(thePin-PSHBTN1+1);
+  }
+} // end checkButtons()
+
+// implements pattern for show
+// keeps track of oldPattern
+void doPattern()
+{
+  if (pattern != oldPattern)
+  {
+    bigCount = 255;
+    oldPattern = pattern;
+  } // end if pattern changed
+  for (int i = 0; i < NUM_LEDS; i++)
+  {
+    led_display[i] = CRGB::Black;
+  }
+} // end doPattern()
