@@ -30,3 +30,5 @@ These LEDs use power that adds up. Can use this to estimate the power
      static const uint8_t gDark_mW  =  1 * 5; //  1mA @ 5v =  5mW
   
    about 42 milliamps per LED at max brightness WHITE
+
+The .mp4 file shows the letter "Y". When it gets restarted it re-draws the "Y" in yellow on green background. Hard to see but light flashes white before turning yellow.
