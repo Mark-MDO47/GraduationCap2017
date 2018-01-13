@@ -116,9 +116,12 @@ char * ptrn_byteptr_01;
 
 // letter patterns
 const char ltr_P[18] = { -17, 81, 82, 70, 54, 55, 32, 33, 34, 35, 59, 75, 86, 92, 90, 80, 66, 46 };
-const char ltr_T[13] = { -12, 53, 71, 56, 57, 35, 72, 84, 92, 88, 78, 64, 44 };
-const char ltr_H[18] = { -17, 54, 70, 82, 81, 80, 66, 46, 34, 58, 74, 75, 76, 62, 42, 90, 92, 86 };
-const char ltr_S[18] = { -17, 34, 33, 32, 55, 54, 70, 82, 91, 92, 87, 76, 62, 42, 43, 44, 45, 46 };
+const char ltr_L[11] = { -10, 54, 70, 82, 81, 80, 66, 65, 64, 63, 41 };
+const char ltr_Y[13] = { -12, 78, 64, 44, 53, 70, 82, 90, 88, 86, 74, 58, 35 };
+
+// const char ltr_T[13] = { -12, 53, 71, 56, 57, 35, 72, 84, 92, 88, 78, 64, 44 };
+// const char ltr_H[18] = { -17, 54, 70, 82, 81, 80, 66, 46, 34, 58, 74, 75, 76, 62, 42, 90, 92, 86 };
+// const char ltr_S[18] = { -17, 34, 33, 32, 55, 54, 70, 82, 91, 92, 87, 76, 62, 42, 43, 44, 45, 46 };
 
 const char ltr_2[18] = { -17, 53, 54, 55, 32, 33, 34, 35, 58, 85, 92, 89, 66, 47, 65, 64, 63, 41 };
 const char ltr_0[25] = { -24, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55 };
@@ -192,8 +195,8 @@ void doPattern() {
     default:
        if (pattern != oldPattern) {
          bigCount = 0;
-         fill_solid(led_display, NUM_LEDS, CRGB::Green);
-         ptrn_byteptr_01 = &ltr_8[0];
+         fill_solid(led_display, NUM_LEDS, 0x226B22); // Green; also 0x126b12, ForestGreen, DarkGreen, DarkOliveGreen, LimeGreen, MediumSeaGreen, OliveDrab (Olive looks like Gold), SeaGreen, Teal
+         ptrn_byteptr_01 = (char *) &ltr_Y[0]; // to convert from (const char *); we promise not to write into it
          ptrn_byte_01 = -(ptrn_byteptr_01[0]); // length of string
          ptrn_byte_02 = 0;                     // where in string
        }
@@ -202,7 +205,7 @@ void doPattern() {
          if (ptrn_byte_02 > ptrn_byte_01) ptrn_byte_02 = 1; // led nums start at 1
          led_display[ptrn_byteptr_01[ptrn_byte_02]] = CRGB::White;
        } else {
-         led_display[ptrn_byteptr_01[ptrn_byte_02]] = CRGB::Gold;
+         led_display[ptrn_byteptr_01[ptrn_byte_02]] = CRGB::Yellow; // Gold, Yellow, Orange
        }
        break;
   } // end switch on pattern
