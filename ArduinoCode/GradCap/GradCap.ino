@@ -56,6 +56,7 @@
 // in Arduino, int=16bits and 
 
 #define BRIGHTMAX 40 // set to 250 for final version
+#define BAD_LED_92 1 // LED [92] is not working in test hardware
 
 // I am using 93-LED rings - four of them.
 // README for testing/debugging just one ring, or if need multiple Arduinos might go there
@@ -113,6 +114,7 @@ short ptrn_shrt_01;
 short ptrn_shrt_02;
 short ptrn_shrt_03;
 char * ptrn_byteptr_01;
+char * ptrn_byteptr_02;
 
 // letter patterns
 const char ltr_P[18] = { -17, 81, 82, 70, 54, 55, 32, 33, 34, 35, 59, 75, 86, 92, 90, 80, 66, 46 };
@@ -172,17 +174,17 @@ const char efct_69[6] = { -5, 51, 68, 82, 70, 52 };
 const char efct_70[6] = { -5, 69, 82, 83, 71, 53 };
 const char efct_71[6] = { -5, 70, 83, 56, 55, 54 };
 const char efct_72[7] = { -6, 56, 71, 83, 84, 73, 57 };
-const char efct_73[7] = { -6, 72, 72, 84, 85, 74, 58 };
+const char efct_73[6] = { -5, 72, 84, 85, 74, 58 };
 const char efct_74[6] = { -5, 73, 85, 75, 59, 58 };
 const char efct_75[7] = { -6, 60, 59, 74, 86, 76, 61 };
-const char efct_76[7] = { -6, 75, 75, 86, 87, 77, 62 };
+const char efct_76[6] = { -5, 75, 86, 87, 77, 62 };
 const char efct_77[6] = { -5, 76, 87, 78, 63, 62 };
 const char efct_78[7] = { -6, 64, 63, 77, 88, 79, 65 };
-const char efct_79[7] = { -6, 78, 78, 88, 89, 80, 66 };
+const char efct_79[6] = { -5, 78, 88, 89, 80, 66 };
 const char efct_80[6] = { -5, 79, 89, 81, 67, 66 };
-const char efct_81[7] = { -6, 64, 63, 77, 88, 79, 65 };
-const char efct_82[7] = { -6, 78, 78, 88, 89, 80, 66 };
-const char efct_83[6] = { -5, 79, 89, 81, 67, 66 };
+const char efct_81[7] = { -6, 68, 67, 80, 90, 82, 69 };
+const char efct_82[6] = { -5, 81, 90, 91, 83, 70 };
+const char efct_83[6] = { -5, 82, 91, 72, 71, 70 };
 const char efct_84[7] = { -6, 72, 83, 91, 92, 85, 73 };
 const char efct_85[6] = { -5, 73, 84, 92, 86, 74 };
 const char efct_86[7] = { -6, 75, 74, 85, 92, 87, 76 };
@@ -204,6 +206,10 @@ const char* effect_pointers[61] = {
    efct_80, efct_81, efct_82, efct_83, efct_84, efct_85, efct_86, efct_87, 
    efct_88, efct_89, efct_90, efct_91, efct_92
 };
+
+#define EFFECT_POINTERS_OFFSET 32 // effect_pointers[0] corresponds to LED 32
+#define EFFECT_NUM_LED_SAV (8) // save up to eight "effect" LEDs
+CRGB led_effect_save[EFFECT_NUM_LED_SAV];
 
 // ******************************** SETUP ********************************
 // setup()
@@ -231,8 +237,9 @@ void setup() {
   smallCount = 0;
   bigCount = 0;
 
-  pattern = 1;
-  oldPattern = 2;
+  // FIXME - read pattern from buttons
+  pattern = 4;
+  oldPattern = 1;
 } // end setup()
 
 // ******************************** LOOP ********************************
@@ -243,6 +250,8 @@ void loop() {
   FastLED.show();
 
   delay(100);
+
+  // FIXME - read pattern from buttons
 
   smallCount += 1;
   bigCount += 1;
@@ -266,44 +275,172 @@ byte  checkButtons() {
 // implements pattern for show
 // keeps track of oldPattern
 void doPattern() {
+  static int save_return = 0;
   switch (pattern) {
     case 1: // 1 = OFF
-    default:
-       if (pattern != oldPattern) {
-         bigCount = 0;
-         fill_solid(led_display, NUM_LEDS, 0x226B22); // Green; also 0x126b12, ForestGreen, DarkGreen, DarkOliveGreen, LimeGreen, MediumSeaGreen, OliveDrab (Olive looks like Gold), SeaGreen, Teal
-         led_display[92] = CRGB::Black; // this one is not working in the test
-         ptrn_byteptr_01 = (char *) &ltr_Y[0]; // to convert from (const char *); we promise not to write into it
-         ptrn_byte_01 = -(ptrn_byteptr_01[0]); // length of string
-         ptrn_byte_02 = 0;                     // where in string
-       }
-       if (0 == (bigCount % 2)) {
-         ptrn_byte_02 += 1;
-         if (ptrn_byte_02 > ptrn_byte_01) ptrn_byte_02 = 1; // led nums start at 1
-         led_display[ptrn_byteptr_01[ptrn_byte_02]] = CRGB::Red;
-       } else {
-         led_display[ptrn_byteptr_01[ptrn_byte_02]] = CRGB::Yellow; // Gold, Yellow, Orange
-       }
+       save_return = doPattern_01(save_return);
        break;
-    case 2:
-       if (pattern != oldPattern) {
-         bigCount = 0;
-         fill_solid(led_display, NUM_LEDS, 0x226B22); // Green; also 0x126b12, ForestGreen, DarkGreen, DarkOliveGreen, LimeGreen, MediumSeaGreen, OliveDrab (Olive looks like Gold), SeaGreen, Teal
-         led_display[92] = CRGB::Black; // this one is not working in the test
-         ptrn_byteptr_01 = (char *) &ltr_Y[0]; // to convert from (const char *); we promise not to write into it
-         ptrn_byte_01 = -(ptrn_byteptr_01[0]); // length of string
-         ptrn_byte_02 = 0;                     // where in string
-       }
-       if (0 == (bigCount % 2)) {
-         ptrn_byte_02 += 1;
-         if (ptrn_byte_02 > ptrn_byte_01) ptrn_byte_02 = 1; // led nums start at 1
-         led_display[ptrn_byteptr_01[ptrn_byte_02]] = CRGB::Red;
-       } else {
-         led_display[ptrn_byteptr_01[ptrn_byte_02]] = CRGB::Yellow; // Gold, Yellow, Orange
-       }
+    case 2: // 2 = draw with NO surround
+    default:
+       save_return = doPattern_02(save_return);
+       break;
+    case 3: // 3 = draw WITH surround
+       save_return = doPattern_03(save_return);
+       break;
+    case 4:
+       save_return = doPattern_04(save_return);
+       break;
+    case 5:
+       save_return = doPattern_05(save_return);
+       break;
+    case 6:
+       save_return = doPattern_06(save_return);
+       break;
   } // end switch on pattern
   if (pattern != oldPattern) {
     oldPattern = pattern;
   } // end if pattern changed
 } // end doPattern()
+
+// pattern 01 = OFF
+int doPattern_01(int prev_return) {
+  bigCount = 0;
+  fill_solid(led_display, NUM_LEDS, CRGB::Black);
+  return(0);
+} // end doPattern_01()
+
+// pattern 2 = draw with NO surround
+  // ptrn_byteptr_01 - points to the letter/number array, example: (char *) &ltr_Y[0]
+  // ptrn_byte_01    - index for ptrn_byteptr_01[]. [0] = neg count of LED indexes, [1..-[0]] =  are the LED indexes
+  // ptrn_byteptr_02 - points to the effects array, example: (char *) effect_pointers[theLED-EFFECT_POINTERS_OFFSET]
+  // ptrn_byte_02    - index for ptrn_byteptr_02[]. [0] = neg count of LED indexes, [1..-[0]] =  are the LED indexes
+  // ptrn_byte_03    - num of LED indexes in ptrn_byteptr_01
+  // ptrn_byte_04    - num of LED indexes in ptrn_byteptr_02
+int doPattern_02(int prev_return) {
+  if (pattern != oldPattern) {
+    bigCount = 0;
+    fill_solid(led_display, NUM_LEDS, 0x226B22); // Green; also 0x126b12, ForestGreen, DarkGreen, DarkOliveGreen, LimeGreen, MediumSeaGreen, OliveDrab (Olive looks like Gold), SeaGreen, Teal
+    #if BAD_LED_92
+    led_display[92] = CRGB::Black; // this LED is not working in the test hardware
+    #endif // BAD_LED_92
+    ptrn_byteptr_01 = (char *) &ltr_Y[0]; // to convert from (const char *); we promise not to write into it
+    ptrn_byte_03 = -(ptrn_byteptr_01[0]); // length of string
+    ptrn_byte_01 = 0;                     // where in string
+  }
+  if (0 == (bigCount % 2)) {
+    ptrn_byte_01 += 1;
+    if (ptrn_byte_01 > ptrn_byte_03) ptrn_byte_01 = 1; // led nums start at 1
+    led_display[ptrn_byteptr_01[ptrn_byte_01]] = CRGB::Red;
+  } else {
+    led_display[ptrn_byteptr_01[ptrn_byte_01]] = CRGB::Yellow; // Gold, Yellow, Orange
+  }
+  return(ptrn_byte_01);
+} // end doPattern_02()
+
+// pattern 3 = draw WITH surround
+  // ptrn_byteptr_01 - points to the letter/number array, example: (char *) &ltr_Y[0]
+  // ptrn_byte_01    - index for ptrn_byteptr_01[]. [0] = neg count of LED indexes, [1..-[0]] =  are the LED indexes
+  // ptrn_byteptr_02 - points to the effects array, example: (char *) effect_pointers[theLED-EFFECT_POINTERS_OFFSET]
+  // ptrn_byte_02    - index for ptrn_byteptr_02[]. [0] = neg count of LED indexes, [1..-[0]] =  are the LED indexes
+  // ptrn_byte_03    - num of LED indexes in ptrn_byteptr_01
+  // ptrn_byte_04    - num of LED indexes in ptrn_byteptr_02
+int doPattern_03(int prev_return) {
+  int theLED = -1; // temp storage for the LED that is being written
+  if (pattern != oldPattern) {
+    bigCount = 0;
+    fill_solid(led_display, NUM_LEDS, 0x226B22); // Green; also 0x126b12, ForestGreen, DarkGreen, DarkOliveGreen, LimeGreen, MediumSeaGreen, OliveDrab (Olive looks like Gold), SeaGreen, Teal
+    #if BAD_LED_92
+    led_display[92] = CRGB::Black; // this LED is not working in the test hardware
+    #endif // BAD_LED_92
+    ptrn_byteptr_01 = (char *) &ltr_Y[0]; // to convert from (const char *); we promise not to write into it
+    ptrn_byte_03 = -(ptrn_byteptr_01[0]); // length of string
+    ptrn_byte_01 = 0;                     // where in string
+    prev_return = -1; // ignore previous return
+  } // end if change of pattern
+  switch (bigCount % 4) {
+    case 0: // blink large on next LED
+    default:
+      // move to next (or first) LED, get info on effect
+      ptrn_byte_01 += 1;
+      if (ptrn_byte_01 > ptrn_byte_03) ptrn_byte_01 = 1; // led nums start at 1
+      ptrn_byteptr_02 = (char *) effect_pointers[ptrn_byteptr_01[ptrn_byte_01]-EFFECT_POINTERS_OFFSET];  // to convert from (const char *); we promise not to write into it
+      ptrn_byte_04 = -(ptrn_byteptr_02[0]); // length of string
+      // save the original state of the effects LEDs
+      for (int i = 1; i <= ptrn_byte_04; i++) {
+        led_effect_save[i-1] = led_display[ptrn_byteptr_02[i]];
+      }
+      // no break - fall into case 2
+    case 2: // blink large on this LED
+      theLED = ptrn_byteptr_01[ptrn_byte_01];
+      led_display[theLED] = CRGB::Red;
+      for (int i = 1; i <= ptrn_byte_04; i++) {
+        led_display[ptrn_byteptr_02[i]] = CRGB::Red;
+      }
+      break;
+    case 3: // blink small on this LED
+    case 1: // blink small on this LED
+      // restore the effects LEDs to original state
+      for (int i = 1; i <= ptrn_byte_04; i++) {
+        led_display[ptrn_byteptr_02[i]] = led_effect_save[i-1];
+      }
+      theLED = ptrn_byteptr_01[ptrn_byte_01];
+      led_display[theLED] = CRGB::Yellow; // Gold, Yellow, Orange
+      break;
+  }
+  return(ptrn_byte_01);
+} // end doPattern_03()
+
+int doPattern_04(int prev_return) {
+  int theLED = -1; // temp storage for the LED that is being written
+  if (pattern != oldPattern) {
+    bigCount = 0;
+    fill_solid(led_display, NUM_LEDS, 0x226B22); // Green; also 0x126b12, ForestGreen, DarkGreen, DarkOliveGreen, LimeGreen, MediumSeaGreen, OliveDrab (Olive looks like Gold), SeaGreen, Teal
+    #if BAD_LED_92
+    led_display[92] = CRGB::Black; // this LED is not working in the test hardware
+    #endif // BAD_LED_92
+    ptrn_byteptr_01 = (char *) &ltr_Y[0]; // to convert from (const char *); we promise not to write into it
+    ptrn_byte_03 = -(ptrn_byteptr_01[0]); // length of string
+    ptrn_byte_01 = 0;                     // where in string
+    prev_return = -1; // ignore previous return
+  } // end if change of pattern
+  switch (bigCount % 4) {
+    case 0: // blink large on next LED
+    default:
+      // move to next (or first) LED, get info on effect
+      ptrn_byte_01 += 1;
+      if (ptrn_byte_01 > ptrn_byte_03) ptrn_byte_01 = 1; // led nums start at 1
+      ptrn_byteptr_02 = (char *) effect_pointers[ptrn_byteptr_01[ptrn_byte_01]-EFFECT_POINTERS_OFFSET];  // to convert from (const char *); we promise not to write into it
+      ptrn_byte_04 = -(ptrn_byteptr_02[0]); // length of string
+      // save the original state of the effects LEDs
+      for (int i = 1; i <= ptrn_byte_04; i++) {
+        led_effect_save[i-1] = led_display[ptrn_byteptr_02[i]];
+      }
+      // no break - fall into case 2
+    case 2: // blink large on this LED
+      theLED = ptrn_byteptr_01[ptrn_byte_01];
+      led_display[theLED] = CRGB::Yellow;
+      for (int i = 1; i <= ptrn_byte_04; i++) {
+        led_display[ptrn_byteptr_02[i]] = CRGB::Yellow;
+      }
+      break;
+    case 1: // blink small on this LED
+      // restore the effects LEDs to original state
+      for (int i = 1; i <= ptrn_byte_04; i++) {
+        led_display[ptrn_byteptr_02[i]] = led_effect_save[i-1];
+      }
+    case 3: // blink small on this LED
+      theLED = ptrn_byteptr_01[ptrn_byte_01];
+      led_display[theLED] = CRGB::Yellow; // Gold, Yellow, Orange
+      break;
+  }
+  return(ptrn_byte_01);
+} // end doPattern_04()
+
+int doPattern_05(int prev_return) {
+  return(0);
+} // end doPattern_05()
+
+int doPattern_06(int prev_return) {
+  return(0);
+} // end doPattern_06()
 
