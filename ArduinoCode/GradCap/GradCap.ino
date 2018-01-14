@@ -130,6 +130,80 @@ const char ltr_8[25] = { -24, 54, 55, 32, 33, 34, 58, 74, 85, 92, 89, 80, 66, 46
 
 // const char ltr_all[94] = { -93, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92 };
 
+// the "effect" is to surround the LED we are painting with other nearby LEDs
+const char efct_32[7] = { -6, 0, 31, 55, 56, 33, 1 };
+const char efct_33[6] = { -5, 1, 32, 57, 34, 2 };
+const char efct_34[6] = { -5, 2, 33, 47, 35, 3 };
+const char efct_35[6] = { -5, 3, 34, 58, 36, 4 };
+const char efct_36[6] = { -5, 35, 59, 37, 6, 5 };
+const char efct_37[6] = { -5, 36, 59, 38, 7, 6 };
+const char efct_38[7] = { -6, 8, 7, 37, 60, 39, 9 };
+const char efct_39[6] = { -5, 9, 38, 61, 40, 10 };
+const char efct_40[6] = { -5, 10, 39, 53, 41, 11 };
+const char efct_41[6] = { -5, 11, 40, 62, 42, 12 };
+const char efct_42[6] = { -5, 41, 63, 43, 14, 13 };
+const char efct_43[6] = { -5, 42, 63, 44, 15, 14 };
+const char efct_44[7] = { -6, 16, 15, 43, 64, 45, 17 };
+const char efct_45[6] = { -5, 17, 44, 65, 46, 18 };
+const char efct_46[6] = { -5, 18, 45, 35, 47, 19 };
+const char efct_47[6] = { -5, 19, 46, 66, 48, 20 };
+const char efct_48[6] = { -5, 47, 67, 49, 22, 21 };
+const char efct_49[6] = { -5, 48, 67, 50, 23, 22 };
+const char efct_50[7] = { -6, 24, 23, 49, 68, 51, 25 };
+const char efct_51[6] = { -5, 25, 50, 69, 52, 26 };
+const char efct_52[6] = { -5, 26, 51, 41, 53, 27 };
+const char efct_53[6] = { -5, 27, 52, 70, 54, 28 };
+const char efct_54[6] = { -5, 53, 71, 55, 30, 29 };
+const char efct_55[6] = { -5, 54, 71, 32, 31, 30 };
+const char efct_56[7] = { -6, 32, 55, 71, 72, 57, 33 };
+const char efct_57[6] = { -5, 33, 56, 73, 58, 34 };
+const char efct_58[6] = { -5, 57, 73, 74, 59, 35 };
+const char efct_59[6] = { -5, 58, 74, 60, 37, 36 };
+const char efct_60[7] = { -6, 38, 37, 59, 75, 61, 39 };
+const char efct_61[6] = { -5, 39, 60, 76, 62, 40 };
+const char efct_62[6] = { -5, 61, 76, 77, 63, 41 };
+const char efct_63[6] = { -5, 62, 77, 64, 43, 42 };
+const char efct_64[7] = { -6, 44, 43, 63, 78, 65, 45 };
+const char efct_65[6] = { -5, 45, 64, 79, 66, 46 };
+const char efct_66[6] = { -5, 65, 79, 80, 67, 47 };
+const char efct_67[6] = { -5, 66, 80, 68, 49, 48 };
+const char efct_68[7] = { -6, 50, 49, 67, 81, 69, 51 };
+const char efct_69[6] = { -5, 51, 68, 82, 70, 52 };
+const char efct_70[6] = { -5, 69, 82, 83, 71, 53 };
+const char efct_71[6] = { -5, 70, 83, 56, 55, 54 };
+const char efct_72[7] = { -6, 56, 71, 83, 84, 73, 57 };
+const char efct_73[7] = { -6, 72, 72, 84, 85, 74, 58 };
+const char efct_74[6] = { -5, 73, 85, 75, 59, 58 };
+const char efct_75[7] = { -6, 60, 59, 74, 86, 76, 61 };
+const char efct_76[7] = { -6, 75, 75, 86, 87, 77, 62 };
+const char efct_77[6] = { -5, 76, 87, 78, 63, 62 };
+const char efct_78[7] = { -6, 64, 63, 77, 88, 79, 65 };
+const char efct_79[7] = { -6, 78, 78, 88, 89, 80, 66 };
+const char efct_80[6] = { -5, 79, 89, 81, 67, 66 };
+const char efct_81[7] = { -6, 64, 63, 77, 88, 79, 65 };
+const char efct_82[7] = { -6, 78, 78, 88, 89, 80, 66 };
+const char efct_83[6] = { -5, 79, 89, 81, 67, 66 };
+const char efct_84[7] = { -6, 72, 83, 91, 92, 85, 73 };
+const char efct_85[6] = { -5, 73, 84, 92, 86, 74 };
+const char efct_86[7] = { -6, 75, 74, 85, 92, 87, 76 };
+const char efct_87[6] = { -5, 76, 86, 92, 88, 77 };
+const char efct_88[7] = { -6, 78, 77, 87, 92, 89, 79 };
+const char efct_89[6] = { -5, 79, 88, 92, 90, 80 };
+const char efct_90[7] = { -6, 81, 80, 89, 92, 91, 82 };
+const char efct_91[6] = { -5, 82, 90, 92, 84, 83 };
+const char efct_92[9] = { -8, 84, 91, 90, 89, 88, 87, 86, 85 };
+
+// the "effect" is to surround the LED we are painting with other nearby LEDs
+const char* effect_pointers[61] = { 
+   efct_32, efct_33, efct_34, efct_35, efct_36, efct_37, efct_38, efct_39, 
+   efct_40, efct_41, efct_42, efct_43, efct_44, efct_45, efct_46, efct_47, 
+   efct_48, efct_49, efct_50, efct_51, efct_52, efct_53, efct_54, efct_55, 
+   efct_56, efct_57, efct_58, efct_59, efct_60, efct_61, efct_62, efct_63, 
+   efct_64, efct_65, efct_66, efct_67, efct_68, efct_69, efct_70, efct_71, 
+   efct_72, efct_73, efct_74, efct_75, efct_76, efct_77, efct_78, efct_79, 
+   efct_80, efct_81, efct_82, efct_83, efct_84, efct_85, efct_86, efct_87, 
+   efct_88, efct_89, efct_90, efct_91, efct_92
+};
 
 // ******************************** SETUP ********************************
 // setup()
@@ -137,6 +211,8 @@ const char ltr_8[25] = { -24, 54, 55, 32, 33, 34, 58, 74, 85, 92, 89, 80, 66, 46
 //   initializes push button pins
 //   initializes serial port
 void setup() {
+  delay(5000); // for debugging & show
+  
   FastLED.addLeds<NEOPIXEL,LED_DATA_PIN>(led_display, NUM_LEDS);
   FastLED.setBrightness(BRIGHTMAX); // we will do our own power management
 
@@ -196,6 +272,7 @@ void doPattern() {
        if (pattern != oldPattern) {
          bigCount = 0;
          fill_solid(led_display, NUM_LEDS, 0x226B22); // Green; also 0x126b12, ForestGreen, DarkGreen, DarkOliveGreen, LimeGreen, MediumSeaGreen, OliveDrab (Olive looks like Gold), SeaGreen, Teal
+         led_display[92] = CRGB::Black; // this one is not working in the test
          ptrn_byteptr_01 = (char *) &ltr_Y[0]; // to convert from (const char *); we promise not to write into it
          ptrn_byte_01 = -(ptrn_byteptr_01[0]); // length of string
          ptrn_byte_02 = 0;                     // where in string
@@ -203,11 +280,27 @@ void doPattern() {
        if (0 == (bigCount % 2)) {
          ptrn_byte_02 += 1;
          if (ptrn_byte_02 > ptrn_byte_01) ptrn_byte_02 = 1; // led nums start at 1
-         led_display[ptrn_byteptr_01[ptrn_byte_02]] = CRGB::White;
+         led_display[ptrn_byteptr_01[ptrn_byte_02]] = CRGB::Red;
        } else {
          led_display[ptrn_byteptr_01[ptrn_byte_02]] = CRGB::Yellow; // Gold, Yellow, Orange
        }
        break;
+    case 2:
+       if (pattern != oldPattern) {
+         bigCount = 0;
+         fill_solid(led_display, NUM_LEDS, 0x226B22); // Green; also 0x126b12, ForestGreen, DarkGreen, DarkOliveGreen, LimeGreen, MediumSeaGreen, OliveDrab (Olive looks like Gold), SeaGreen, Teal
+         led_display[92] = CRGB::Black; // this one is not working in the test
+         ptrn_byteptr_01 = (char *) &ltr_Y[0]; // to convert from (const char *); we promise not to write into it
+         ptrn_byte_01 = -(ptrn_byteptr_01[0]); // length of string
+         ptrn_byte_02 = 0;                     // where in string
+       }
+       if (0 == (bigCount % 2)) {
+         ptrn_byte_02 += 1;
+         if (ptrn_byte_02 > ptrn_byte_01) ptrn_byte_02 = 1; // led nums start at 1
+         led_display[ptrn_byteptr_01[ptrn_byte_02]] = CRGB::Red;
+       } else {
+         led_display[ptrn_byteptr_01[ptrn_byte_02]] = CRGB::Yellow; // Gold, Yellow, Orange
+       }
   } // end switch on pattern
   if (pattern != oldPattern) {
     oldPattern = pattern;
