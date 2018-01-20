@@ -1,5 +1,8 @@
 #include "FastLED.h"
 
+// letter patterns - just uses numbers, no #defines
+#include "GradCap.h"
+
 // Mark Olson 2017-12
 //
 // major kudos to Daniel Garcia and Mark Kriegsman for the FANTASTIC FastLED library and examples!!!
@@ -105,24 +108,27 @@ CRGB led_display[NUM_LEDS];
 //   negative is pattern for all changing at once
 //   positive is pattern for surround changing one LED at a time
 //   specials are >= 100 and <= 120. Only one special per pattern will execute only one time unless preceeded by ALLOW_SPCL
-#define END_OF_PTRNS       0 //
-#define BLINK_OFF_SRND_CLKWS    1 //
-#define BLINK_ON_SRND_CLKWS     2 //
-#define BLINK_OFF_SRND_CTRCLKWS 3 //
-#define BLINK_ON_SRND_CTRCLKWS  4 //
-#define BLINK_OFF_SRND_ALL   (-1) // set all surround LEDs to previous color
-#define BLINK_ON_SRND_ALL    (-2) // set all surround LEDs to foreground color
-#define BLINK_OFF            (-3) // set letter LED to previous color
-#define BLINK_ON             (-4) // set letter LED to foreground color
-#define DRAW_BKGD_CLRBLACK    118 // SPECIAL: set all LEDs to black
-#define DRAW_BKGD_CLRFORE     119 // SPECIAL: set all LEDs to foreground color
-#define DRAW_BKGD_CLRBKGND    120 // SPECIAL: set all LEDs to background color
-#define ALLOW_SPCL            126 // execute next special when pattern restarts
-#define STOP_WHEN_DONE        127 // SUPER-SPECIAL: run just one time if first entry in pattern. Otherwise the pattern repeats
-const char ptrnOff[]      = { STOP_WHEN_DONE, DRAW_BKGD_CLRBLACK };
-const char ptrnJustDraw[] = { DRAW_BKGD_CLRBKGND, BLINK_OFF, BLINK_ON };
-const char ptrnWideDraw[] = { STOP_WHEN_DONE, DRAW_BKGD_CLRBKGND, BLINK_OFF_SRND_ALL, BLINK_OFF };
-const char ptrnDblClkws[] = { STOP_WHEN_DONE, DRAW_BKGD_CLRBKGND, BLINK_OFF_SRND_CLKWS, BLINK_ON_SRND_CLKWS, BLINK_OFF, BLINK_ON, BLINK_OFF_SRND_CLKWS, BLINK_ON_SRND_CLKWS, BLINK_OFF, BLINK_ON, END_OF_PTRNS };
+#define END_OF_PTRNS               0 //
+#define BLINK_BLNKNG_SRND_CLKWS    1 //
+#define BLINK_PREV_SRND_CLKWS      2 //
+#define BLINK_BLNKNG_SRND_CTRCLKWS 3 //
+#define BLINK_PREV_SRND_CTRCLKWS   4 // walk thru surround setting LEDs to previous color
+#define BLINK_BLNKING_SRND_ALL  (-1) // set all surround LEDs to blinking color
+#define BLINK_PREV_SRND_ALL     (-2) // set all surround LEDs to previous color
+#define BLINK_BLNKING           (-3) // set letter LED to blinking color
+#define BLINK_FORE              (-4) // set letter LED to foreground color
+#define BLINK_BLNKING_LTR_ALL   (-5) // set all letter LEDs to blinking color
+#define BLINK_FORE_LTR_ALL      (-6) // set all letter LED to foreground color
+#define DRAW_BKGD_CLRBLACK       100 // SPECIAL: set all LEDs to black
+#define DRAW_BKGD_CLRFORE        101 // SPECIAL: set all LEDs to foreground color
+#define DRAW_BKGD_CLRBKGND       102 // SPECIAL: set all LEDs to background color
+// #define SAVE_SRND                125 // SUPER-SPECIAL: save current state of surround LEDs and current letter LED
+#define ALLOW_SPCL               126 // SUPER-SPECIAL: execute next special when pattern restarts
+#define STOP_WHEN_DONE           127 // SUPER-SPECIAL: run just one time if first entry in pattern. Otherwise the pattern repeats
+const char ptrnOff[]      = { STOP_WHEN_DONE, DRAW_BKGD_CLRBLACK, END_OF_PTRNS };
+const char ptrnJustDraw[] = { DRAW_BKGD_CLRBKGND, BLINK_BLNKING, BLINK_FORE, END_OF_PTRNS };
+const char ptrnWideDraw[] = { STOP_WHEN_DONE, DRAW_BKGD_CLRBKGND, BLINK_BLNKING_SRND_ALL, BLINK_FORE_LTR_ALL, END_OF_PTRNS };
+const char ptrnDblClkws[] = { STOP_WHEN_DONE, DRAW_BKGD_CLRBKGND, BLINK_BLNKNG_SRND_CLKWS, BLINK_PREV_SRND_CLKWS, BLINK_BLNKING, BLINK_FORE, BLINK_BLNKNG_SRND_CLKWS, BLINK_PREV_SRND_CLKWS, BLINK_BLNKING, BLINK_FORE, END_OF_PTRNS };
 
 
 // pattern vars
@@ -141,16 +147,16 @@ static char  ptrn_byte_06 = -1;
 static char * ptrn_byteptr_01 = (char *) 0;
 static char * ptrn_byteptr_02 = (char *) 0;
 
-// letter patterns
-
-#include "GradCap.h"
-
 #define EFFECT_POINTERS_OFFSET 32 // effect_pointers[0] corresponds to LED 32
 #define EFFECT_NUM_LED_SAV (8) // save up to eight "effect" LEDs
 CRGB led_effect_save[EFFECT_NUM_LED_SAV+1];
 
 #define NO_BUTTON_PRESS -1 // when no input from user
 #define NO_BUTTON_CHANGE -1 // when no CHANGE in input from user
+
+// it's hard to be green: 0x226B22 Green; also 0x126b12, ForestGreen, DarkGreen, DarkOliveGreen, LimeGreen, MediumSeaGreen, OliveDrab (Olive looks like Gold), SeaGreen, Teal
+
+
 
 // ******************************** SETUP ********************************
 // setup()
@@ -202,25 +208,27 @@ void loop() {
 
 // ******************************** UTILITIES ********************************
 
-// 0x226B22); // Green; also 0x126b12, ForestGreen, DarkGreen, DarkOliveGreen, LimeGreen, MediumSeaGreen, OliveDrab (Olive looks like Gold), SeaGreen, Teal // FIXME
-
 // implements pattern for show
 // keeps track of oldPattern
+//
+// Calls: int doPatternDraw(int led_delay, const char * ptrn_ptr, CRGB foreground, CRGB background, CRGB blinking);
+//
 void doPattern() {
   static int save_return = 0;
   switch (pattern) {
     case 1: // 1 = OFF
-       save_return = doPattern_draw(10, ptrnOff, CRGB::Gold, 0x226B22, CRGB::Red);
+       save_return = doPatternDraw(10, ptrnOff, CRGB::Gold, 0x226B22, CRGB::Red);
        break;
-    case 2: // 2 = draw with NO surround
+    case 2: // 2 = draw skinny
     default:
-       save_return = doPattern_draw(10, ptrnWideDraw, CRGB::Gold, 0x226B22, CRGB::Red);
+       save_return = doPatternDraw(10, ptrnJustDraw, CRGB::Gold, 0x226B22, CRGB::Red);
        break;
-    case 3: // 3 = draw WITH surround
-       save_return = doPattern_03(save_return);
+    case 3: // 3 = draw wide
+       save_return = doPatternDraw(10, ptrnWideDraw, CRGB::Gold, 0x226B22, CRGB::Red);
        break;
-    case 4:
-       save_return = doPattern_draw(8, ptrnDblClkws, CRGB::Gold, 0x226B22, CRGB::Red);
+    case 4: // 4 = 2
+    
+       save_return = doPatternDraw(8, ptrnDblClkws, CRGB::Gold, 0x226B22, CRGB::Red);
        break;
     case 5:
        save_return = doPattern_05(save_return);
@@ -234,6 +242,7 @@ void doPattern() {
   } // end if pattern changed
 } // end doPattern()
 
+// getButtonPress() - get next button press, true button or debugging
 int getButtonPress() {
 #if REAL_BUTTONS
   return(checkButtons());
@@ -243,8 +252,8 @@ int getButtonPress() {
 } // end getButtonPress()
 
 #if REAL_BUTTONS
-  // returns number of button pressed (1 through 6) or NO_BUTTON_PRESS
-  byte  checkButtons() {
+  // checkButtons() - returns number of button pressed (1 through 6) or NO_BUTTON_PRESS
+  int checkButtons() {
     byte  val;
     int thePin;
     for (thePin = PSHBTN1; thePin <= PSHBTN6; thePin ++) {
@@ -255,40 +264,27 @@ int getButtonPress() {
     else                  return(thePin-PSHBTN1+1);
   } // end checkButtons()
 #else // end if REAL_BUTTONS; now NOT REAL_BUTTONS
-  // for debugging - serial port buttons
+  // checkKeyboard() - for debugging - serial port buttons
   int checkKeyboard() { // not REAL_BUTTONS
-    char receivedChar;
+    char received_char;
     int myButton = NO_BUTTON_PRESS;
     if (Serial.available() > 0) {
-      receivedChar = Serial.read();
-      switch ((int) receivedChar) {
-        case (int) '1':
-          myButton = 1;
-          break;
-        case (int) '2':
-          myButton = 2;
-          break;
-        case (int) '3':
-          myButton = 3;
-          break;
-        case (int) '4':
-          myButton = 4;
-          break;
-        case (int) '5':
-          myButton = 5;
-          break;
-        case (int) '6':
-          myButton = 6;
-          break;
-        default:
-          myButton = NO_BUTTON_PRESS;
-          break;
-      }
-    }
+      received_char = Serial.read();
+      switch ((int) received_char) {
+        case (int) '1': myButton = 1; break;
+        case (int) '2': myButton = 2; break;
+        case (int) '3': myButton = 3; break;
+        case (int) '4': myButton = 4; break;
+        case (int) '5': myButton = 5; break;
+        case (int) '6': myButton = 6; break;
+        default: myButton = NO_BUTTON_PRESS; break;
+      } // end switch on received character
+    } // end if there was a character ready to read
     return(myButton);
   } // end checkKeyboard()
 #endif // not REAL_BUTTONS
 
+// patternFromButtons() - get pattern to use (called from main loop)
 // could have button pressed now - do that ignore any earlier press
 // could have seen button pressed earlier and just now handling it - do that
 // otherwise keep same pattern - no change
@@ -305,6 +301,8 @@ int patternFromButtons() {
   return(myButton);
 } // end patternFromButtons()
 
+// nextPatternFromButtons() - store nextPattern if button pressed
+//     nextPattern will get used when we get back to the main loop
 int nextPatternFromButtons() {
   int myButton = getButtonPress();
   if (myButton != NO_BUTTON_PRESS) {
@@ -313,64 +311,6 @@ int nextPatternFromButtons() {
   return (nextPattern);
 } // end nextPatternFromButtons()
 
-// pattern 3 = draw WITH surround
-  // ptrn_byteptr_01 - points to the letter/number array, example: (char *) &ltr_Y[0]
-  // ptrn_byte_01    - index for ptrn_byteptr_01[]. [0] = neg count of LED indexes, [1..-[0]] =  are the LED indexes
-  // ptrn_byteptr_02 - points to the effects array, example: (char *) effect_pointers[theLED-EFFECT_POINTERS_OFFSET]
-  // ptrn_byte_02    - index for ptrn_byteptr_02[]. [0] = neg count of LED indexes, [1..-[0]] =  are the LED indexes
-  // ptrn_byte_03    - num of LED indexes in ptrn_byteptr_01
-  // ptrn_byte_04    - num of LED indexes in ptrn_byteptr_02
-int doPattern_03(int prev_return) {
-  int theLED = -1; // temp storage for the LED that is being written
-  static char advance_effect = -1; // used to space through effect stages
-
-  advance_effect += 1;
-  if (pattern != oldPattern) {
-    ptrn_delay = 100;
-    advance_effect = 0;
-    fill_solid(led_display, NUM_LEDS, 0x226B22); // Green; also 0x126b12, ForestGreen, DarkGreen, DarkOliveGreen, LimeGreen, MediumSeaGreen, OliveDrab (Olive looks like Gold), SeaGreen, Teal
-    #if BAD_LED_92
-    led_display[92] = CRGB::Black; // this LED is not working in the test hardware
-    #endif // BAD_LED_92
-    ptrn_byteptr_01 = (char *) &ltr_Y[0]; // to convert from (const char *); we promise not to write into it
-    ptrn_byte_03 = -(ptrn_byteptr_01[0]); // length of string
-    ptrn_byte_01 = 0;                     // where in string
-    prev_return = -1; // ignore previous return
-  } // end if change of pattern
-
-  switch ((advance_effect) % 4) {
-    case 0: // blink large on next LED
-    default:
-      // move to next (or first) LED, get info on effect
-      ptrn_byte_01 += 1;
-      if (ptrn_byte_01 > ptrn_byte_03) ptrn_byte_01 = 1; // roll over LEDs to draw; led nums start at index 1
-      ptrn_byteptr_02 = (char *) effect_pointers[ptrn_byteptr_01[ptrn_byte_01]-EFFECT_POINTERS_OFFSET];  // to convert from (const char *); we promise not to write into it
-      ptrn_byte_04 = -(ptrn_byteptr_02[0]); // length of string for effect
-      // save the original state of the effects LEDs
-      for (int i = 1; i <= ptrn_byte_04 ; i++) {
-        led_effect_save[i-1] = led_display[ptrn_byteptr_02[i]];
-      }
-      // no break - fall into case 2
-    case 2: // blink large on this LED
-      theLED = ptrn_byteptr_01[ptrn_byte_01];
-      led_display[theLED] = CRGB::Red;
-      for (int i = 1; i <= ptrn_byte_04; i++) {
-        led_display[ptrn_byteptr_02[i]] = CRGB::Red;
-      }
-      break;
-    case 3: // blink small on this LED
-    case 1: // blink small on this LED
-      // restore the effects LEDs to original state
-      for (int i = 1; i <= ptrn_byte_04; i++) {
-        led_display[ptrn_byteptr_02[i]] = led_effect_save[i-1];
-      }
-      theLED = ptrn_byteptr_01[ptrn_byte_01];
-      led_display[theLED] = CRGB::Yellow; // Gold, Yellow, Orange
-      break;
-  } // end switch on advance_effect
-  return(ptrn_byte_01);
-} // end doPattern_03()
-
 // saveSurroundEffectLEDs()
 void saveSurroundEffectLEDs(char ltr_index, const char * surround_ptrn_ptr, CRGB * save_here) {
   save_here[0] =   led_display[ptrn_byteptr_01[ptrn_byte_01]]; // save_here[0] is the LED in the middle, [1..end] are the LEDs in the surround effect
@@ -378,7 +318,7 @@ void saveSurroundEffectLEDs(char ltr_index, const char * surround_ptrn_ptr, CRGB
     save_here[i] = led_display[surround_ptrn_ptr[i]];
   } // end save the original LED info for surround effect area
 }
-// doPattern_draw() = draw pattern list with surround
+// doPatternDraw() = draw pattern list with surround
   // ptrn_byteptr_01 - points to the letter/number array, example: (char *) &ltr_Y[0]
   // ptrn_byte_01    - index for ptrn_byteptr_01[]. [0] = neg count of LED indexes, [1..-[0]] =  are the LED indexes
   // ptrn_byteptr_02 - points to the effects array, example: (char *) effect_pointers[theLED-EFFECT_POINTERS_OFFSET]
@@ -391,16 +331,20 @@ void saveSurroundEffectLEDs(char ltr_index, const char * surround_ptrn_ptr, CRGB
   // for readability I had to stand the control structure on its head.
   //    I just used loops for what the order of operations was through the entire pattern
   //    after each LED change I check to see if there was an input; if so return
-  // this is the flow of LEDs through the pattern:
-  // cycle thru letter LEDs     
-  //   cycle thru effect (on clockwise, off clockwise, blink-off, blink-on, on clockwise, off clockwise, blink-off, blink-on)    
-  //     cycle thru counter for effect (clockwise = surround LED, blink = letter LED)  
-  //       do effect one led (color for on, original for off, color for blink on, BLACK for blink off)
   //
-int doPattern_draw(int led_delay, const char * ptrn_ptr, CRGB foreground, CRGB background, CRGB blinking) {
+  // this is the flow of LEDs through the pattern:
+  //     SUPER-SPECIAL: if called again and STOP_WHEN_DONE then just return
+  //     cycle thru letter LEDs
+  //       cycle thru effect (on clockwise, off clockwise, blink-off, blink-on, on clockwise, off clockwise, blink-off, blink-on)    
+  //         process SPECIAL patterns, perhaps continuing to next pattern
+  //         cycle thru counter for effect (clockwise = surround LED, blink = letter LED)  
+  //           do effect one led (color for on, original for off, color for blink on, BLACK for blink off)
+  //
+int doPatternDraw(int led_delay, const char * ptrn_ptr, CRGB foreground, CRGB background, CRGB blinking) {
   int theLED = -1; // temp storage for the LED that is being written
   char thePtrn = -1; // temp storage for the pattern being processed
-  byte do_specials = 1; //
+  byte do_specials = 1; // non-zero if do SPECIAL codes
+  byte tmp_idx = 0; // temporary index
 
   ptrn_byte_06 = NO_BUTTON_PRESS;
   if ((oldPattern == pattern) && (STOP_WHEN_DONE == ptrn_ptr[0])) return(ptrn_byte_06);
@@ -452,18 +396,26 @@ int doPattern_draw(int led_delay, const char * ptrn_ptr, CRGB foreground, CRGB b
       // do the cases where it is either LED pattern or surround pattern
       if (thePtrn < 0) { // all at once pattern
         theLED = ptrn_byteptr_01[ptrn_byte_01];
-        if (BLINK_OFF == thePtrn) {
+        if (BLINK_BLNKING == thePtrn) {
           led_display[theLED] = blinking;
-        } else if (BLINK_ON == thePtrn) {
+        } else if (BLINK_FORE == thePtrn) {
           led_display[theLED] = foreground;
-        } else if (BLINK_OFF_SRND_ALL == thePtrn) {
-          for (ptrn_byte_02 = 1; ptrn_byte_02 <= ptrn_byte_04; ptrn_byte_02++) {
-            led_display[theLED] = blinking;
-          }
-        } else if (BLINK_ON_SRND_ALL == thePtrn) {
-          for (ptrn_byte_02 = 1; ptrn_byte_02 <= ptrn_byte_04; ptrn_byte_02++) {
-            led_display[theLED] = led_effect_save[ptrn_byte_02];
-          }
+        } else if (BLINK_BLNKING_SRND_ALL == thePtrn) {
+          for (tmp_idx = 1; tmp_idx <= ptrn_byte_04; tmp_idx++) {
+            led_display[ptrn_byteptr_02[tmp_idx]] = blinking;
+          } // end for all surround LEDs
+        } else if (BLINK_PREV_SRND_ALL == thePtrn) {
+          for (tmp_idx = 1; tmp_idx <= ptrn_byte_04; tmp_idx++) {
+            led_display[ptrn_byteptr_02[tmp_idx]] = led_effect_save[tmp_idx];
+          } // end for all surround LEDs
+        } else if (BLINK_BLNKING_LTR_ALL == thePtrn) {
+          for (tmp_idx = 1; tmp_idx <= ptrn_byte_03; tmp_idx++) {
+            led_display[ptrn_byteptr_01[tmp_idx]] = blinking;
+          } // end for all letter LEDs
+        } else if (BLINK_FORE_LTR_ALL == thePtrn) {
+          for (tmp_idx = 1; tmp_idx <= ptrn_byte_03; tmp_idx++) {
+            led_display[ptrn_byteptr_01[tmp_idx]] = foreground;
+          } // end for all letter LEDs
         } // end if one of the all at once patterns
         ptrn_byte_06 = nextPatternFromButtons();
         if ((ptrn_byte_06 != NO_BUTTON_PRESS) && (ptrn_byte_06 != pattern)) return(ptrn_byte_06); // pressing our button again does not stop us
@@ -472,25 +424,25 @@ int doPattern_draw(int led_delay, const char * ptrn_ptr, CRGB foreground, CRGB b
       } else { // one surround LED at a time pattern      
         for (ptrn_byte_02 = 1; ptrn_byte_02 <= ptrn_byte_04; ptrn_byte_02++) {    
           theLED = ptrn_byteptr_02[ptrn_byte_02];  
-          if (BLINK_OFF_SRND_CLKWS == thePtrn) {  
+          if (BLINK_BLNKNG_SRND_CLKWS == thePtrn) {  
             led_display[theLED] = blinking;
-          } else if (BLINK_ON_SRND_CLKWS == thePtrn) {  
+          } else if (BLINK_PREV_SRND_CLKWS == thePtrn) {  
             led_display[theLED] = led_effect_save[ptrn_byte_02];
-          } else if (BLINK_OFF_SRND_CTRCLKWS == thePtrn) {  
+          } else if (BLINK_BLNKNG_SRND_CTRCLKWS == thePtrn) {  
             led_display[theLED] = blinking;
-          } else if (BLINK_ON_SRND_CTRCLKWS == thePtrn) {  
+          } else if (BLINK_PREV_SRND_CTRCLKWS == thePtrn) {  
             led_display[theLED] = led_effect_save[ptrn_byte_04-ptrn_byte_02+1];
           } // end if one of the one surround LED at a time patterns
           ptrn_byte_06 = nextPatternFromButtons();
           if ((ptrn_byte_06 != NO_BUTTON_PRESS) && (ptrn_byte_06 != pattern)) return(ptrn_byte_06); // pressing our button again does not stop us
           FastLED.show();
           delay(led_delay);
-        } // end for all surround LED    
+        } // end for all surround LED 
       } // end if letter LED pattern or surround LED pattern      
     } // end for all pattern types in ptrn_ptr        
   } // end for all LEDs in letter pattern          
   return(ptrn_byte_06);
-} // end doPattern_draw()
+} // end doPatternDraw()
 
 int doPattern_05(int prev_return) {
   return(0);
