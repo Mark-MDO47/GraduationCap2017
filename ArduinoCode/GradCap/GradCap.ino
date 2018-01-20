@@ -87,6 +87,10 @@ byte  leds_per_ring[NUM_RINGS_PER_CIRCLE] = { 32, 24, 16, 12, 8, 1 };
 
 #define SERIALPORT 1 // use serial port
 #define DEBUG 0 // 1 = debug thru serial port, 0 = no debug no serial port
+#define REAL_BUTTONS 0 // 1 = use buttons for input, 0 = use serial port
+#if 0 == REAL_BUTTONS
+#define SERIALPORT 1 // use serial port
+#endif // REAL_BUTTONS
 #if DEBUG
 short tmp_DEBUG = 0;
 short tmp_DEBUG2 = 0;
@@ -100,6 +104,7 @@ CRGB led_display[NUM_LEDS];
 // pattern vars
 static byte  pattern = 1;
 static byte  oldPattern = 2;
+static byte  nextPattern = 2;
 static short ptrn_delay = 100; // set by patterns to proper delay
 static word  bigCount;    // unsigned 16-bit int
 static byte  smallCount;  // unsigned  8-bit int
@@ -207,6 +212,18 @@ const char* effect_pointers[61] = {
 #define EFFECT_NUM_LED_SAV (8) // save up to eight "effect" LEDs
 CRGB led_effect_save[EFFECT_NUM_LED_SAV];
 
+// negative is pattern for letter LED
+// positive is pattern for surround effect LED
+#define END_OF_PTRNS    0 //
+#define BLINK_OFF_CLKWS 1 //
+#define BLINK_ON_CLKWS  2 //
+#define BLINK_OFF       (-1) //
+#define BLINK_ON        (-2) //
+const char thePatterns[9] = { BLINK_ON_CLKWS, BLINK_OFF_CLKWS, BLINK_OFF, BLINK_ON, BLINK_ON_CLKWS, BLINK_OFF_CLKWS, BLINK_OFF, BLINK_ON, END_OF_PTRNS };
+
+#define NO_BUTTON_PRESS -1 // when no input from user
+#define NO_BUTTON_CHANGE -1 // when no CHANGE in input from user
+
 // ******************************** SETUP ********************************
 // setup()
 //   initializes FastLED library for our config
@@ -239,33 +256,7 @@ void setup() {
 
 // ******************************** LOOP ********************************
 void loop() {
-  char receivedChar;
-  // pattern = checkButtons(); // FIXME - use checkButtons
-  if (Serial.available() > 0) {
-    receivedChar = Serial.read();
-    switch ((int) receivedChar) {
-      case (int) '1':
-        pattern = 1;
-        break;
-      case (int) '2':
-        pattern = 2;
-        break;
-      case (int) '3':
-        pattern = 3;
-        break;
-      case (int) '4':
-        pattern = 4;
-        break;
-      case (int) '5':
-        pattern = 5;
-        break;
-      case (int) '6':
-        pattern = 6;
-        break;
-      default:
-        break;
-    }
-  } // end if received serial data
+  pattern = patternFromButtons(); // FIXME - use checkButtons
   doPattern();
   FastLED.show();
 
@@ -273,6 +264,12 @@ void loop() {
 
   // FIXME - read pattern from buttons
 
+  oldPattern = pattern;
+  if ((NO_BUTTON_CHANGE == nextPattern) || (pattern == nextPattern)) {
+    nextPattern = NO_BUTTON_CHANGE;
+  } else {
+    pattern = nextPattern;
+  }
   smallCount += 1;
   bigCount += 1;
   if (smallCount > 9) smallCount = 0;
@@ -280,6 +277,53 @@ void loop() {
 } // end loop()
 
 // ******************************** UTILITIES ********************************
+
+#if REAL_BUTTONS
+  int getButtonPress() {
+    return(NO_BUTTON_PRESS); // FIXME - write the code
+  } // end getButtonPress()
+#else // end if REAL_BUTTONS
+// for debugging - serial port buttons
+  int getButtonPress() { // not REAL_BUTTONS
+    char receivedChar;
+    int myButton = NO_BUTTON_PRESS;
+    if (Serial.available() > 0) {
+      receivedChar = Serial.read();
+      switch ((int) receivedChar) {
+        case (int) '1':
+          myButton = 1;
+          break;
+        case (int) '2':
+          myButton = 2;
+          break;
+        case (int) '3':
+          myButton = 3;
+          break;
+        case (int) '4':
+          myButton = 4;
+          break;
+        case (int) '5':
+          myButton = 5;
+          break;
+        case (int) '6':
+          myButton = 6;
+          break;
+        default:
+          myButton = NO_BUTTON_PRESS;
+          break;
+      }
+    }
+    return(myButton);
+  } // end getButtonPress for not REAL_BUTTONS
+#endif // not REAL_BUTTONS
+
+int patternFromButtons() {
+  int myButton = NO_BUTTON_PRESS;
+  if ((myButton = getButtonPress()) == NO_BUTTON_PRESS) return (NO_BUTTON_CHANGE);
+  if (oldPattern == myButton) return (NO_BUTTON_CHANGE);
+  pattern = myButton;
+  return(myButton);
+}
 // returns pattern number 1 thru 6
 // does not change oldPattern or pattern directly
 byte  checkButtons() {
@@ -414,7 +458,7 @@ int doPattern_03(int prev_return) {
       theLED = ptrn_byteptr_01[ptrn_byte_01];
       led_display[theLED] = CRGB::Yellow; // Gold, Yellow, Orange
       break;
-  }
+  } // end switch on advance_effect
   return(ptrn_byte_01);
 } // end doPattern_03()
 
@@ -425,102 +469,60 @@ int doPattern_03(int prev_return) {
   // ptrn_byte_02    - index for ptrn_byteptr_02[]. [0] = neg count of LED indexes, [1..-[0]] =  are the LED indexes
   // ptrn_byte_03    - num of LED indexes in ptrn_byteptr_01
   // ptrn_byte_04    - num of LED indexes in ptrn_byteptr_02
-#define PTRN4_WITHIN_MAX 4
-#define PTRN4_ADVANCE_MAX 4
+  // ptrn_byte_05    - index into thePatterns
+  // ptrn_byte_06    - next pattern
+  //
+  // for readability I had to stand the control structure on its head.
+  //    I just used loops for what the order of operations was through the entire pattern
+  //    after each LED change I check to see if there was an input; if so return
+  // this is the flow of LEDs through the pattern:
+  // cycle thru letter LEDs     
+  //   cycle thru effect (on clockwise, off clockwise, blink-off, blink-on, on clockwise, off clockwise, blink-off, blink-on)    
+  //     cycle thru counter for effect (clockwise = surround LED, blink = letter LED)  
+  //       do effect one led (color for on, original for off, color for blink on, BLACK for blink off)
+  //
 int doPattern_04(int prev_return) {
   int theLED = -1; // temp storage for the LED that is being written
-  static char advance_effect = -99; // used to space through effect stages
-  static char within_effect = 0; // used to space within one effect stage
+  char thePtrn = -1; // temp storage for the pattern being processed
 
-  if (pattern != oldPattern) {
-    ptrn_delay = 1000;
-    advance_effect = 0;
-    within_effect = -1;
-    fill_solid(led_display, NUM_LEDS, 0x226B22); // Green; also 0x126b12, ForestGreen, DarkGreen, DarkOliveGreen, LimeGreen, MediumSeaGreen, OliveDrab (Olive looks like Gold), SeaGreen, Teal
-    #if BAD_LED_92
-    led_display[92] = CRGB::Black; // this LED is not working in the test hardware
-    #endif // BAD_LED_92
-    ptrn_byteptr_01 = (char *) &ltr_Y[0]; // to convert from (const char *); we promise not to write into it
-    ptrn_byte_01 = 1;                     // index first LED in letter string
-    ptrn_byte_03 = -(ptrn_byteptr_01[0]); // length of string
-    ptrn_byte_04 = 0; // fake length of effect string
-    prev_return = -1; // ignore previous return
-  } // end if change of pattern
-
-  within_effect += 1;
-  Serial.print("01 byt1: "); Serial.print((int) ptrn_byte_01); Serial.print(" byt4: "); Serial.print((int) ptrn_byte_04); Serial.print(" a: "); Serial.print((int) advance_effect); Serial.print(" w: "); Serial.println((int) within_effect); 
-  if (within_effect > (ptrn_byte_04+1+ptrn_byte_04+1)) {
-    Serial.print("02   $ "); Serial.print((int) within_effect); Serial.print(" > "); Serial.println((int) (ptrn_byte_04+1+ptrn_byte_04+1));
-    within_effect = 0;
-    advance_effect += 1;
-    Serial.print("03   $ byt1: "); Serial.print((int) ptrn_byte_01); Serial.print(" byt4: "); Serial.print((int) ptrn_byte_04); Serial.print(" a: "); Serial.print((int) advance_effect); Serial.print(" w: "); Serial.println((int) within_effect); 
-    if (advance_effect >= PTRN4_ADVANCE_MAX) {
-      Serial.print("04    $$ "); Serial.print((int) advance_effect); Serial.print(" > "); Serial.println((int) PTRN4_ADVANCE_MAX);
-      advance_effect = 0;
-      ptrn_byte_01 += 1;
-      Serial.print("05    $$ byt1: "); Serial.print((int) ptrn_byte_01); Serial.print(" byt4: "); Serial.print((int) ptrn_byte_04); Serial.print(" a: "); Serial.print((int) advance_effect); Serial.print(" w: "); Serial.println((int) within_effect); 
-    }
-  }
-
-  if (ptrn_byte_01 <= ptrn_byte_03) { // still more to do this letter
-    Serial.print("06 advance_effect % PTRN4_ADVANCE_MAX: "); Serial.println((int) (advance_effect % PTRN4_ADVANCE_MAX));
-    switch (advance_effect % PTRN4_ADVANCE_MAX) {
-      case 0: // blink large on next LED
-      case 2: // blink large on this LED
-      default:
-        if (0 == within_effect) { // first time this effect
-          ptrn_byteptr_02 = (char *) effect_pointers[ptrn_byteptr_01[ptrn_byte_01]-EFFECT_POINTERS_OFFSET];  // to convert from (const char *); we promise not to write into it
-          ptrn_byte_02 = 1; // index first LED in effect string
-          ptrn_byte_04 = -(ptrn_byteptr_02[0]); // length of string
-          Serial.print("07 init byt1: "); Serial.print((int) ptrn_byte_01); Serial.print(" byt3: "); Serial.print((int) ptrn_byte_03); Serial.print(" byt2: "); Serial.print((int) ptrn_byte_02); Serial.print(" byt4: "); Serial.print((int) ptrn_byte_04); Serial.print(" ptrn_byteptr_01[ptrn_byte_01]: "); Serial.print((int) ptrn_byteptr_01[ptrn_byte_01]); Serial.print(" ptrn_byteptr_01[ptrn_byte_01]-EFFECT_POINTERS_OFFSET]: "); Serial.print((int) (ptrn_byteptr_01[ptrn_byte_01]-EFFECT_POINTERS_OFFSET)); Serial.print(" a: "); Serial.print((int) advance_effect); Serial.print(" w: "); Serial.println((int) within_effect); 
-          // save the original state of the effects LEDs
-          for (int i = 1; i <= ptrn_byte_04; i++) {
-            led_effect_save[i-1] = led_display[ptrn_byteptr_02[i]];
-          } // end save the original LED info for effect area
-        } // end if first time with new effect stage
+  ptrn_byte_06 = NO_BUTTON_PRESS;
+  fill_solid(led_display, NUM_LEDS, 0x226B22); // Green; also 0x126b12, ForestGreen, DarkGreen, DarkOliveGreen, LimeGreen, MediumSeaGreen, OliveDrab (Olive looks like Gold), SeaGreen, Teal
+  #if BAD_LED_92
+  led_display[92] = CRGB::Black; // this LED is not working in the test hardware
+  #endif // BAD_LED_92
+  ptrn_byteptr_01 = (char *) &ltr_Y[0]; // to convert from (const char *); we promise not to write into it
+  ptrn_byte_03 = -(ptrn_byteptr_01[0]); // length of letter LEDstring
+  for (ptrn_byte_01 = 1; ptrn_byte_01 <= ptrn_byte_03; ptrn_byte_01++) {          
+    ptrn_byteptr_02 = (char *) effect_pointers[ptrn_byteptr_01[ptrn_byte_01]-EFFECT_POINTERS_OFFSET];  // to convert from (const char *); we promise not to write into it        
+    ptrn_byte_04 = -(ptrn_byteptr_02[0]); // length of surround LED string        
+    for (int ptrn_byte_02 = 1; ptrn_byte_02 <= ptrn_byte_04; ptrn_byte_02++) {        
+      led_effect_save[ptrn_byte_02-1] = led_display[ptrn_byteptr_02[ptrn_byte_02]];      
+    } // end save the original LED info for surround effect area        
+            
+    for (ptrn_byte_05 = 0; thePatterns[ptrn_byte_05] != END_OF_PTRNS; ptrn_byte_05++) {        
+      thePtrn = thePatterns[ptrn_byte_05];
+      if (thePtrn < 0) { // letter LED pattern    
         theLED = ptrn_byteptr_01[ptrn_byte_01];
-        Serial.print("08 byt1: "); Serial.print((int) ptrn_byte_01); Serial.print(" byt3: "); Serial.print((int) ptrn_byte_03); Serial.print(" byt2: "); Serial.print((int) ptrn_byte_02); Serial.print(" byt4: "); Serial.print((int) ptrn_byte_04); Serial.print(" theLED: "); Serial.print((int) theLED); Serial.print(" ptrn_byteptr_02[within_effect+1]: "); Serial.print((int) ptrn_byteptr_02[within_effect+1]); Serial.print(" theLED: "); Serial.print((int) theLED); Serial.print(" a: "); Serial.print((int) advance_effect); Serial.print(" w: "); Serial.println((int) within_effect); 
-        if (within_effect <= ptrn_byte_04) {
-          led_display[ptrn_byteptr_02[within_effect+1]] = CRGB::Red;
+        if (BLINK_OFF == thePtrn) {
           led_display[theLED] = CRGB::Red;
-          Serial.print("09 byt1: "); Serial.print((int) ptrn_byte_01); Serial.print(" byt3: "); Serial.print((int) ptrn_byte_03); Serial.print(" byt2: "); Serial.print((int) ptrn_byte_02); Serial.print(" byt4: "); Serial.print((int) ptrn_byte_04); Serial.print(" theLED: "); Serial.print((int) theLED); Serial.print(" ptrn_byteptr_02[within_effect+1]: "); Serial.print((int) ptrn_byteptr_02[within_effect+1]); Serial.print(" a: "); Serial.print((int) advance_effect); Serial.print(" w: "); Serial.println((int) within_effect);
-        } else if (within_effect <= (ptrn_byte_04+1)) {
-          led_display[theLED] = CRGB::Blue;
-        } else if (within_effect <= (ptrn_byte_04+1+ptrn_byte_04)) {
-          led_display[ptrn_byteptr_02[within_effect-(ptrn_byte_04+1+ptrn_byte_04)]] = led_effect_save[within_effect-(ptrn_byte_04+1+ptrn_byte_04)-1];
-          Serial.print("10 byt1: "); Serial.print((int) ptrn_byte_01); Serial.print(" byt3: "); Serial.print((int) ptrn_byte_03); Serial.print(" byt2: "); Serial.print((int) ptrn_byte_02); Serial.print(" byt4: "); Serial.print((int) ptrn_byte_04); Serial.print(" theLED: "); Serial.print((int) theLED); Serial.print(" ptrn_byteptr_02[within_effect+1]: "); Serial.print((int) ptrn_byteptr_02[within_effect+1]); Serial.print(" a: "); Serial.print((int) advance_effect); Serial.print(" w: "); Serial.println((int) within_effect);
-        } else if (within_effect <= (ptrn_byte_04+1+ptrn_byte_04+1)) {
-          led_display[theLED] = CRGB::Red;
-          Serial.print("11 byt1: "); Serial.print((int) ptrn_byte_01); Serial.print(" byt3: "); Serial.print((int) ptrn_byte_03); Serial.print(" byt2: "); Serial.print((int) ptrn_byte_02); Serial.print(" byt4: "); Serial.print((int) ptrn_byte_04); Serial.print(" theLED: "); Serial.print((int) theLED); Serial.print(" ptrn_byteptr_02[within_effect+1]: "); Serial.print((int) ptrn_byteptr_02[within_effect+1]); Serial.print(" a: "); Serial.print((int) advance_effect); Serial.print(" w: "); Serial.println((int) within_effect);
-        } // end first stage within effect - set all RED
-        break;
-      case 1: // blink small on this LED
-      case 3: // blink small on this LED
-        theLED = ptrn_byteptr_01[ptrn_byte_01];
-        Serial.print("12 init byt1: "); Serial.print((int) ptrn_byte_01); Serial.print(" byt3: "); Serial.print((int) ptrn_byte_03); Serial.print(" byt2: "); Serial.print((int) ptrn_byte_02); Serial.print(" byt4: "); Serial.print((int) ptrn_byte_04); Serial.print(" theLED: "); Serial.print((int) theLED); Serial.print(" ptrn_byteptr_02[within_effect+1]: "); Serial.print((int) ptrn_byteptr_02[within_effect+1]); Serial.print(" a: "); Serial.print((int) advance_effect); Serial.print(" w: "); Serial.println((int) within_effect);
-        if (within_effect <= (ptrn_byte_04+1+ptrn_byte_04)) {
-          if ((within_effect % 2) == 0) {
-            led_display[theLED] = CRGB::Yellow;
-            Serial.print("13 byt1: "); Serial.print((int) ptrn_byte_01); Serial.print(" byt3: "); Serial.print((int) ptrn_byte_03); Serial.print(" byt2: "); Serial.print((int) ptrn_byte_02); Serial.print(" byt4: "); Serial.print((int) ptrn_byte_04); Serial.print(" theLED: "); Serial.print((int) theLED); Serial.print(" ptrn_byteptr_02[within_effect+1]: "); Serial.print((int) ptrn_byteptr_02[within_effect+1]); Serial.print(" a: "); Serial.print((int) advance_effect); Serial.print(" w: "); Serial.println((int) within_effect);
-          } else {
-            led_display[ptrn_byteptr_02[within_effect+1]] = led_effect_save[within_effect-1];
-            Serial.print("14 byt1: "); Serial.print((int) ptrn_byte_01); Serial.print(" byt3: "); Serial.print((int) ptrn_byte_03); Serial.print(" byt2: "); Serial.print((int) ptrn_byte_02); Serial.print(" byt4: "); Serial.print((int) ptrn_byte_04); Serial.print(" theLED: "); Serial.print((int) theLED); Serial.print(" ptrn_byteptr_02[within_effect+1]: "); Serial.print((int) ptrn_byteptr_02[within_effect+1]); Serial.print(" a: "); Serial.print((int) advance_effect); Serial.print(" w: "); Serial.println((int) within_effect);
-          }
-        } else {
-          led_display[theLED] = CRGB::Yellow;
-          Serial.print("15 byt1: "); Serial.print((int) ptrn_byte_01); Serial.print(" byt3: "); Serial.print((int) ptrn_byte_03); Serial.print(" byt2: "); Serial.print((int) ptrn_byte_02); Serial.print(" byt4: "); Serial.print((int) ptrn_byte_04); Serial.print(" theLED: "); Serial.print((int) theLED); Serial.print(" ptrn_byteptr_02[within_effect+1]: "); Serial.print((int) ptrn_byteptr_02[within_effect+1]); Serial.print(" a: "); Serial.print((int) advance_effect); Serial.print(" w: "); Serial.println((int) within_effect);
+        } else if (BLINK_ON == thePtrn) {  
+          led_display[theLED] = CRGB::Gold;
         }
-        break;
-    }
-    Serial.print("16 byt1: "); Serial.print((int) ptrn_byte_01); Serial.print(" byt3: "); Serial.print((int) ptrn_byte_03); Serial.print(" byt2: "); Serial.print((int) ptrn_byte_02); Serial.print(" byt4: "); Serial.print((int) ptrn_byte_04); Serial.print(" theLED: "); Serial.print((int) theLED); Serial.print(" ptrn_byteptr_02[within_effect+1]: "); Serial.print((int) ptrn_byteptr_02[within_effect+1]); Serial.print(" a: "); Serial.print((int) advance_effect); Serial.print(" w: "); Serial.println((int) within_effect);
-    // end if more bytes of character
-  } else {
-    ptrn_byte_01 = ptrn_byte_03; // stay at end
-    Serial.print("17 byt1: "); Serial.print((int) ptrn_byte_01); Serial.print(" byt3: "); Serial.print((int) ptrn_byte_03); Serial.print(" byt2: "); Serial.print((int) ptrn_byte_02); Serial.print(" byt4: "); Serial.print((int) ptrn_byte_04); Serial.print(" theLED: "); Serial.print((int) theLED); Serial.print(" ptrn_byteptr_02[within_effect+1]: "); Serial.print((int) ptrn_byteptr_02[within_effect+1]); Serial.print(" a: "); Serial.print((int) advance_effect); Serial.print(" w: "); Serial.println((int) within_effect);
-  }
-
-  Serial.print("99 byt1: "); Serial.print((int) ptrn_byte_01); Serial.print(" byt3: "); Serial.print((int) ptrn_byte_03); Serial.print(" byt2: "); Serial.print((int) ptrn_byte_02); Serial.print(" byt4: "); Serial.print((int) ptrn_byte_04); Serial.print(" theLED: "); Serial.print((int) theLED); Serial.print(" ptrn_byteptr_02[within_effect+1]: "); Serial.print((int) ptrn_byteptr_02[within_effect+1]); Serial.print(" a: "); Serial.print((int) advance_effect); Serial.print(" w: "); Serial.println((int) within_effect); 
-  return(ptrn_byte_01);
+        if ((ptrn_byte_06 = getButtonPress()) != NO_BUTTON_PRESS) return(ptrn_byte_06);
+      } else { // surround LED pattern      
+        for (ptrn_byte_02 = 1; ptrn_byte_02 <= ptrn_byte_04; ptrn_byte_02++) {    
+          theLED = ptrn_byteptr_02[ptrn_byte_02];  
+          if (BLINK_OFF_CLKWS == thePtrn) {  
+            led_display[theLED] = CRGB::Red;
+          } else if (BLINK_ON_CLKWS == thePtrn) {  
+            led_display[theLED] = led_effect_save[ptrn_byte_02-1];
+          }
+          if ((ptrn_byte_06 = getButtonPress()) != NO_BUTTON_PRESS) return(ptrn_byte_06);
+        } // end for all surround LED    
+      } // end if letter LED pattern or surround LED pattern      
+    } // end for all pattern types in thePatterns        
+  } // end for all LEDs in letter pattern          
+  return(ptrn_byte_06);
 } // end doPattern_04()
 
 int doPattern_05(int prev_return) {
