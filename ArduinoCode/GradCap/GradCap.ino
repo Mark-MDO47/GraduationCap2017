@@ -211,27 +211,41 @@ void loop() {
 // implements pattern for show
 // keeps track of oldPattern
 //
-// Calls: int doPatternDraw(int led_delay, const char * ptrn_ptr, CRGB foreground, CRGB background, CRGB blinking);
+// Calls: int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CRGB foreground, CRGB background, CRGB blinking);
 //
 void doPattern() {
   static int save_return = 0;
+  int dwell = 800;
   switch (pattern) {
     case 1: // 1 = OFF
-       save_return = doPatternDraw(10, ptrnOff, CRGB::Gold, 0x226B22, CRGB::Red);
+       save_return = doPatternDraw(10, ltr_Y, ptrnOff, CRGB::Gold, 0x226B22, CRGB::Red);
        break;
     case 2: // 2 = draw skinny
     default:
-       save_return = doPatternDraw(10, ptrnJustDraw, CRGB::Gold, 0x226B22, CRGB::Red);
+       save_return = doPatternDraw(10, ltr_Y, ptrnJustDraw, CRGB::Gold, 0x226B22, CRGB::Red);
        break;
     case 3: // 3 = draw wide
-       save_return = doPatternDraw(10, ptrnWideDraw, CRGB::Gold, 0x226B22, CRGB::Red);
+       save_return = doPatternDraw(10, ltr_Y, ptrnWideDraw, CRGB::Gold, 0x226B22, CRGB::Red);
        break;
-    case 4: // 4 = 2
-    
-       save_return = doPatternDraw(8, ptrnDblClkws, CRGB::Gold, 0x226B22, CRGB::Red);
+    case 4: // 4 = do surrounding circles around letter
+       save_return = doPatternDraw(8, ltr_Y, ptrnDblClkws, CRGB::Gold, 0x226B22, CRGB::Red);
        break;
     case 5:
-       save_return = doPattern_05(save_return);
+       save_return = doPatternDraw(8, ltr_P, ptrnDblClkws, CRGB::Gold, 0x226B22, CRGB::Red);
+       doDwell(dwell);
+       save_return = doPatternDraw(8, ltr_O, ptrnDblClkws, CRGB::Gold, 0x226B22, CRGB::Red);
+       doDwell(dwell);
+       save_return = doPatternDraw(8, ltr_L, ptrnDblClkws, CRGB::Gold, 0x226B22, CRGB::Red);
+       doDwell(dwell);
+       save_return = doPatternDraw(8, ltr_Y, ptrnDblClkws, CRGB::Gold, 0x226B22, CRGB::Red);
+       doDwell(dwell);
+       save_return = doPatternDraw(8, ltr_2, ptrnDblClkws, CRGB::Gold, 0x226B22, CRGB::Red);
+       doDwell(dwell);
+       save_return = doPatternDraw(8, ltr_0, ptrnDblClkws, CRGB::Gold, 0x226B22, CRGB::Red);
+       doDwell(dwell);
+       save_return = doPatternDraw(8, ltr_1, ptrnDblClkws, CRGB::Gold, 0x226B22, CRGB::Red);
+       doDwell(dwell);
+       save_return = doPatternDraw(8, ltr_8, ptrnDblClkws, CRGB::Gold, 0x226B22, CRGB::Red);
        break;
     case 6:
        save_return = doPattern_06(save_return);
@@ -242,6 +256,21 @@ void doPattern() {
   } // end if pattern changed
 } // end doPattern()
 
+// doDwell(int dwell) - dwell or break out if button press
+#define SMALL_DWELL 20
+int doDwell(int dwell) {
+  int numloops = dwell / SMALL_DWELL;
+  int i;
+
+  for (i = 0; i < numloops; i++) {
+    if (NO_BUTTON_PRESS != nextPatternFromButtons()) return(nextPattern);
+    delay(SMALL_DWELL);
+  }
+  if ((dwell % SMALL_DWELL) != 0) {
+    if (NO_BUTTON_PRESS != nextPatternFromButtons()) return(nextPattern);
+    delay(dwell % SMALL_DWELL);
+  }
+} // end doDwell()
 // getButtonPress() - get next button press, true button or debugging
 int getButtonPress() {
 #if REAL_BUTTONS
@@ -340,7 +369,7 @@ void saveSurroundEffectLEDs(char ltr_index, const char * surround_ptrn_ptr, CRGB
   //         cycle thru counter for effect (clockwise = surround LED, blink = letter LED)  
   //           do effect one led (color for on, original for off, color for blink on, BLACK for blink off)
   //
-int doPatternDraw(int led_delay, const char * ptrn_ptr, CRGB foreground, CRGB background, CRGB blinking) {
+int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CRGB foreground, CRGB background, CRGB blinking) {
   int theLED = -1; // temp storage for the LED that is being written
   char thePtrn = -1; // temp storage for the pattern being processed
   byte do_specials = 1; // non-zero if do SPECIAL codes
@@ -349,7 +378,7 @@ int doPatternDraw(int led_delay, const char * ptrn_ptr, CRGB foreground, CRGB ba
   ptrn_byte_06 = NO_BUTTON_PRESS;
   if ((oldPattern == pattern) && (STOP_WHEN_DONE == ptrn_ptr[0])) return(ptrn_byte_06);
   
-  ptrn_byteptr_01 = (char *) &ltr_Y[0]; // to convert from (const char *); we promise not to write into it
+  ptrn_byteptr_01 = (char *) ltr_ptr; // to convert from (const char *); we promise not to write into it
   ptrn_byte_03 = -(ptrn_byteptr_01[0]); // length of letter LEDstring
   for (ptrn_byte_01 = 1; ptrn_byte_01 <= ptrn_byte_03; ptrn_byte_01++) {
     ptrn_byteptr_02 = (char *) effect_pointers[ptrn_byteptr_01[ptrn_byte_01]-EFFECT_POINTERS_OFFSET];  // to convert from (const char *); we promise not to write into it
