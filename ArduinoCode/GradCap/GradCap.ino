@@ -260,6 +260,7 @@ void loop() {
   pattern = patternFromButtons();
   if (oldPattern != pattern) {
     Serial.print("switch to pattern "); Serial.println((int) pattern);
+    nextPattern = NO_BUTTON_CHANGE;
   }
   doPattern();
   FastLED.show();
@@ -269,7 +270,6 @@ void loop() {
   smallCount += 1;
   bigCount += 1;
   if (smallCount > 9) smallCount = 0;
-
 } // end loop()
 
 // ******************************** UTILITIES ********************************
@@ -524,7 +524,9 @@ int doPattern_04(int prev_return) {
         } else if (BLINK_ON == thePtrn) {  
           led_display[theLED] = CRGB::Gold;
         }
-        if ((ptrn_byte_06 = getButtonPress()) != NO_BUTTON_PRESS) return(ptrn_byte_06);
+        if ((ptrn_byte_06 = nextPatternFromButtons()) != NO_BUTTON_PRESS) return(ptrn_byte_06);
+        FastLED.show();
+        delay(25);
       } else { // surround LED pattern      
         for (ptrn_byte_02 = 1; ptrn_byte_02 <= ptrn_byte_04; ptrn_byte_02++) {    
           theLED = ptrn_byteptr_02[ptrn_byte_02];  
@@ -533,7 +535,9 @@ int doPattern_04(int prev_return) {
           } else if (BLINK_ON_CLKWS == thePtrn) {  
             led_display[theLED] = led_effect_save[ptrn_byte_02-1];
           }
-          if ((ptrn_byte_06 = getButtonPress()) != NO_BUTTON_PRESS) return(ptrn_byte_06);
+          if ((ptrn_byte_06 = nextPatternFromButtons()) != NO_BUTTON_PRESS) return(ptrn_byte_06);
+          FastLED.show();
+          delay(25);
         } // end for all surround LED    
       } // end if letter LED pattern or surround LED pattern      
     } // end for all pattern types in thePatterns        
