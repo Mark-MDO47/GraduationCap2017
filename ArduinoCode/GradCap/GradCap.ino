@@ -274,13 +274,29 @@ void loop() {
 
 // ******************************** UTILITIES ********************************
 
+int getButtonPress() {
 #if REAL_BUTTONS
-  int getButtonPress() {
-    return(NO_BUTTON_PRESS); // FIXME - write the code
-  } // end getButtonPress()
-#else // end if REAL_BUTTONS
-// for debugging - serial port buttons
-  int getButtonPress() { // not REAL_BUTTONS
+  return(checkButtons());
+#else // end if REAL_BUTTONS; now NOT REAL_BUTTONS
+  return(checkKeyboard());
+#endif // not REAL_BUTTONS
+} // end getButtonPress()
+
+#if REAL_BUTTONS
+  // returns number of button pressed (1 through 6) or NO_BUTTON_PRESS
+  byte  checkButtons() {
+    byte  val;
+    int thePin;
+    for (thePin = PSHBTN1; thePin <= PSHBTN6; thePin ++) {
+      val = digitalRead(thePin);
+      if (LOW == val) break;
+    } // end for all pushbuttons
+    if (PSHBTN6 < thePin) return(NO_BUTTON_PRESS); // if no button pushed
+    else                  return(thePin-PSHBTN1+1);
+  } // end checkButtons()
+#else // end if REAL_BUTTONS; now NOT REAL_BUTTONS
+  // for debugging - serial port buttons
+  int checkKeyboard() { // not REAL_BUTTONS
     char receivedChar;
     int myButton = NO_BUTTON_PRESS;
     if (Serial.available() > 0) {
@@ -310,7 +326,7 @@ void loop() {
       }
     }
     return(myButton);
-  } // end getButtonPress for not REAL_BUTTONS
+  } // end checkKeyboard()
 #endif // not REAL_BUTTONS
 
 // could have button pressed now - do that ignore any earlier press
@@ -326,21 +342,16 @@ int patternFromButtons() {
     }
   } // end if no button pressed now so process earlier button press
   nextPattern = NO_BUTTON_CHANGE;
-
   return(myButton);
-}
-// returns pattern number 1 thru 6
-// does not change oldPattern or pattern directly
-byte  checkButtons() {
-  byte  val;
-  int thePin;
-  for (thePin = PSHBTN1; thePin <= PSHBTN6; thePin ++) {
-    val = digitalRead(thePin);
-    if (LOW == val) break;
-  } // end for all pushbuttons
-  if (PSHBTN6 < thePin) return(oldPattern); // if no button pushed
-  else                  return(thePin-PSHBTN1+1);
-} // end checkButtons()
+} // end patternFromButtons()
+
+int nextPatternFromButtons() {
+  int myButton = getButtonPress();
+  if (myButton != NO_BUTTON_PRESS) {
+    nextPattern = myButton;
+  }
+  return (nextPattern);
+} // end nextPatternFromButtons()
 
 // implements pattern for show
 // keeps track of oldPattern
