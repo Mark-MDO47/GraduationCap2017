@@ -102,9 +102,9 @@ short tmp_DEBUG2 = 0;
 CRGB led_display[NUM_LEDS];
 
 // pattern vars
-static byte  pattern = 1;
-static byte  oldPattern = 2;
-static byte  nextPattern = 2;
+static char  pattern = 1;
+static char  oldPattern = 2;
+static char  nextPattern = 2;
 static short ptrn_delay = 100; // set by patterns to proper delay
 static word  bigCount;    // unsigned 16-bit int
 static byte  smallCount;  // unsigned  8-bit int
@@ -251,25 +251,21 @@ void setup() {
   bigCount = 0;
 
   pattern = 1; // FIXME - set to 1 when read pattern from buttons
-  oldPattern = -1;
+  oldPattern = NO_BUTTON_CHANGE;
+  nextPattern = NO_BUTTON_CHANGE;
 } // end setup()
 
 // ******************************** LOOP ********************************
 void loop() {
-  pattern = patternFromButtons(); // FIXME - use checkButtons
+  pattern = patternFromButtons();
+  if (oldPattern != pattern) {
+    Serial.print("switch to pattern "); Serial.println((int) pattern);
+  }
   doPattern();
   FastLED.show();
-
   delay(ptrn_delay);
-
-  // FIXME - read pattern from buttons
-
   oldPattern = pattern;
-  if ((NO_BUTTON_CHANGE == nextPattern) || (pattern == nextPattern)) {
-    nextPattern = NO_BUTTON_CHANGE;
-  } else {
-    pattern = nextPattern;
-  }
+
   smallCount += 1;
   bigCount += 1;
   if (smallCount > 9) smallCount = 0;
@@ -317,11 +313,20 @@ void loop() {
   } // end getButtonPress for not REAL_BUTTONS
 #endif // not REAL_BUTTONS
 
+// could have button pressed now - do that ignore any earlier press
+// could have seen button pressed earlier and just now handling it - do that
+// otherwise keep same pattern - no change
 int patternFromButtons() {
-  int myButton = NO_BUTTON_PRESS;
-  if ((myButton = getButtonPress()) == NO_BUTTON_PRESS) return (NO_BUTTON_CHANGE);
-  if (oldPattern == myButton) return (NO_BUTTON_CHANGE);
-  pattern = myButton;
+  int myButton = getButtonPress(); // no change unless we see a change
+  if (myButton == NO_BUTTON_PRESS) {
+    if (NO_BUTTON_CHANGE != nextPattern) {
+      myButton = nextPattern;
+    } else {
+      myButton = pattern;
+    }
+  } // end if no button pressed now so process earlier button press
+  nextPattern = NO_BUTTON_CHANGE;
+
   return(myButton);
 }
 // returns pattern number 1 thru 6
