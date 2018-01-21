@@ -121,29 +121,36 @@ CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS]; // 1st set is for display, then shad
 #define DRAW_BLNKING_LTR_ALL    (-5) // set all letter LEDs to blinking color
 #define DRAW_FORE_LTR_ALL       (-6) // set all letter LED to foreground color
 
-#define DRAW_RING_CLRMAX           3 //
+#define DRAW_RING_CLRMAX           4 //
+#define DRAW_RING_CLRBLNKNG        3 //
 #define DRAW_RING_CLRBLACK         2 //
 #define DRAW_RING_CLRFORE          1 //
 #define DRAW_RING_CLRBKGND         0 //
-#define DRAW_RING_LARGEST     DRAW_RING6_CLRBKGND
-#define DRAW_RING1_CLRBLACK     (-7) //
-#define DRAW_RING1_CLRFORE      (-8) //
-#define DRAW_RING1_CLRBKGND     (-9) //
-#define DRAW_RING2_CLRBLACK    (-10) //
-#define DRAW_RING2_CLRFORE     (-11) //
-#define DRAW_RING2_CLRBKGND    (-12) //
-#define DRAW_RING3_CLRBLACK    (-13) //
-#define DRAW_RING3_CLRFORE     (-14) //
-#define DRAW_RING3_CLRBKGND    (-15) //
-#define DRAW_RING4_CLRBLACK    (-16) //
-#define DRAW_RING4_CLRFORE     (-17) //
-#define DRAW_RING4_CLRBKGND    (-18) //
-#define DRAW_RING5_CLRBLACK    (-19) //
-#define DRAW_RING5_CLRFORE     (-20) //
-#define DRAW_RING5_CLRBKGND    (-21) //
-#define DRAW_RING6_CLRBLACK    (-22) //
-#define DRAW_RING6_CLRFORE     (-23) //
-#define DRAW_RING6_CLRBKGND    (-24) //
+#define DRAW_RING_LARGEST      DRAW_RING1_CLRBLNKNG
+#define DRAW_RING1_CLRBLNKNG    -7
+#define DRAW_RING1_CLRBLACK    -8
+#define DRAW_RING1_CLRFORE    -9
+#define DRAW_RING1_CLRBKGND    -10
+#define DRAW_RING2_CLRBLNKNG    -11
+#define DRAW_RING2_CLRBLACK    -12
+#define DRAW_RING2_CLRFORE    -13
+#define DRAW_RING2_CLRBKGND    -14
+#define DRAW_RING3_CLRBLNKNG    -15
+#define DRAW_RING3_CLRBLACK    -16
+#define DRAW_RING3_CLRFORE    -17
+#define DRAW_RING3_CLRBKGND    -18
+#define DRAW_RING4_CLRBLNKNG    -19
+#define DRAW_RING4_CLRBLACK    -20
+#define DRAW_RING4_CLRFORE    -21
+#define DRAW_RING4_CLRBKGND    -22
+#define DRAW_RING5_CLRBLNKNG    -23
+#define DRAW_RING5_CLRBLACK    -24
+#define DRAW_RING5_CLRFORE    -25
+#define DRAW_RING5_CLRBKGND    -26
+#define DRAW_RING6_CLRBLNKNG    -27
+#define DRAW_RING6_CLRBLACK    -28
+#define DRAW_RING6_CLRFORE    -29
+#define DRAW_RING6_CLRBKGND    -30
 #define DRAW_RING_SMALLEST     DRAW_RING6_CLRBKGND
 
 #define DRAW_BKGD_CLRBLACK       100 // SPECIAL: set all LEDs to black
@@ -159,11 +166,12 @@ CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS]; // 1st set is for display, then shad
 #define TARGET_LEDS                0 // target or DRAW is LEDs
 #define TARGET_SHDW1               1 // target or DRAW is SHADOW1 LEDs
 // #define TARGET_SHDW2               2 // target or DRAW is SHADOW2 LEDs
+
 const char ptrnOff[]      = { STOP_WHEN_DONE, DRAW_BKGD_CLRBLACK, END_OF_PTRNS };
 const char ptrnJustDraw[] = { DRAW_BKGD_CLRBKGND, DRAW_BLNKING, DRAW_FORE, END_OF_PTRNS };
-const char ptrnWideDraw[] = { STOP_WHEN_DONE, DRAW_BKGD_CLRBKGND, DRAW_BLNKING_SRND_ALL, DRAW_FORE_LTR_ALL, END_OF_PTRNS };
+const char ptrnWideDraw[] = { STOP_WHEN_DONE, DRAW_BKGD_CLRBKGND, DRAW_BLNKING_SRND_ALL, DRAW_FORE_LTR_ALL, DRAW_RING6_CLRBLACK,  END_OF_PTRNS };
 const char ptrnDblClkws[] = { STOP_WHEN_DONE, DRAW_BKGD_CLRBKGND, DRAW_BLNKNG_SRND_CLKWS, DRAW_PREV_SRND_CLKWS, DRAW_BLNKING, DRAW_FORE, DRAW_BLNKNG_SRND_CLKWS, DRAW_PREV_SRND_CLKWS, DRAW_BLNKING, DRAW_FORE, END_OF_PTRNS };
-
+const char ptrnWideCircleDraw[] = { STOP_WHEN_DONE, DRAW_BKGD_CLRBKGND, DRAW_BLNKING_SRND_ALL, DRAW_FORE_LTR_ALL, DRAW_RING6_CLRBLACK,  DRAW_RING5_CLRBLNKNG, DRAW_RING4_CLRFORE, DRAW_RING3_CLRBKGND, DRAW_RING2_CLRBLNKNG, DRAW_RING1_CLRFORE, END_OF_PTRNS };
 
 // pattern vars
 static char  pattern = 1;
@@ -252,17 +260,17 @@ void doPattern() {
   int dwell = 1000;
   switch (pattern) {
     case 1: // 1 = OFF
-       save_return = doPatternDraw(10, ltr_Y, ptrnOff, CRGB::Gold, 0x226B22, CRGB::Red);
+       save_return = doPatternDraw(10, ltr_Y, ptrnOff, CRGB::Gold, CRGB::Blue, CRGB::Green);
        break;
     case 2: // 2 = draw skinny
     default:
-       save_return = doPatternDraw(10, ltr_Y, ptrnJustDraw, CRGB::Gold, 0x226B22, CRGB::Red);
+       save_return = doPatternDraw(10, ltr_Y, ptrnJustDraw, CRGB::Gold, CRGB::Blue, CRGB::Green);
        break;
     case 3: // 3 = draw wide
-       save_return = doPatternDraw(10, ltr_Y, ptrnWideDraw, CRGB::Gold, 0x226B22, CRGB::Red);
+       save_return = doPatternDraw(10, ltr_Y, ptrnWideCircleDraw, CRGB::Gold, CRGB::Blue, CRGB::Green);
        break;
     case 4: // 4 = do surrounding circles around letter
-       save_return = doPatternDraw(8, ltr_Y, ptrnDblClkws, CRGB::Gold, 0x226B22, CRGB::Red);
+       save_return = doPatternDraw(8, ltr_Y, ptrnDblClkws, CRGB::Gold, CRGB::Blue, CRGB::Green);
        break;
     case 5:
        save_return = doPatternDraw(8, ltr_P, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green);
@@ -461,30 +469,6 @@ int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CR
           do_specials = 0;
           continue;
       } // end if DRAW_BKGD_CLRBKGND
-      else if ((thePtrn <= DRAW_RING_LARGEST) && (thePtrn >= DRAW_RING_SMALLEST)) {
-          CRGB myColor;
-          tmp_idx = (thePtrn - DRAW_RING_SMALLEST) % DRAW_RING_CLRMAX; // color index
-          switch (tmp_idx) {
-            case DRAW_RING_CLRBLACK:
-            default:
-              myColor =CRGB::Black ;
-              break;
-            case DRAW_RING_CLRFORE:
-              myColor = foreground;
-              break;
-            case DRAW_RING_CLRBKGND:
-              myColor = background;
-              break;
-          }
-          tmp_idx = (thePtrn - DRAW_RING_SMALLEST) / DRAW_RING_CLRMAX; // ring index
-          fill_solid(&led_display[draw_target*NUM_LEDS+start_per_ring[tmp_idx]], leds_per_ring[tmp_idx], myColor);
-          #if BAD_LED_92
-          led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
-          #endif // BAD_LED_92
-          saveSurroundEffectLEDs(ptrn_byteptr_01[ptrn_byte_01], ptrn_byteptr_02, draw_target, led_effect_save);
-          do_specials = 0;
-          continue;
-      } // end if DRAW_BKGD_CLRBKGND
 
       // do the cases where it is either LED pattern or surround pattern
       if (thePtrn < 0) { // all at once pattern
@@ -532,9 +516,43 @@ int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CR
           delay(led_delay);
         } // end for all surround LED 
       } // end if letter LED pattern or surround LED pattern
+      
       draw_target = TARGET_LEDS; // restore draw target for each pattern_type
     } // end for all pattern_types in ptrn_ptr        
   } // end for all LEDs in letter pattern          
+
+  // do the pattern-types that should happen after all the LEDs are drawn
+  for (ptrn_byte_05 = 0; ptrn_ptr[ptrn_byte_05] != END_OF_PTRNS; ptrn_byte_05++) {
+    thePtrn = ptrn_ptr[ptrn_byte_05];
+    if ((thePtrn <= DRAW_RING_LARGEST) && (thePtrn >= DRAW_RING_SMALLEST)) {
+        CRGB myColor;
+        tmp_idx = (thePtrn - DRAW_RING_SMALLEST) % DRAW_RING_CLRMAX; // color index
+        switch (tmp_idx) {
+          case DRAW_RING_CLRBLNKNG:
+            myColor = blinking;
+            break;
+          case DRAW_RING_CLRBLACK:
+          default:
+            myColor = CRGB::Black ;
+            break;
+          case DRAW_RING_CLRFORE:
+            myColor = foreground;
+            break;
+          case DRAW_RING_CLRBKGND:
+            myColor = background;
+            break;
+        }
+        tmp_idx = (thePtrn - DRAW_RING_SMALLEST) / DRAW_RING_CLRMAX; // ring index
+        fill_solid(&led_display[draw_target*NUM_LEDS+start_per_ring[tmp_idx]], leds_per_ring[tmp_idx], myColor);
+        #if BAD_LED_92
+        led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
+        #endif // BAD_LED_92
+        saveSurroundEffectLEDs(ptrn_byteptr_01[ptrn_byte_01], ptrn_byteptr_02, draw_target, led_effect_save);
+        FastLED.show();
+        delay(led_delay*10);
+    } // end if DRAW_RING
+  } // end do the pattern-types that should happen after all the LEDs are drawn
+
   return(ptrn_byte_06);
 } // end doPatternDraw()
 
