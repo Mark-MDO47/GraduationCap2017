@@ -105,73 +105,95 @@ short tmp_DEBUG2 = 0;
 // This is the array the library will read to determine how each LED in the strand should be set
 CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS]; // 1st set is for display, then shadow1 then shadow2
 
-// patterns for drawing letters
-//   negative is pattern for all changing at once
-//   positive is pattern for surround changing one LED at a time
-//   specials are >= 100 and <= 120. Only one special per pattern will execute only one time unless preceeded by ALLOW_SPCL
-#define END_OF_PTRNS               0 //
-#define DRAW_BLNKNG_SRND_CLKWS     1 //
-#define DRAW_PREV_SRND_CLKWS       2 //
-#define DRAW_BLNKNG_SRND_CTRCLKWS  3 //
-#define DRAW_PREV_SRND_CTRCLKWS    4 // walk thru surround setting LEDs to previous color
-#define DRAW_BLNKING_SRND_ALL   (-1) // set all surround LEDs to blinking color
-#define DRAW_PREV_SRND_ALL      (-2) // set all surround LEDs to previous color
-#define DRAW_BLNKING            (-3) // set letter LED to blinking color
-#define DRAW_FORE               (-4) // set letter LED to foreground color
-#define DRAW_BLNKING_LTR_ALL    (-5) // set all letter LEDs to blinking color
-#define DRAW_FORE_LTR_ALL       (-6) // set all letter LED to foreground color
+// lists of pattern tokens for drawing letters and other shapes
+// pattern lists are processed in 2.5 steps.
+// two major steps:
+//   1) process pattern-tokens that are one or more changes per LED, either letter LED or surround LED
+//     1.5) in the middle of this, do SPECIAL and SUPER-SPECIAL pattern-token processing
+//   2) process pattern-tokens that are done after the above
+// SPECIAL processing allows things that should be done just once per pattern-list (or see SUPRSPCL_ALLOW_SPCL might be once per letter LED)
+//   SPCL_DRAW_BKGD_CLRBKGND: clear and set background pattern for entire circle
+// SUPER-SPECIAL:
+//   SUPRSPCL_STOP_WHEN_DONE when placed first ([0]) will stop the pattern-list and return
+//   SUPRSPCL_ALLOW_SPCL resets the SPECIAL counter. If placed before a SPECIAL, it will be done for each letter LED
+//   SUPRSPCL_DRAW_NXT2_SHDW1 causes next pattern-token to draw into SHADOW1 instead of display LEDs
+//   SUPRSPCL_FADE2_SHDW1 fades from display LEDs to SHADOW1
+//
+//
+// between AFTRLUP_LARGEST and AFTRLUP_SMALLEST are the ones that should be done after all the letter LED patterns (step 2 above)
+//   for letter LED patterns:
+//      negative is pattern-token for letter LED changing one at a time 
+//      positive is pattern-token for surround LED changing one at a time
+//      specials are >= 100 and <= 120. Only one special per pattern will execute only one time unless preceeded by SUPRSPCL_ALLOW_SPCL
+#define SUPRSPCL_END_OF_PTRNS              0 //
+#define PER_LED_DRAW_BLNKNG_SRND_CLKWS     1 //
+#define PER_LED_DRAW_PREV_SRND_CLKWS       2 //
+#define PER_LED_DRAW_BLNKNG_SRND_CTRCLKWS  3 //
+#define PER_LED_DRAW_PREV_SRND_CTRCLKWS    4 // walk thru surround setting LEDs to previous color
+#define PER_LED_DRAW_BLNKING_SRND_ALL   (-1) // set all surround LEDs to blinking color
+#define PER_LED_DRAW_PREV_SRND_ALL      (-2) // set all surround LEDs to previous color
+#define PER_LED_DRAW_BLNKING            (-3) // set letter LED to blinking color
+#define PER_LED_DRAW_FORE               (-4) // set letter LED to foreground color
+#define PER_LED_DRAW_BLNKING_LTR_ALL    (-5) // set all letter LEDs to blinking color
+#define PER_LED_DRAW_FORE_LTR_ALL       (-6) // set all letter LED to foreground color
 
-#define DRAW_RING_CLRMAX           4 //
-#define DRAW_RING_CLRBLNKNG        3 //
-#define DRAW_RING_CLRBLACK         2 //
-#define DRAW_RING_CLRFORE          1 //
-#define DRAW_RING_CLRBKGND         0 //
-#define DRAW_RING_LARGEST      DRAW_RING1_CLRBLNKNG
-#define DRAW_RING1_CLRBLNKNG    -7
-#define DRAW_RING1_CLRBLACK    -8
-#define DRAW_RING1_CLRFORE    -9
-#define DRAW_RING1_CLRBKGND    -10
-#define DRAW_RING2_CLRBLNKNG    -11
-#define DRAW_RING2_CLRBLACK    -12
-#define DRAW_RING2_CLRFORE    -13
-#define DRAW_RING2_CLRBKGND    -14
-#define DRAW_RING3_CLRBLNKNG    -15
-#define DRAW_RING3_CLRBLACK    -16
-#define DRAW_RING3_CLRFORE    -17
-#define DRAW_RING3_CLRBKGND    -18
-#define DRAW_RING4_CLRBLNKNG    -19
-#define DRAW_RING4_CLRBLACK    -20
-#define DRAW_RING4_CLRFORE    -21
-#define DRAW_RING4_CLRBKGND    -22
-#define DRAW_RING5_CLRBLNKNG    -23
-#define DRAW_RING5_CLRBLACK    -24
-#define DRAW_RING5_CLRFORE    -25
-#define DRAW_RING5_CLRBKGND    -26
-#define DRAW_RING6_CLRBLNKNG    -27
-#define DRAW_RING6_CLRBLACK    -28
-#define DRAW_RING6_CLRFORE    -29
-#define DRAW_RING6_CLRBKGND    -30
-#define DRAW_RING_SMALLEST     DRAW_RING6_CLRBKGND
+#define AFTRLUP_DRAW_RING_CLRMAX           4 //
+#define AFTRLUP_DRAW_RING_CLRBLNKNG        3 //
+#define AFTRLUP_DRAW_RING_CLRBLACK         2 //
+#define AFTRLUP_DRAW_RING_CLRFORE          1 //
+#define AFTRLUP_DRAW_RING_CLRBKGND         0 //
+#define AFTRLUP_DRAW_RING_LARGEST      AFTRLUP_DRAW_RING1_CLRBLNKNG
+#define AFTRLUP_DRAW_RING1_CLRBLNKNG    -7
+#define AFTRLUP_DRAW_RING1_CLRBLACK    -8
+#define AFTRLUP_DRAW_RING1_CLRFORE    -9
+#define AFTRLUP_DRAW_RING1_CLRBKGND    -10
+#define AFTRLUP_DRAW_RING2_CLRBLNKNG    -11
+#define AFTRLUP_DRAW_RING2_CLRBLACK    -12
+#define AFTRLUP_DRAW_RING2_CLRFORE    -13
+#define AFTRLUP_DRAW_RING2_CLRBKGND    -14
+#define AFTRLUP_DRAW_RING3_CLRBLNKNG    -15
+#define AFTRLUP_DRAW_RING3_CLRBLACK    -16
+#define AFTRLUP_DRAW_RING3_CLRFORE    -17
+#define AFTRLUP_DRAW_RING3_CLRBKGND    -18
+#define AFTRLUP_DRAW_RING4_CLRBLNKNG    -19
+#define AFTRLUP_DRAW_RING4_CLRBLACK    -20
+#define AFTRLUP_DRAW_RING4_CLRFORE    -21
+#define AFTRLUP_DRAW_RING4_CLRBKGND    -22
+#define AFTRLUP_DRAW_RING5_CLRBLNKNG    -23
+#define AFTRLUP_DRAW_RING5_CLRBLACK    -24
+#define AFTRLUP_DRAW_RING5_CLRFORE    -25
+#define AFTRLUP_DRAW_RING5_CLRBKGND    -26
+#define AFTRLUP_DRAW_RING6_CLRBLNKNG    -27
+#define AFTRLUP_DRAW_RING6_CLRBLACK    -28
+#define AFTRLUP_DRAW_RING6_CLRFORE    -29
+#define AFTRLUP_DRAW_RING6_CLRBKGND    -30
+#define AFTRLUP_DRAW_RING_SMALLEST     AFTRLUP_DRAW_RING6_CLRBKGND
 
-#define DRAW_BKGD_CLRBLACK       100 // SPECIAL: set all LEDs to black
-#define DRAW_BKGD_CLRFORE        101 // SPECIAL: set all LEDs to foreground color
-#define DRAW_BKGD_CLRBKGND       102 // SPECIAL: set all LEDs to background color
-// #define SAVE_SRND                120 // SUPER-SPECIAL: save current state of surround LEDs and current letter LED
-#define FADE2_SHDW1              122 // SUPER-SPECIAL: fade shadow1 to LEDs
-#define DRAW_NXT2_SHDW1          123 // SUPER-SPECIAL: next draw is to shadow1
-// #define FADE2_SHDW2              124 // SUPER-SPECIAL: fade shadow2 to LEDs    --- NOT ENOUGH ROOM
-// #define DRAW_NXT2_SHDW2          125 // SUPER-SPECIAL: next draw is to shadow2 --- NOT ENOUGH ROOM
-#define ALLOW_SPCL               126 // SUPER-SPECIAL: execute next special when pattern restarts
-#define STOP_WHEN_DONE           127 // SUPER-SPECIAL: run just one time if first entry in pattern. Otherwise the pattern repeats
+#define SPCL_DRAW_BKGD_CLRBLACK           100 // SPECIAL: set all LEDs to black
+#define SPCL_DRAW_BKGD_CLRFORE            101 // SPECIAL: set all LEDs to foreground color
+#define SPCL_DRAW_BKGD_CLRBKGND           102 // SPECIAL: set all LEDs to background color
+// #define SUPRSPCL_SAVE_SRND                120 // SUPER-SPECIAL: save current state of surround LEDs and current letter LED
+#define SUPRSPCL_FADE2_SHDW1              122 // SUPER-SPECIAL: fade shadow1 to LEDs
+#define SUPRSPCL_DRAW_NXT2_SHDW1          123 // SUPER-SPECIAL: next draw is to shadow1
+// #define SUPRSPCL_FADE2_SHDW2              124 // SUPER-SPECIAL: fade shadow2 to LEDs    --- NOT ENOUGH ROOM
+// #define SUPRSPCL_DRAW_NXT2_SHDW2          125 // SUPER-SPECIAL: next draw is to shadow2 --- NOT ENOUGH ROOM
+#define SUPRSPCL_ALLOW_SPCL               126 // SUPER-SPECIAL: execute next special when pattern restarts
+#define SUPRSPCL_STOP_WHEN_DONE           127 // SUPER-SPECIAL: run just one time if first entry in pattern. Otherwise the pattern repeats
+
 #define TARGET_LEDS                0 // target or DRAW is LEDs
 #define TARGET_SHDW1               1 // target or DRAW is SHADOW1 LEDs
-// #define TARGET_SHDW2               2 // target or DRAW is SHADOW2 LEDs
+// #define TARGET_SHDW2               2 // target or DRAW is SHADOW2 LEDs --- NOTE ENOUGH ROOM
 
-const char ptrnOff[]      = { STOP_WHEN_DONE, DRAW_BKGD_CLRBLACK, END_OF_PTRNS };
-const char ptrnJustDraw[] = { DRAW_BKGD_CLRBKGND, DRAW_BLNKING, DRAW_FORE, END_OF_PTRNS };
-const char ptrnWideDraw[] = { STOP_WHEN_DONE, DRAW_BKGD_CLRBKGND, DRAW_BLNKING_SRND_ALL, DRAW_FORE_LTR_ALL, DRAW_RING6_CLRBLACK,  END_OF_PTRNS };
-const char ptrnDblClkws[] = { STOP_WHEN_DONE, DRAW_BKGD_CLRBKGND, DRAW_BLNKNG_SRND_CLKWS, DRAW_PREV_SRND_CLKWS, DRAW_BLNKING, DRAW_FORE, DRAW_BLNKNG_SRND_CLKWS, DRAW_PREV_SRND_CLKWS, DRAW_BLNKING, DRAW_FORE, END_OF_PTRNS };
-const char ptrnWideCircleDraw[] = { STOP_WHEN_DONE, DRAW_BKGD_CLRBKGND, DRAW_BLNKING_SRND_ALL, DRAW_FORE_LTR_ALL, DRAW_RING6_CLRBLACK,  DRAW_RING5_CLRBLNKNG, DRAW_RING4_CLRFORE, DRAW_RING3_CLRBKGND, DRAW_RING2_CLRBLNKNG, DRAW_RING1_CLRFORE, END_OF_PTRNS };
+const char ptrnOff[]      = { SUPRSPCL_STOP_WHEN_DONE, SPCL_DRAW_BKGD_CLRBLACK, SUPRSPCL_END_OF_PTRNS };
+const char ptrnJustDraw[] = { SPCL_DRAW_BKGD_CLRBKGND, PER_LED_DRAW_BLNKING, PER_LED_DRAW_FORE, SUPRSPCL_END_OF_PTRNS };
+const char ptrnWideDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SPCL_DRAW_BKGD_CLRBKGND, PER_LED_DRAW_BLNKING_SRND_ALL, PER_LED_DRAW_FORE_LTR_ALL, SUPRSPCL_END_OF_PTRNS };
+const char ptrnDblClkws[] = { SUPRSPCL_STOP_WHEN_DONE, SPCL_DRAW_BKGD_CLRBKGND, PER_LED_DRAW_BLNKNG_SRND_CLKWS, PER_LED_DRAW_PREV_SRND_CLKWS, PER_LED_DRAW_BLNKING, PER_LED_DRAW_FORE, PER_LED_DRAW_BLNKNG_SRND_CLKWS, PER_LED_DRAW_PREV_SRND_CLKWS, PER_LED_DRAW_BLNKING, PER_LED_DRAW_FORE, SUPRSPCL_END_OF_PTRNS };
+const char ptrnWideCircleDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SPCL_DRAW_BKGD_CLRBKGND, PER_LED_DRAW_BLNKING_SRND_ALL, PER_LED_DRAW_FORE_LTR_ALL, AFTRLUP_DRAW_RING6_CLRBLACK, 
+   AFTRLUP_DRAW_RING5_CLRBLNKNG, AFTRLUP_DRAW_RING4_CLRFORE,   AFTRLUP_DRAW_RING3_CLRBKGND,  AFTRLUP_DRAW_RING2_CLRBLNKNG, AFTRLUP_DRAW_RING1_CLRFORE,
+   AFTRLUP_DRAW_RING5_CLRFORE,   AFTRLUP_DRAW_RING4_CLRBKGND,  AFTRLUP_DRAW_RING3_CLRBLNKNG, AFTRLUP_DRAW_RING2_CLRFORE,   AFTRLUP_DRAW_RING1_CLRBKGND,
+   AFTRLUP_DRAW_RING5_CLRBKGND,  AFTRLUP_DRAW_RING4_CLRBLNKNG, AFTRLUP_DRAW_RING3_CLRFORE,   AFTRLUP_DRAW_RING2_CLRBKGND,  AFTRLUP_DRAW_RING1_CLRBLNKNG, 
+   SUPRSPCL_END_OF_PTRNS };
+
 
 // pattern vars
 static char  pattern = 1;
@@ -406,7 +428,7 @@ void saveSurroundEffectLEDs(char ltr_index, const char * surround_ptrn_ptr, char
   //    after each LED change I check to see if there was an input; if so return
   //
   // this is the flow of LEDs through the pattern:
-  //     SUPER-SPECIAL: if called again and STOP_WHEN_DONE then just return
+  //     SUPER-SPECIAL: if called again and SUPRSPCL_STOP_WHEN_DONE then just return
   //     cycle thru letter LEDs
   //       cycle thru effect (on clockwise, off clockwise, blink-off, blink-on, on clockwise, off clockwise, blink-off, blink-on)    
   //         process SPECIAL patterns, perhaps continuing to next pattern
@@ -421,7 +443,7 @@ int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CR
   byte tmp_idx = 0; // temporary index
 
   ptrn_byte_06 = NO_BUTTON_PRESS;
-  if ((oldPattern == pattern) && (STOP_WHEN_DONE == ptrn_ptr[0])) return(ptrn_byte_06);
+  if ((oldPattern == pattern) && (SUPRSPCL_STOP_WHEN_DONE == ptrn_ptr[0])) return(ptrn_byte_06);
   
   ptrn_byteptr_01 = (char *) ltr_ptr; // to convert from (const char *); we promise not to write into it
   ptrn_byte_03 = -(ptrn_byteptr_01[0]); // length of letter LEDstring
@@ -431,18 +453,18 @@ int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CR
     ptrn_byte_04 = -(ptrn_byteptr_02[0]); // length of surround LED string
     saveSurroundEffectLEDs(ptrn_byteptr_01[ptrn_byte_01], ptrn_byteptr_02, draw_target, led_effect_save);
 
-    for (ptrn_byte_05 = 0; ptrn_ptr[ptrn_byte_05] != END_OF_PTRNS; ptrn_byte_05++) {
+    for (ptrn_byte_05 = 0; ptrn_ptr[ptrn_byte_05] != SUPRSPCL_END_OF_PTRNS; ptrn_byte_05++) {
       thePtrn = ptrn_ptr[ptrn_byte_05];
 
       // do the special cases
-      if (STOP_WHEN_DONE == thePtrn) {
+      if (SUPRSPCL_STOP_WHEN_DONE == thePtrn) {
         continue; // this is handled on entry, skip it here
-      } // end if STOP_WHEN_DONE
-      if (ALLOW_SPCL == thePtrn) {
+      } // end if SUPRSPCL_STOP_WHEN_DONE
+      if (SUPRSPCL_ALLOW_SPCL == thePtrn) {
         do_specials = 1; // next special encountered will always happen
         continue;
-      } // end if ALLOW_SPCL
-      else if ((DRAW_BKGD_CLRFORE == thePtrn) && (0 != do_specials)) {
+      } // end if SUPRSPCL_ALLOW_SPCL
+      else if ((SPCL_DRAW_BKGD_CLRFORE == thePtrn) && (0 != do_specials)) {
           fill_solid(&led_display[draw_target*NUM_LEDS], NUM_LEDS, foreground);
           #if BAD_LED_92
           led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware
@@ -450,8 +472,8 @@ int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CR
           saveSurroundEffectLEDs(ptrn_byteptr_01[ptrn_byte_01], ptrn_byteptr_02, draw_target, led_effect_save);
           do_specials = 0;
           continue;
-      } // end if DRAW_BKGD_CLRFORE
-      else if ((DRAW_BKGD_CLRBKGND == thePtrn) && (0 != do_specials)) {
+      } // end if SPCL_DRAW_BKGD_CLRFORE
+      else if ((SPCL_DRAW_BKGD_CLRBKGND == thePtrn) && (0 != do_specials)) {
           fill_solid(&led_display[draw_target*NUM_LEDS], NUM_LEDS, background);
           #if BAD_LED_92
           led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware
@@ -459,8 +481,8 @@ int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CR
           saveSurroundEffectLEDs(ptrn_byteptr_01[ptrn_byte_01], ptrn_byteptr_02, draw_target, led_effect_save);
           do_specials = 0;
           continue;
-      } // end if DRAW_BKGD_CLRBKGND
-      else if ((DRAW_BKGD_CLRBLACK == thePtrn) && (0 != do_specials)) {
+      } // end if SPCL_DRAW_BKGD_CLRBKGND
+      else if ((SPCL_DRAW_BKGD_CLRBLACK == thePtrn) && (0 != do_specials)) {
           fill_solid(&led_display[draw_target*NUM_LEDS], NUM_LEDS, CRGB::Black);
           #if BAD_LED_92
           led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
@@ -468,28 +490,28 @@ int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CR
           saveSurroundEffectLEDs(ptrn_byteptr_01[ptrn_byte_01], ptrn_byteptr_02, draw_target, led_effect_save);
           do_specials = 0;
           continue;
-      } // end if DRAW_BKGD_CLRBKGND
+      } // end if SPCL_DRAW_BKGD_CLRBKGND
 
       // do the cases where it is either LED pattern or surround pattern
       if (thePtrn < 0) { // all at once pattern
         theLED = ptrn_byteptr_01[ptrn_byte_01];
-        if (DRAW_BLNKING == thePtrn) {
+        if (PER_LED_DRAW_BLNKING == thePtrn) {
           led_display[draw_target*NUM_LEDS+theLED] = blinking;
-        } else if (DRAW_FORE == thePtrn) {
+        } else if (PER_LED_DRAW_FORE == thePtrn) {
           led_display[draw_target*NUM_LEDS+theLED] = foreground;
-        } else if (DRAW_BLNKING_SRND_ALL == thePtrn) {
+        } else if (PER_LED_DRAW_BLNKING_SRND_ALL == thePtrn) {
           for (tmp_idx = 1; tmp_idx <= ptrn_byte_04; tmp_idx++) {
             led_display[draw_target*NUM_LEDS+ptrn_byteptr_02[tmp_idx]] = blinking;
           } // end for all surround LEDs
-        } else if (DRAW_PREV_SRND_ALL == thePtrn) {
+        } else if (PER_LED_DRAW_PREV_SRND_ALL == thePtrn) {
           for (tmp_idx = 1; tmp_idx <= ptrn_byte_04; tmp_idx++) {
             led_display[draw_target*NUM_LEDS+ptrn_byteptr_02[tmp_idx]] = led_effect_save[tmp_idx];
           } // end for all surround LEDs
-        } else if (DRAW_BLNKING_LTR_ALL == thePtrn) {
+        } else if (PER_LED_DRAW_BLNKING_LTR_ALL == thePtrn) {
           for (tmp_idx = 1; tmp_idx <= ptrn_byte_03; tmp_idx++) {
             led_display[draw_target*NUM_LEDS+ptrn_byteptr_01[tmp_idx]] = blinking;
           } // end for all letter LEDs
-        } else if (DRAW_FORE_LTR_ALL == thePtrn) {
+        } else if (PER_LED_DRAW_FORE_LTR_ALL == thePtrn) {
           for (tmp_idx = 1; tmp_idx <= ptrn_byte_03; tmp_idx++) {
             led_display[draw_target*NUM_LEDS+ptrn_byteptr_01[tmp_idx]] = foreground;
           } // end for all letter LEDs
@@ -501,13 +523,13 @@ int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CR
       } else { // one surround LED at a time pattern      
         for (ptrn_byte_02 = 1; ptrn_byte_02 <= ptrn_byte_04; ptrn_byte_02++) {    
           theLED = ptrn_byteptr_02[ptrn_byte_02];  
-          if (DRAW_BLNKNG_SRND_CLKWS == thePtrn) {  
+          if (PER_LED_DRAW_BLNKNG_SRND_CLKWS == thePtrn) {  
             led_display[draw_target*NUM_LEDS+theLED] = blinking;
-          } else if (DRAW_PREV_SRND_CLKWS == thePtrn) {  
+          } else if (PER_LED_DRAW_PREV_SRND_CLKWS == thePtrn) {  
             led_display[draw_target*NUM_LEDS+theLED] = led_effect_save[ptrn_byte_02];
-          } else if (DRAW_BLNKNG_SRND_CTRCLKWS == thePtrn) {  
+          } else if (PER_LED_DRAW_BLNKNG_SRND_CTRCLKWS == thePtrn) {  
             led_display[draw_target*NUM_LEDS+theLED] = blinking;
-          } else if (DRAW_PREV_SRND_CTRCLKWS == thePtrn) {  
+          } else if (PER_LED_DRAW_PREV_SRND_CTRCLKWS == thePtrn) {  
             led_display[draw_target*NUM_LEDS+theLED] = led_effect_save[ptrn_byte_04-ptrn_byte_02+1];
           } // end if one of the one surround LED at a time patterns
           ptrn_byte_06 = nextPatternFromButtons();
@@ -517,32 +539,32 @@ int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CR
         } // end for all surround LED 
       } // end if letter LED pattern or surround LED pattern
       
-      draw_target = TARGET_LEDS; // restore draw target for each pattern_type
-    } // end for all pattern_types in ptrn_ptr        
+      draw_target = TARGET_LEDS; // restore draw target for each pattern-token
+    } // end for all pattern-tokens in ptrn_ptr        
   } // end for all LEDs in letter pattern          
 
-  // do the pattern-types that should happen after all the LEDs are drawn
-  for (ptrn_byte_05 = 0; ptrn_ptr[ptrn_byte_05] != END_OF_PTRNS; ptrn_byte_05++) {
+  // do the pattern-tokens that should happen after all the LEDs are drawn
+  for (ptrn_byte_05 = 0; ptrn_ptr[ptrn_byte_05] != SUPRSPCL_END_OF_PTRNS; ptrn_byte_05++) {
     thePtrn = ptrn_ptr[ptrn_byte_05];
-    if ((thePtrn <= DRAW_RING_LARGEST) && (thePtrn >= DRAW_RING_SMALLEST)) {
+    if ((thePtrn <= AFTRLUP_DRAW_RING_LARGEST) && (thePtrn >= AFTRLUP_DRAW_RING_SMALLEST)) {
         CRGB myColor;
-        tmp_idx = (thePtrn - DRAW_RING_SMALLEST) % DRAW_RING_CLRMAX; // color index
+        tmp_idx = (thePtrn - AFTRLUP_DRAW_RING_SMALLEST) % AFTRLUP_DRAW_RING_CLRMAX; // color index
         switch (tmp_idx) {
-          case DRAW_RING_CLRBLNKNG:
+          case AFTRLUP_DRAW_RING_CLRBLNKNG:
             myColor = blinking;
             break;
-          case DRAW_RING_CLRBLACK:
+          case AFTRLUP_DRAW_RING_CLRBLACK:
           default:
             myColor = CRGB::Black ;
             break;
-          case DRAW_RING_CLRFORE:
+          case AFTRLUP_DRAW_RING_CLRFORE:
             myColor = foreground;
             break;
-          case DRAW_RING_CLRBKGND:
+          case AFTRLUP_DRAW_RING_CLRBKGND:
             myColor = background;
             break;
         }
-        tmp_idx = (thePtrn - DRAW_RING_SMALLEST) / DRAW_RING_CLRMAX; // ring index
+        tmp_idx = (thePtrn - AFTRLUP_DRAW_RING_SMALLEST) / AFTRLUP_DRAW_RING_CLRMAX; // ring index
         fill_solid(&led_display[draw_target*NUM_LEDS+start_per_ring[tmp_idx]], leds_per_ring[tmp_idx], myColor);
         #if BAD_LED_92
         led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
@@ -550,8 +572,8 @@ int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CR
         saveSurroundEffectLEDs(ptrn_byteptr_01[ptrn_byte_01], ptrn_byteptr_02, draw_target, led_effect_save);
         FastLED.show();
         delay(led_delay*10);
-    } // end if DRAW_RING
-  } // end do the pattern-types that should happen after all the LEDs are drawn
+    } // end if AFTRLUP_DRAW_RING
+  } // end do the pattern-tokens that should happen after all the LEDs are drawn
 
   return(ptrn_byte_06);
 } // end doPatternDraw()
