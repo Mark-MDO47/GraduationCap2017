@@ -200,6 +200,7 @@ const char ptrnRingDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1, AFTR
    AFTRLUP_DRAW_RING5_CLRFORE,   AFTRLUP_DRAW_RING4_CLRBKGND,  AFTRLUP_DRAW_RING3_CLRBLNKNG, AFTRLUP_DRAW_RING2_CLRFORE,   AFTRLUP_DRAW_RING1_CLRBKGND,
    AFTRLUP_DRAW_RING5_CLRBKGND,  AFTRLUP_DRAW_RING4_CLRBLNKNG, AFTRLUP_DRAW_RING3_CLRFORE,   AFTRLUP_DRAW_RING2_CLRBKGND,  AFTRLUP_DRAW_RING1_CLRBLNKNG,
    SUPRSPCL_END_OF_PTRNS };
+const char ptrnRing1[] = { SUPRSPCL_STOP_WHEN_DONE, AFTRLUP_DRAW_RING1_CLRBLNKNG, SUPRSPCL_END_OF_PTRNS };
 
 
 // pattern vars
@@ -297,9 +298,10 @@ void doPattern() {
        break;
     case 3: // 3 = draw wide
        // save_return = doPatternDraw(10, ltr_Y, ptrnWide, CRGB::Gold, CRGB::Blue, CRGB::Green);
-       // doDwell(dwell);
-       save_return = doPatternDraw(1000, ltr_Y, ptrnRingDraw, CRGB::Red, CRGB::Blue, CRGB::Green);
-       save_return = doPatternDraw(1000, ltr_Y, ptrnRingDraw, CRGB::Red, CRGB::Blue, CRGB::Green);
+       save_return = doPatternDraw(10, ltr_Y, ptrnRingDraw, CRGB::Red, CRGB::Blue, CRGB::Green);
+       save_return = doPatternDraw(10, ltr_Y, ptrnRingDraw, CRGB::Red, CRGB::Blue, CRGB::Green);
+       // save_return = doPatternDraw(1000, ltr_Y, 5, CRGB::Red, CRGB::Blue, CRGB::Green);
+       doDwell(dwell);
        break;
     case 4: // 4 = do surrounding circles around letter
        save_return = doPatternDraw(8, ltr_Y, ptrnDblClkws, CRGB::Gold, CRGB::Blue, CRGB::Green);
@@ -619,7 +621,7 @@ int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CR
         }
         DEBUG_PRINT(" color-idx: ")
         DEBUG_PRINT((int) tmp_idx)
-        tmp_idx = (thePtrn - AFTRLUP_DRAW_RING_SMALLEST) / AFTRLUP_DRAW_RING_CLRMAX; // ring index
+        tmp_idx = NUM_RINGS_PER_CIRCLE - 1 - (thePtrn - AFTRLUP_DRAW_RING_SMALLEST) / AFTRLUP_DRAW_RING_CLRMAX; // ring index
         DEBUG_PRINT("   ring: ")
         DEBUG_PRINTLN((int) tmp_idx)
         fill_solid(&led_display[draw_target*NUM_LEDS+start_per_ring[tmp_idx]], leds_per_ring[tmp_idx], myColor);
