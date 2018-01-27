@@ -193,11 +193,11 @@ CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS]; // 1st set is for display, then shad
 #define TARGET_SHDW1               1 // target or DRAW is SHADOW1 LEDs
 // #define TARGET_SHDW2               2 // target or DRAW is SHADOW2 LEDs --- NOTE ENOUGH ROOM
 
-const char ptrnOff[]      = { SUPRSPCL_STOP_WHEN_DONE, SPCL_DRAW_BKGD_CLRBLACK, SUPRSPCL_SKIP_STEP2, SUPRSPCL_SKIP_STEP1, SUPRSPCL_END_OF_PTRNS };
-const char ptrnJustDraw[] = { SPCL_DRAW_BKGD_CLRBKGND, SUPRSPCL_SKIP_STEP2, PER_LED_DRAW_BLNKING, PER_LED_DRAW_FORE, SUPRSPCL_END_OF_PTRNS };
-const char ptrnWideDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SPCL_DRAW_BKGD_CLRBKGND, SUPRSPCL_SKIP_STEP2, PER_LED_DRAW_BLNKING_SRND_ALL, PER_LED_DRAW_FORE_LTR_ALL, SUPRSPCL_END_OF_PTRNS };
-const char ptrnDblClkws[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP2, SPCL_DRAW_BKGD_CLRBKGND, PER_LED_DRAW_BLNKNG_SRND_CLKWS, PER_LED_DRAW_PREV_SRND_CLKWS, PER_LED_DRAW_BLNKING, PER_LED_DRAW_FORE, PER_LED_DRAW_BLNKNG_SRND_CLKWS, PER_LED_DRAW_PREV_SRND_CLKWS, PER_LED_DRAW_BLNKING, PER_LED_DRAW_FORE, SUPRSPCL_END_OF_PTRNS };
-const char ptrnRingDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1, AFTRLUP_DRAW_RING6_CLRBLACK, 
+const int8_t ptrnOff[]      = { SUPRSPCL_STOP_WHEN_DONE, SPCL_DRAW_BKGD_CLRBLACK, SUPRSPCL_SKIP_STEP2, SUPRSPCL_SKIP_STEP1, SUPRSPCL_END_OF_PTRNS };
+const int8_t ptrnJustDraw[] = { SPCL_DRAW_BKGD_CLRBKGND, SUPRSPCL_SKIP_STEP2, PER_LED_DRAW_BLNKING, PER_LED_DRAW_FORE, SUPRSPCL_END_OF_PTRNS };
+const int8_t ptrnWideDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SPCL_DRAW_BKGD_CLRBKGND, SUPRSPCL_SKIP_STEP2, PER_LED_DRAW_BLNKING_SRND_ALL, PER_LED_DRAW_FORE_LTR_ALL, SUPRSPCL_END_OF_PTRNS };
+const int8_t ptrnDblClkws[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP2, SPCL_DRAW_BKGD_CLRBKGND, PER_LED_DRAW_BLNKNG_SRND_CLKWS, PER_LED_DRAW_PREV_SRND_CLKWS, PER_LED_DRAW_BLNKING, PER_LED_DRAW_FORE, PER_LED_DRAW_BLNKNG_SRND_CLKWS, PER_LED_DRAW_PREV_SRND_CLKWS, PER_LED_DRAW_BLNKING, PER_LED_DRAW_FORE, SUPRSPCL_END_OF_PTRNS };
+const int8_t ptrnRingDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1, AFTRLUP_DRAW_RING6_CLRBLACK, 
    AFTRLUP_DRAW_RING5_CLRBLNKNG, AFTRLUP_DRAW_RING4_CLRFORE,   AFTRLUP_DRAW_RING3_CLRBKGND,  AFTRLUP_DRAW_RING2_CLRBLNKNG, AFTRLUP_DRAW_RING1_CLRFORE,
    AFTRLUP_DRAW_RING5_CLRFORE,   AFTRLUP_DRAW_RING4_CLRBKGND,  AFTRLUP_DRAW_RING3_CLRBLNKNG, AFTRLUP_DRAW_RING2_CLRFORE,   AFTRLUP_DRAW_RING1_CLRBKGND,
    AFTRLUP_DRAW_RING5_CLRBKGND,  AFTRLUP_DRAW_RING4_CLRBLNKNG, AFTRLUP_DRAW_RING3_CLRFORE,   AFTRLUP_DRAW_RING2_CLRBKGND,  AFTRLUP_DRAW_RING1_CLRBLNKNG,
@@ -205,24 +205,24 @@ const char ptrnRingDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1, AFTR
 
 
 // pattern vars
-static char  pattern = 1;
-static char  oldPattern = 2;
-static char  nextPattern = 2;
+static int8_t  pattern = 1;
+static int8_t  oldPattern = 2;
+static int8_t  nextPattern = 2;
 static short ptrn_delay = 100; // set by patterns to proper delay
 static word  bigCount;    // unsigned 16-bit int
 static byte  smallCount;  // unsigned  8-bit int
-static char  ptrn_byte_01 = -1;
-static char  ptrn_byte_02 = -1;
-static char  ptrn_byte_03 = -1;
-static char  ptrn_byte_04 = -1;
-static char  ptrn_byte_05 = -1;
-static char  ptrn_byte_06 = -1;
-static char * ptrn_byteptr_01 = (char *) 0;
-static char * ptrn_byteptr_02 = (char *) 0;
+static int8_t  ptrn_byte_01 = -1;
+static int8_t  ptrn_byte_02 = -1;
+static int8_t  ptrn_byte_03 = -1;
+static int8_t  ptrn_byte_04 = -1;
+static int8_t  ptrn_byte_05 = -1;
+static int8_t  ptrn_byte_06 = -1;
+static int8_t * ptrn_byteptr_01 = (int8_t *) 0;
+static int8_t * ptrn_byteptr_02 = (int8_t *) 0;
 
-#define EFFECT_POINTERS_OFFSET 32 // effect_pointers[0] corresponds to LED 32
-#define EFFECT_NUM_LED_SAV (8) // save up to eight "effect" LEDs
-CRGB led_effect_save[EFFECT_NUM_LED_SAV+1];
+#define EFFECT_POINTERS_OFFSET 32 // surround_pointers[0] corresponds to LED 32. Currently only effect is surround
+#define EFFECT_NUM_LED_SAV 8 // save up to eight "effect" LEDs
+CRGB led_effect_save[EFFECT_NUM_LED_SAV+1]; // place to save original values of effect LEDs. Currently only effect is surround
 
 #define NO_BUTTON_PRESS -1 // when no input from user
 #define NO_BUTTON_CHANGE -1 // when no CHANGE in input from user
@@ -284,7 +284,7 @@ void loop() {
 // doPattern()
 //   first level organization of patterns for show, checking for button presses
 //   keeps track of oldPattern and nextPattern
-//   Calls: int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CRGB foreground, CRGB background, CRGB blinking, uint32_t parm1, uint32_t parm2, uint32_t parm3);
+//   Calls: int doPatternDraw(int led_delay, const int8_t * ltr_ptr, const int8_t * ptrn_ptr, CRGB foreground, CRGB background, CRGB blinking, uint32_t parm1, uint32_t parm2, uint32_t parm3);
 //
 void doPattern() {
   static int save_return = 0;
@@ -339,8 +339,8 @@ void doPattern() {
 //
 // calling parameters:
 //     int led_delay - (starting) delay for pattern steps EXCEPT fade
-//     const char * ltr_ptr - points to array of LED indices for letter (or other shape)
-//     const char * ptrn_ptr - points to array of pattern tokens
+//     const int8_t * ltr_ptr - points to array of LED indices for letter (or other shape)
+//     const int8_t * ptrn_ptr - points to array of pattern tokens
 //     CRGB foreground - CRGB color for foreground (used to draw shape)
 //     CRGB background - CRGB color for background (used to draw rest of disk)
 //     CRGB blinking - CRGB color for special blinking effects (often used to draw surround for current LED in ltr_ptr)
@@ -348,9 +348,9 @@ void doPattern() {
 //
 // variables used: FIXME - rename now that there are no other pattern draw routines
 //
-//   ptrn_byteptr_01 - points to the letter/number array, example: (char *) &ltr_Y[0]
+//   ptrn_byteptr_01 - points to the letter/number array, example: (int8_t *) &ltr_Y[0]
 //   ptrn_byte_01    - index for ptrn_byteptr_01[]. [0] = neg count of LED indexes, [1..-[0]] =  are the LED indexes
-//   ptrn_byteptr_02 - points to the effects array, example: (char *) effect_pointers[theLED-EFFECT_POINTERS_OFFSET]
+//   ptrn_byteptr_02 - points to the effects array, example: (int8_t *) surround_pointers[theLED-EFFECT_POINTERS_OFFSET]
 //   ptrn_byte_02    - index for ptrn_byteptr_02[]. [0] = neg count of LED indexes, [1..-[0]] =  are the LED indexes
 //   ptrn_byte_03    - num of LED indexes in ptrn_byteptr_01
 //   ptrn_byte_04    - num of LED indexes in ptrn_byteptr_02
@@ -381,13 +381,13 @@ void doPattern() {
 //  
 #define DO_SKIP_STEP1 1
 #define DO_SKIP_STEP2 2
-int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CRGB foreground, CRGB background, CRGB blinking, uint32_t parm1, uint32_t parm2, uint32_t parm3) {
+int doPatternDraw(int led_delay, const int8_t * ltr_ptr, const int8_t * ptrn_ptr, CRGB foreground, CRGB background, CRGB blinking, uint32_t parm1, uint32_t parm2, uint32_t parm3) {
   int theLED = -1; // temp storage for the LED that is being written
-  char thePtrn = -1; // temp storage for the pattern being processed
+  int8_t thePtrn = -1; // temp storage for the pattern being processed
   byte do_specials = 1; // non-zero if do SPECIAL codes
-  char draw_target = TARGET_LEDS; // or TARGET_SHADOW
+  int8_t draw_target = TARGET_LEDS; // or TARGET_SHADOW
   byte tmp_idx = 0; // temporary index
-  char do_display_delay = 0;
+  int8_t do_display_delay = 0;
   byte skip_steps = 0;
   uint8_t fade_factor = 32; // default means each fade removes 32/256 = 0.125 = 1/8
   uint16_t fade_dwell = 50; // default dwell during fade
@@ -395,14 +395,14 @@ int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CR
   ptrn_byte_06 = NO_BUTTON_PRESS;
   if ((oldPattern == pattern) && (SUPRSPCL_STOP_WHEN_DONE == ptrn_ptr[0])) return(ptrn_byte_06);
   
-  ptrn_byteptr_01 = (char *) ltr_ptr; // to convert from (const char *); we promise not to write into it
+  ptrn_byteptr_01 = (int8_t *) ltr_ptr; // to convert from (const int8_t *); we promise not to write into it
   ptrn_byte_03 = -(ptrn_byteptr_01[0]); // length of letter LEDstring
   draw_target = TARGET_LEDS;
 
   DEBUG_PRINTLN("doPatternDraw step 1")
   for (ptrn_byte_01 = 1; ptrn_byte_01 <= ptrn_byte_03; ptrn_byte_01++) {
     if (skip_steps & DO_SKIP_STEP1) break;
-    ptrn_byteptr_02 = (char *) effect_pointers[ptrn_byteptr_01[ptrn_byte_01]-EFFECT_POINTERS_OFFSET];  // to convert from (const char *); we promise not to write into it
+    ptrn_byteptr_02 = (int8_t *) surround_pointers[ptrn_byteptr_01[ptrn_byte_01]-EFFECT_POINTERS_OFFSET];  // to convert from (const int8_t *); we promise not to write into it
     ptrn_byte_04 = -(ptrn_byteptr_02[0]); // length of surround LED string
     saveSurroundEffectLEDs(ptrn_byteptr_01[ptrn_byte_01], ptrn_byteptr_02, draw_target, led_effect_save);
     DEBUG_PRINT("   step 1 ltr-LED: ")
@@ -580,7 +580,7 @@ int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CR
 } // end doPatternDraw()
 
 // saveSurroundEffectLEDs()
-void saveSurroundEffectLEDs(char ltr_index, const char * surround_ptrn_ptr, char draw_target, CRGB * save_here) {
+void saveSurroundEffectLEDs(int8_t ltr_index, const int8_t * surround_ptrn_ptr, int8_t draw_target, CRGB * save_here) {
   save_here[0] =   led_display[draw_target*NUM_LEDS + ptrn_byteptr_01[ptrn_byte_01]]; // save_here[0] is the LED in the middle, [1..end] are the LEDs in the surround effect
   for (byte i = 1; i <= -surround_ptrn_ptr[0]; i++) {
     save_here[i] = led_display[draw_target*NUM_LEDS + surround_ptrn_ptr[i]];
@@ -606,7 +606,7 @@ int doDwell(int dwell) {
   return(nextPattern != NO_BUTTON_CHANGE);
 } // end doDwell()
 
-// doPtrnDwell(char draw_target, int dwell) - dwell or break out if button press
+// doPtrnDwell(int8_t draw_target, int dwell) - dwell or break out if button press
 // Used inside doPatternDraw
 // Two things that matter: value returned and timing
 //   value returned:
@@ -615,7 +615,7 @@ int doDwell(int dwell) {
 //   timing:
 //     if draw_target is 0 (visible display LEDs), either does entire delay or delays until button press
 //     if draw_target is non-zero, returns immediately after checking for button press
-int doPtrnDwell(char draw_target, int dwell) {
+int doPtrnDwell(int8_t draw_target, int dwell) {
   if (NO_BUTTON_PRESS != nextPatternFromButtons()) return(nextPattern != NO_BUTTON_CHANGE);
   if (draw_target != 0) return(nextPattern != NO_BUTTON_CHANGE);
   return(doDwell(dwell));
@@ -645,11 +645,11 @@ int getButtonPress() {
 #else // end if REAL_BUTTONS; now NOT REAL_BUTTONS
   // checkKeyboard() - for debugging - serial port buttons
   int checkKeyboard() { // not REAL_BUTTONS
-    char received_char;
+    int8_t received_serial_input;
     int myButton = NO_BUTTON_PRESS;
     if (Serial.available() > 0) {
-      received_char = Serial.read();
-      switch ((int) received_char) {
+      received_serial_input = Serial.read();
+      switch ((int) received_serial_input) {
         case (int) '1': myButton = 1; break;
         case (int) '2': myButton = 2; break;
         case (int) '3': myButton = 3; break;
@@ -657,8 +657,8 @@ int getButtonPress() {
         case (int) '5': myButton = 5; break;
         case (int) '6': myButton = 6; break;
         default: myButton = NO_BUTTON_PRESS; break;
-      } // end switch on received character
-    } // end if there was a character ready to read
+      } // end switch on received serial "button"
+    } // end if there was serial input ready to read
     return(myButton);
   } // end checkKeyboard()
 #endif // not REAL_BUTTONS

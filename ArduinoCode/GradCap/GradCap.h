@@ -54,96 +54,96 @@
 //   fadeToBlackBy(leds, NUM_LEDS, 64;
 //
 //
-// letter patterns
+// letter shapes
 //
-const char ltr_2[18] = { -17, 53, 54, 55, 32, 33, 34, 35, 58, 85, 92, 89, 66, 47, 65, 64, 63, 41 };
-const char ltr_0[25] = { -24, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55 };
-const char ltr_1[16] = { -15, 53, 54, 55, 32, 56, 72, 84, 92, 88, 78, 47, 65, 64, 63, 41 };
-const char ltr_8[25] = { -24, 54, 55, 32, 33, 34, 58, 74, 85, 92, 89, 80, 66, 46, 45, 44, 43, 42, 62, 76, 87, 91, 82, 70, 54 };
+const int8_t ltr_2[18] = { -17, 53, 54, 55, 32, 33, 34, 35, 58, 85, 92, 89, 66, 47, 65, 64, 63, 41 };
+const int8_t ltr_0[25] = { -24, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55 };
+const int8_t ltr_1[16] = { -15, 53, 54, 55, 32, 56, 72, 84, 92, 88, 78, 47, 65, 64, 63, 41 };
+const int8_t ltr_8[25] = { -24, 54, 55, 32, 33, 34, 58, 74, 85, 92, 89, 80, 66, 46, 45, 44, 43, 42, 62, 76, 87, 91, 82, 70, 54 };
 
-const char ltr_P[18] = { -17, 81, 82, 70, 54, 55, 32, 33, 34, 35, 59, 75, 86, 92, 90, 80, 66, 46 };
+const int8_t ltr_P[18] = { -17, 81, 82, 70, 54, 55, 32, 33, 34, 35, 59, 75, 86, 92, 90, 80, 66, 46 };
 #define ltr_O ltr_0 // using same for letter O and numeral 0
-const char ltr_L[11] = { -10, 54, 70, 82, 81, 80, 66, 65, 64, 63, 41 };
-const char ltr_Y[13] = { -12, 78, 64, 44, 53, 70, 82, 90, 88, 86, 74, 58, 35 };
+const int8_t ltr_L[11] = { -10, 54, 70, 82, 81, 80, 66, 65, 64, 63, 41 };
+const int8_t ltr_Y[13] = { -12, 78, 64, 44, 53, 70, 82, 90, 88, 86, 74, 58, 35 };
 
-// const char ltr_T[13] = { -12, 53, 71, 56, 57, 35, 72, 84, 92, 88, 78, 64, 44 };
-// const char ltr_H[18] = { -17, 54, 70, 82, 81, 80, 66, 46, 34, 58, 74, 75, 76, 62, 42, 90, 92, 86 };
-// const char ltr_S[18] = { -17, 34, 33, 32, 55, 54, 70, 82, 91, 92, 87, 76, 62, 42, 43, 44, 45, 46 };
+// const int8_t ltr_T[13] = { -12, 53, 71, 56, 57, 35, 72, 84, 92, 88, 78, 64, 44 };
+// const int8_t ltr_H[18] = { -17, 54, 70, 82, 81, 80, 66, 46, 34, 58, 74, 75, 76, 62, 42, 90, 92, 86 };
+// const int8_t ltr_S[18] = { -17, 34, 33, 32, 55, 54, 70, 82, 91, 92, 87, 76, 62, 42, 43, 44, 45, 46 };
 
-// const char ltr_all[94] = { -93, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92 };
-
-// the "effect" is to surround the LED we are painting with other nearby LEDs
-const char efct_32[7] = { -6, 0, 31, 55, 56, 33, 1 };
-const char efct_33[6] = { -5, 1, 32, 57, 34, 2 };
-const char efct_34[6] = { -5, 2, 33, 57, 35, 3 };
-const char efct_35[] = { -6, 3, 34, 58, 36, 5, 4 };
-const char efct_36[6] = { -5, 35, 59, 37, 6, 5 };
-const char efct_37[6] = { -5, 36, 59, 38, 7, 6 };
-const char efct_38[7] = { -6, 8, 7, 37, 60, 39, 9 };
-const char efct_39[6] = { -5, 9, 38, 61, 40, 10 };
-const char efct_40[6] = { -5, 10, 39, 61, 41, 11 };
-const char efct_41[] = { -6, 11, 40, 62, 42, 13, 12 };
-const char efct_42[6] = { -5, 41, 63, 43, 14, 13 };
-const char efct_43[6] = { -5, 42, 63, 44, 15, 14 };
-const char efct_44[7] = { -6, 16, 15, 43, 64, 45, 17 };
-const char efct_45[6] = { -5, 17, 44, 65, 46, 18 };
-const char efct_46[6] = { -5, 18, 45, 65, 47, 19 };
-const char efct_47[] = { -6, 19, 46, 66, 48, 21, 20 };
-const char efct_48[6] = { -5, 47, 67, 49, 22, 21 };
-const char efct_49[6] = { -5, 48, 67, 50, 23, 22 };
-const char efct_50[7] = { -6, 24, 23, 49, 68, 51, 25 };
-const char efct_51[6] = { -5, 25, 50, 69, 52, 26 };
-const char efct_52[6] = { -5, 26, 51, 69, 53, 27 };
-const char efct_53[] = { -6, 27, 52, 70, 54, 29, 28 };
-const char efct_54[6] = { -5, 53, 71, 55, 30, 29 };
-const char efct_55[6] = { -5, 54, 71, 32, 31, 30 };
-const char efct_56[7] = { -6, 32, 55, 71, 72, 57, 33 };
-const char efct_57[6] = { -5, 33, 56, 73, 58, 34 };
-const char efct_58[] = { -7, 57, 73, 74, 59, 36, 35, 34 };
-const char efct_59[6] = { -5, 58, 74, 60, 37, 36 };
-const char efct_60[7] = { -6, 38, 37, 59, 75, 61, 39 };
-const char efct_61[6] = { -5, 39, 60, 76, 62, 40 };
-const char efct_62[] = { -7, 61, 76, 77, 63, 42, 41, 40 };
-const char efct_63[6] = { -5, 62, 77, 64, 43, 42 };
-const char efct_64[7] = { -6, 44, 43, 63, 78, 65, 45 };
-const char efct_65[6] = { -5, 45, 64, 79, 66, 46 };
-const char efct_66[] = { -7, 65, 79, 80, 67, 48, 47, 46 };
-const char efct_67[6] = { -5, 66, 80, 68, 49, 48 };
-const char efct_68[7] = { -6, 50, 49, 67, 81, 69, 51 };
-const char efct_69[6] = { -5, 51, 68, 82, 70, 52 };
-const char efct_70[] = { -7, 69, 82, 83, 71, 54, 53, 52 };
-const char efct_71[6] = { -5, 70, 83, 56, 55, 54 };
-const char efct_72[7] = { -6, 56, 71, 83, 84, 73, 57 };
-const char efct_73[6] = { -5, 72, 84, 85, 74, 58 };
-const char efct_74[6] = { -5, 73, 85, 75, 59, 58 };
-const char efct_75[7] = { -6, 60, 59, 74, 86, 76, 61 };
-const char efct_76[6] = { -5, 75, 86, 87, 77, 62 };
-const char efct_77[6] = { -5, 76, 87, 78, 63, 62 };
-const char efct_78[7] = { -6, 64, 63, 77, 88, 79, 65 };
-const char efct_79[6] = { -5, 78, 88, 89, 80, 66 };
-const char efct_80[6] = { -5, 79, 89, 81, 67, 66 };
-const char efct_81[7] = { -6, 68, 67, 80, 90, 82, 69 };
-const char efct_82[6] = { -5, 81, 90, 91, 83, 70 };
-const char efct_83[6] = { -5, 82, 91, 72, 71, 70 };
-const char efct_84[7] = { -6, 72, 83, 91, 92, 85, 73 };
-const char efct_85[6] = { -5, 73, 84, 92, 86, 74 };
-const char efct_86[7] = { -6, 75, 74, 85, 92, 87, 76 };
-const char efct_87[6] = { -5, 76, 86, 92, 88, 77 };
-const char efct_88[7] = { -6, 78, 77, 87, 92, 89, 79 };
-const char efct_89[6] = { -5, 79, 88, 92, 90, 80 };
-const char efct_90[7] = { -6, 81, 80, 89, 92, 91, 82 };
-const char efct_91[6] = { -5, 82, 90, 92, 84, 83 };
-const char efct_92[9] = { -8, 84, 91, 90, 89, 88, 87, 86, 85 };
+// const int8_t ltr_all[94] = { -93, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92 };
 
 // the "effect" is to surround the LED we are painting with other nearby LEDs
-const char* effect_pointers[61] = { 
-   efct_32, efct_33, efct_34, efct_35, efct_36, efct_37, efct_38, efct_39, 
-   efct_40, efct_41, efct_42, efct_43, efct_44, efct_45, efct_46, efct_47, 
-   efct_48, efct_49, efct_50, efct_51, efct_52, efct_53, efct_54, efct_55, 
-   efct_56, efct_57, efct_58, efct_59, efct_60, efct_61, efct_62, efct_63, 
-   efct_64, efct_65, efct_66, efct_67, efct_68, efct_69, efct_70, efct_71, 
-   efct_72, efct_73, efct_74, efct_75, efct_76, efct_77, efct_78, efct_79, 
-   efct_80, efct_81, efct_82, efct_83, efct_84, efct_85, efct_86, efct_87, 
-   efct_88, efct_89, efct_90, efct_91, efct_92
+const int8_t srnd_32[7] = { -6, 0, 31, 55, 56, 33, 1 };
+const int8_t srnd_33[6] = { -5, 1, 32, 57, 34, 2 };
+const int8_t srnd_34[6] = { -5, 2, 33, 57, 35, 3 };
+const int8_t srnd_35[] = { -6, 3, 34, 58, 36, 5, 4 };
+const int8_t srnd_36[6] = { -5, 35, 59, 37, 6, 5 };
+const int8_t srnd_37[6] = { -5, 36, 59, 38, 7, 6 };
+const int8_t srnd_38[7] = { -6, 8, 7, 37, 60, 39, 9 };
+const int8_t srnd_39[6] = { -5, 9, 38, 61, 40, 10 };
+const int8_t srnd_40[6] = { -5, 10, 39, 61, 41, 11 };
+const int8_t srnd_41[] = { -6, 11, 40, 62, 42, 13, 12 };
+const int8_t srnd_42[6] = { -5, 41, 63, 43, 14, 13 };
+const int8_t srnd_43[6] = { -5, 42, 63, 44, 15, 14 };
+const int8_t srnd_44[7] = { -6, 16, 15, 43, 64, 45, 17 };
+const int8_t srnd_45[6] = { -5, 17, 44, 65, 46, 18 };
+const int8_t srnd_46[6] = { -5, 18, 45, 65, 47, 19 };
+const int8_t srnd_47[] = { -6, 19, 46, 66, 48, 21, 20 };
+const int8_t srnd_48[6] = { -5, 47, 67, 49, 22, 21 };
+const int8_t srnd_49[6] = { -5, 48, 67, 50, 23, 22 };
+const int8_t srnd_50[7] = { -6, 24, 23, 49, 68, 51, 25 };
+const int8_t srnd_51[6] = { -5, 25, 50, 69, 52, 26 };
+const int8_t srnd_52[6] = { -5, 26, 51, 69, 53, 27 };
+const int8_t srnd_53[] = { -6, 27, 52, 70, 54, 29, 28 };
+const int8_t srnd_54[6] = { -5, 53, 71, 55, 30, 29 };
+const int8_t srnd_55[6] = { -5, 54, 71, 32, 31, 30 };
+const int8_t srnd_56[7] = { -6, 32, 55, 71, 72, 57, 33 };
+const int8_t srnd_57[6] = { -5, 33, 56, 73, 58, 34 };
+const int8_t srnd_58[] = { -7, 57, 73, 74, 59, 36, 35, 34 };
+const int8_t srnd_59[6] = { -5, 58, 74, 60, 37, 36 };
+const int8_t srnd_60[7] = { -6, 38, 37, 59, 75, 61, 39 };
+const int8_t srnd_61[6] = { -5, 39, 60, 76, 62, 40 };
+const int8_t srnd_62[] = { -7, 61, 76, 77, 63, 42, 41, 40 };
+const int8_t srnd_63[6] = { -5, 62, 77, 64, 43, 42 };
+const int8_t srnd_64[7] = { -6, 44, 43, 63, 78, 65, 45 };
+const int8_t srnd_65[6] = { -5, 45, 64, 79, 66, 46 };
+const int8_t srnd_66[] = { -7, 65, 79, 80, 67, 48, 47, 46 };
+const int8_t srnd_67[6] = { -5, 66, 80, 68, 49, 48 };
+const int8_t srnd_68[7] = { -6, 50, 49, 67, 81, 69, 51 };
+const int8_t srnd_69[6] = { -5, 51, 68, 82, 70, 52 };
+const int8_t srnd_70[] = { -7, 69, 82, 83, 71, 54, 53, 52 };
+const int8_t srnd_71[6] = { -5, 70, 83, 56, 55, 54 };
+const int8_t srnd_72[7] = { -6, 56, 71, 83, 84, 73, 57 };
+const int8_t srnd_73[6] = { -5, 72, 84, 85, 74, 58 };
+const int8_t srnd_74[6] = { -5, 73, 85, 75, 59, 58 };
+const int8_t srnd_75[7] = { -6, 60, 59, 74, 86, 76, 61 };
+const int8_t srnd_76[6] = { -5, 75, 86, 87, 77, 62 };
+const int8_t srnd_77[6] = { -5, 76, 87, 78, 63, 62 };
+const int8_t srnd_78[7] = { -6, 64, 63, 77, 88, 79, 65 };
+const int8_t srnd_79[6] = { -5, 78, 88, 89, 80, 66 };
+const int8_t srnd_80[6] = { -5, 79, 89, 81, 67, 66 };
+const int8_t srnd_81[7] = { -6, 68, 67, 80, 90, 82, 69 };
+const int8_t srnd_82[6] = { -5, 81, 90, 91, 83, 70 };
+const int8_t srnd_83[6] = { -5, 82, 91, 72, 71, 70 };
+const int8_t srnd_84[7] = { -6, 72, 83, 91, 92, 85, 73 };
+const int8_t srnd_85[6] = { -5, 73, 84, 92, 86, 74 };
+const int8_t srnd_86[7] = { -6, 75, 74, 85, 92, 87, 76 };
+const int8_t srnd_87[6] = { -5, 76, 86, 92, 88, 77 };
+const int8_t srnd_88[7] = { -6, 78, 77, 87, 92, 89, 79 };
+const int8_t srnd_89[6] = { -5, 79, 88, 92, 90, 80 };
+const int8_t srnd_90[7] = { -6, 81, 80, 89, 92, 91, 82 };
+const int8_t srnd_91[6] = { -5, 82, 90, 92, 84, 83 };
+const int8_t srnd_92[9] = { -8, 84, 91, 90, 89, 88, 87, 86, 85 };
+
+// the "effect" is to surround the LED we are painting with other nearby LEDs
+const int8_t* surround_pointers[61] = { 
+   srnd_32, srnd_33, srnd_34, srnd_35, srnd_36, srnd_37, srnd_38, srnd_39, 
+   srnd_40, srnd_41, srnd_42, srnd_43, srnd_44, srnd_45, srnd_46, srnd_47, 
+   srnd_48, srnd_49, srnd_50, srnd_51, srnd_52, srnd_53, srnd_54, srnd_55, 
+   srnd_56, srnd_57, srnd_58, srnd_59, srnd_60, srnd_61, srnd_62, srnd_63, 
+   srnd_64, srnd_65, srnd_66, srnd_67, srnd_68, srnd_69, srnd_70, srnd_71, 
+   srnd_72, srnd_73, srnd_74, srnd_75, srnd_76, srnd_77, srnd_78, srnd_79, 
+   srnd_80, srnd_81, srnd_82, srnd_83, srnd_84, srnd_85, srnd_86, srnd_87, 
+   srnd_88, srnd_89, srnd_90, srnd_91, srnd_92
 };
 
