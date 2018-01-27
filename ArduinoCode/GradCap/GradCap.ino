@@ -101,8 +101,8 @@ byte  start_per_ring[NUM_RINGS_PER_DISK] = {  0, 32, 56, 72, 84, 92 };
 #define SERIALPORT 1 // use serial port
 #endif // REAL_BUTTONS
 #if DEBUG
-short tmp_DEBUG = 0;
-short tmp_DEBUG2 = 0;
+int16_t tmp_DEBUG = 0;
+int16_t tmp_DEBUG2 = 0;
 #endif // DEBUG
 
 
@@ -205,18 +205,18 @@ const int8_t ptrnRingDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1, AF
 
 
 // pattern vars
-static int8_t  pattern = 1;
-static int8_t  oldPattern = 2;
-static int8_t  nextPattern = 2;
-static short ptrn_delay = 100; // set by patterns to proper delay
-static word  bigCount;    // unsigned 16-bit int
-static uint8_t smallCount;  // unsigned  8-bit int
-static int8_t  ptrn_byte_01 = -1;
-static int8_t  ptrn_byte_02 = -1;
-static int8_t  ptrn_byte_03 = -1;
-static int8_t  ptrn_byte_04 = -1;
-static int8_t  ptrn_byte_05 = -1;
-static int8_t  ptrn_byte_06 = -1;
+static int8_t   pattern = 1;
+static int8_t   oldPattern = 2;
+static int8_t   nextPattern = 2;
+static int16_t  ptrn_delay = 100; // set by patterns to proper delay
+static uint16_t bigCount;  // unsigned 16-bit int
+static uint8_t  smallCount;  // unsigned  8-bit int
+static int8_t   ptrn_byte_01 = -1;
+static int8_t   ptrn_byte_02 = -1;
+static int8_t   ptrn_byte_03 = -1;
+static int8_t   ptrn_byte_04 = -1;
+static int8_t   ptrn_byte_05 = -1;
+static int8_t   ptrn_byte_06 = -1;
 static int8_t * ptrn_byteptr_01 = (int8_t *) 0;
 static int8_t * ptrn_byteptr_02 = (int8_t *) 0;
 
@@ -325,7 +325,7 @@ void doPattern() {
        save_return = doPatternDraw(8, ltr_8, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        break;
     case 6:
-       save_return = doPattern_06(save_return);
+       save_return = doPatternDraw(10, ltr_Y, ptrnOff, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        break;
   } // end switch on pattern
   if (pattern != oldPattern) {
@@ -689,14 +689,4 @@ int16_t nextPatternFromButtons() {
   }
   return (nextPattern);
 } // end nextPatternFromButtons()
-
-// obsolete - delete
-int16_t doPattern_05(int16_t prev_return) {
-  return(0);
-} // end doPattern_05()
-
-// obsolete - delete
-int16_t doPattern_06(int16_t prev_return) {
-  return(0);
-} // end doPattern_06()
 
