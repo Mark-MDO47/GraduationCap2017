@@ -54,7 +54,7 @@
 // useful FastLED functions
 // Dim a color by 25% (64/256ths) eventually fading to full black
 //   leds[i].fadeToBlackBy( 64 );
-//   fadeToBlackBy(leds, NUM_LEDS, 64;
+//   fadeToBlackBy(leds, NUM_LEDS, 64);
 //
 // in Arduino, int=16bits and 
 
@@ -122,7 +122,8 @@ CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS]; // 1st set is for display, then shad
 //   SUPRSPCL_STOP_WHEN_DONE when placed first ([0]) will stop the pattern-list and return
 //   SUPRSPCL_ALLOW_SPCL resets the SPECIAL counter. If placed before a SPECIAL, it will be done for each letter LED
 //   SUPRSPCL_DRAW_NXT2_SHDW1 causes next pattern-token to draw into SHADOW1 instead of display LEDs
-//   SUPRSPCL_FADE2_SHDW1 fades from display LEDs to SHADOW1
+//   SUPRSPCL_FADExxx2_SHDW1 fades from display LEDs to SHADOW1
+//   SUPRSPCL_FADExxx2_BLACK fades from display LEDs to BLACK
 //
 //
 // between AFTRLUP_LARGEST and AFTRLUP_SMALLEST are the ones that should be done after all the letter LED patterns (step 2 above)
@@ -177,12 +178,13 @@ CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS]; // 1st set is for display, then shad
 #define SPCL_DRAW_BKGD_CLRBLACK            90 // SPECIAL: set all LEDs to black
 #define SPCL_DRAW_BKGD_CLRFORE             91 // SPECIAL: set all LEDs to foreground color
 #define SPCL_DRAW_BKGD_CLRBKGND            92 // SPECIAL: set all LEDs to background color
-#define SUPRSPCL_SKIP_STEP2               119 //
-#define SUPRSPCL_SKIP_STEP1               120 //
+#define SUPRSPCL_SKIP_STEP2               110 //
+#define SUPRSPCL_SKIP_STEP1               111 //
+#define SUPRSPCL_FADECIRCLE2_BLACK              120 // // SUPER-SPECIAL: fade all circle LEDs to be more like BLACK
 // #define SUPRSPCL_SAVE_SRND                121 // SUPER-SPECIAL: save current state of surround LEDs and current letter LED
-#define SUPRSPCL_FADE2_SHDW1              122 // SUPER-SPECIAL: fade shadow1 to LEDs
+#define SUPRSPCL_FADECIRCLE_SHDW1              122 // SUPER-SPECIAL: fade all circle LEDs to be more like shadow1
 #define SUPRSPCL_DRAW_NXT2_SHDW1          123 // SUPER-SPECIAL: next draw is to shadow1
-// #define SUPRSPCL_FADE2_SHDW2              124 // SUPER-SPECIAL: fade shadow2 to LEDs    --- NOT ENOUGH ROOM
+// #define SUPRSPCL_FADE2_SHDW2              124 // SUPER-SPECIAL: fade LEDs to be more like shadow2    --- NOT ENOUGH ROOM
 // #define SUPRSPCL_DRAW_NXT2_SHDW2          125 // SUPER-SPECIAL: next draw is to shadow2 --- NOT ENOUGH ROOM
 #define SUPRSPCL_ALLOW_SPCL               126 // SUPER-SPECIAL: execute next special when pattern restarts
 #define SUPRSPCL_STOP_WHEN_DONE           127 // SUPER-SPECIAL: run just one time if first entry in pattern. Otherwise the pattern repeats
@@ -199,8 +201,7 @@ const char ptrnRingDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1, AFTR
    AFTRLUP_DRAW_RING5_CLRBLNKNG, AFTRLUP_DRAW_RING4_CLRFORE,   AFTRLUP_DRAW_RING3_CLRBKGND,  AFTRLUP_DRAW_RING2_CLRBLNKNG, AFTRLUP_DRAW_RING1_CLRFORE,
    AFTRLUP_DRAW_RING5_CLRFORE,   AFTRLUP_DRAW_RING4_CLRBKGND,  AFTRLUP_DRAW_RING3_CLRBLNKNG, AFTRLUP_DRAW_RING2_CLRFORE,   AFTRLUP_DRAW_RING1_CLRBKGND,
    AFTRLUP_DRAW_RING5_CLRBKGND,  AFTRLUP_DRAW_RING4_CLRBLNKNG, AFTRLUP_DRAW_RING3_CLRFORE,   AFTRLUP_DRAW_RING2_CLRBKGND,  AFTRLUP_DRAW_RING1_CLRBLNKNG,
-   SUPRSPCL_END_OF_PTRNS };
-const char ptrnRing1[] = { SUPRSPCL_STOP_WHEN_DONE, AFTRLUP_DRAW_RING1_CLRBLNKNG, SUPRSPCL_END_OF_PTRNS };
+   SUPRSPCL_FADECIRCLE2_BLACK, SUPRSPCL_END_OF_PTRNS };
 
 
 // pattern vars
@@ -308,19 +309,19 @@ void doPattern() {
        break;
     case 5:
        save_return = doPatternDraw(8, ltr_P, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green);
-       doDwell(dwell);
+       if (doDwell(dwell)) break;
        save_return = doPatternDraw(8, ltr_O, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green);
-       doDwell(dwell);
+       if (doDwell(dwell)) break;
        save_return = doPatternDraw(8, ltr_L, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green);
-       doDwell(dwell);
+       if (doDwell(dwell)) break;
        save_return = doPatternDraw(8, ltr_Y, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green);
-       doDwell(dwell);
+       if (doDwell(dwell)) break;
        save_return = doPatternDraw(8, ltr_2, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green);
-       doDwell(dwell);
+       if (doDwell(dwell)) break;
        save_return = doPatternDraw(8, ltr_0, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green);
-       doDwell(dwell);
+       if (doDwell(dwell)) break;
        save_return = doPatternDraw(8, ltr_1, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green);
-       doDwell(dwell);
+       if (doDwell(dwell)) break;
        save_return = doPatternDraw(8, ltr_8, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green);
        break;
     case 6:
@@ -332,20 +333,24 @@ void doPattern() {
   } // end if pattern changed
 } // end doPattern()
 
+
 // doDwell(int dwell) - dwell or break out if button press
+//   returns TRUE if should switch to different pattern
+//   else returns false
 #define SMALL_DWELL 20
 int doDwell(int dwell) {
   int numloops = dwell / SMALL_DWELL;
   int i;
 
   for (i = 0; i < numloops; i++) {
-    if (NO_BUTTON_PRESS != nextPatternFromButtons()) return(nextPattern);
+    if (NO_BUTTON_PRESS != nextPatternFromButtons()) return(nextPattern != NO_BUTTON_CHANGE);
     delay(SMALL_DWELL);
   }
   if ((dwell % SMALL_DWELL) != 0) {
-    if (NO_BUTTON_PRESS != nextPatternFromButtons()) return(nextPattern);
+    if (NO_BUTTON_PRESS != nextPatternFromButtons()) return(nextPattern != NO_BUTTON_CHANGE);
     delay(dwell % SMALL_DWELL);
   }
+  return(nextPattern != NO_BUTTON_CHANGE);
 } // end doDwell()
 
 // getButtonPress() - get next button press, true button or debugging
@@ -457,6 +462,7 @@ int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CR
   byte tmp_idx = 0; // temporary index
   char do_display_delay = 0;
   byte skip_steps = 0;
+  uint8_t fade_factor = 32; // default means each fade removes 32/256 = 0.125 = 1/8
 
   ptrn_byte_06 = NO_BUTTON_PRESS;
   if ((oldPattern == pattern) && (SUPRSPCL_STOP_WHEN_DONE == ptrn_ptr[0])) return(ptrn_byte_06);
@@ -560,7 +566,7 @@ int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CR
         if ((ptrn_byte_06 != NO_BUTTON_PRESS) && (ptrn_byte_06 != pattern)) return(ptrn_byte_06); // pressing our button again does not stop us
         if (0 != do_display_delay) {
           FastLED.show();
-          doDwell(led_delay);
+          if (doDwell(led_delay)) return(ptrn_byte_06);;
         } // end if do_display_delay
       } else if ((thePtrn > 0)) { // one surround LED at a time pattern      
         for (ptrn_byte_02 = 1; ptrn_byte_02 <= ptrn_byte_04; ptrn_byte_02++) {    
@@ -582,7 +588,7 @@ int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CR
           if ((ptrn_byte_06 != NO_BUTTON_PRESS) && (ptrn_byte_06 != pattern)) return(ptrn_byte_06); // pressing our button again does not stop us
           if (0 != do_display_delay) {
             FastLED.show();
-            doDwell(led_delay);
+            if (doDwell(led_delay)) return(ptrn_byte_06);;
           } // end if do_display_delay
         } // end for all surround LED 
       } // end if letter LED pattern or surround LED pattern
@@ -629,10 +635,19 @@ int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CR
         led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
         #endif // BAD_LED_92
         FastLED.show();
-        doDwell(led_delay);
+        if (doDwell(led_delay)) return(ptrn_byte_06);;
     } // end if AFTRLUP_DRAW_RING
+    else if (SUPRSPCL_FADECIRCLE2_BLACK == thePtrn) {
+      for (tmp_idx = fade_factor; tmp_idx < 256; tmp_idx += fade_factor) {
+        fadeToBlackBy(&led_display[draw_target*NUM_LEDS], NUM_LEDS, fade_factor); // dim color by fade_factor/256 eventually fading to full black
+        FastLED.show();
+        if (doDwell(led_delay)) return(ptrn_byte_06);;
+      }
+      fill_solid(&led_display[draw_target*NUM_LEDS], NUM_LEDS, CRGB::Black);
+      FastLED.show();
+      if (doDwell(led_delay)) return(ptrn_byte_06);;
+    } // end if SUPRSPCL_FADECIRCLE2_BLACK
   } // end do the pattern-tokens that should happen after all the LEDs are drawn
-
   return(ptrn_byte_06);
 } // end doPatternDraw()
 
