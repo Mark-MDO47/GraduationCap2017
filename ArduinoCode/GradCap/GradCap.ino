@@ -244,7 +244,7 @@ void setup() {
 
   // initialize the input pins. Not sure if my nano actually has a pullup...
   // README - this code assumes these are contiguous and in order
-  for (int thePin = PSHBTN1; thePin <= PSHBTN6; thePin ++) {
+  for (int16_t thePin = PSHBTN1; thePin <= PSHBTN6; thePin ++) {
     pinMode(thePin, INPUT_PULLUP);
   } // end initialize pushbutton input pins
 
@@ -284,11 +284,11 @@ void loop() {
 // doPattern()
 //   first level organization of patterns for show, checking for button presses
 //   keeps track of oldPattern and nextPattern
-//   Calls: int doPatternDraw(int led_delay, const int8_t * ltr_ptr, const int8_t * ptrn_ptr, CRGB foreground, CRGB background, CRGB blinking, uint32_t parm1, uint32_t parm2, uint32_t parm3);
+//   Calls: int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * ptrn_ptr, CRGB foreground, CRGB background, CRGB blinking, uint32_t parm1, uint32_t parm2, uint32_t parm3);
 //
 void doPattern() {
-  static int save_return = 0;
-  int dwell = 1000;
+  static int16_t save_return = 0;
+  int16_t dwell = 1000;
   switch (pattern) {
     case 1: // 1 = OFF
        save_return = doPatternDraw(10, ltr_Y, ptrnOff, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
@@ -338,7 +338,7 @@ void doPattern() {
 //   implements all the pattern tokens: normal letter LED, normal surround LED, SPECIAL, SUPER-SPECIAL
 //
 // calling parameters:
-//     int led_delay - (starting) delay for pattern steps EXCEPT fade
+//     int16_t led_delay - (starting) delay for pattern steps EXCEPT fade
 //     const int8_t * ltr_ptr - points to array of LED indices for letter (or other shape)
 //     const int8_t * ptrn_ptr - points to array of pattern tokens
 //     CRGB foreground - CRGB color for foreground (used to draw shape)
@@ -381,8 +381,8 @@ void doPattern() {
 //  
 #define DO_SKIP_STEP1 1
 #define DO_SKIP_STEP2 2
-int doPatternDraw(int led_delay, const int8_t * ltr_ptr, const int8_t * ptrn_ptr, CRGB foreground, CRGB background, CRGB blinking, uint32_t parm1, uint32_t parm2, uint32_t parm3) {
-  int theLED = -1; // temp storage for the LED that is being written
+int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * ptrn_ptr, CRGB foreground, CRGB background, CRGB blinking, uint32_t parm1, uint32_t parm2, uint32_t parm3) {
+  int16_t theLED = -1; // temp storage for the LED that is being written
   int8_t thePtrn = -1; // temp storage for the pattern being processed
   uint8_t do_specials = 1; // non-zero if do SPECIAL codes
   int8_t draw_target = TARGET_LEDS; // or TARGET_SHADOW
@@ -587,13 +587,13 @@ void saveSurroundEffectLEDs(int8_t ltr_index, const int8_t * surround_ptrn_ptr, 
   } // end save the original LED info for surround effect area
 } // end saveSurroundEffectLEDs()
 
-// doDwell(int dwell) - dwell or break out if button press
+// doDwell(int16_t dwell) - dwell or break out if button press
 //   returns TRUE if should switch to different pattern
 //   else returns false
 #define SMALL_DWELL 20
-int doDwell(int dwell) {
-  int numloops = dwell / SMALL_DWELL;
-  int i;
+int16_t doDwell(int16_t dwell) {
+  int16_t numloops = dwell / SMALL_DWELL;
+  int16_t i;
 
   for (i = 0; i < numloops; i++) {
     if (NO_BUTTON_PRESS != nextPatternFromButtons()) return(nextPattern != NO_BUTTON_CHANGE);
@@ -606,7 +606,7 @@ int doDwell(int dwell) {
   return(nextPattern != NO_BUTTON_CHANGE);
 } // end doDwell()
 
-// doPtrnDwell(int8_t draw_target, int dwell) - dwell or break out if button press
+// doPtrnDwell(int8_t draw_target, int16_t dwell) - dwell or break out if button press
 // Used inside doPatternDraw
 // Two things that matter: value returned and timing
 //   value returned:
@@ -615,14 +615,14 @@ int doDwell(int dwell) {
 //   timing:
 //     if draw_target is 0 (visible display LEDs), either does entire delay or delays until button press
 //     if draw_target is non-zero, returns immediately after checking for button press
-int doPtrnDwell(int8_t draw_target, int dwell) {
+int16_t doPtrnDwell(int8_t draw_target, int16_t dwell) {
   if (NO_BUTTON_PRESS != nextPatternFromButtons()) return(nextPattern != NO_BUTTON_CHANGE);
   if (draw_target != 0) return(nextPattern != NO_BUTTON_CHANGE);
   return(doDwell(dwell));
 } // end doPtrnDwell
 
 // getButtonPress() - get next button press, true button or debugging
-int getButtonPress() {
+int16_t getButtonPress() {
 #if REAL_BUTTONS
   return(checkButtons());
 #else // end if REAL_BUTTONS; now NOT REAL_BUTTONS
@@ -632,9 +632,9 @@ int getButtonPress() {
 
 #if REAL_BUTTONS
   // checkButtons() - returns number of button pressed (1 through 6) or NO_BUTTON_PRESS
-  int checkButtons() {
+  int16_t checkButtons() {
     uint8_t  val;
-    int thePin;
+    int16_t thePin;
     for (thePin = PSHBTN1; thePin <= PSHBTN6; thePin ++) {
       val = digitalRead(thePin);
       if (LOW == val) break;
@@ -644,9 +644,9 @@ int getButtonPress() {
   } // end checkButtons()
 #else // end if REAL_BUTTONS; now NOT REAL_BUTTONS
   // checkKeyboard() - for debugging - serial port buttons
-  int checkKeyboard() { // not REAL_BUTTONS
+  int16_t checkKeyboard() { // not REAL_BUTTONS
     int8_t received_serial_input;
-    int myButton = NO_BUTTON_PRESS;
+    int16_t myButton = NO_BUTTON_PRESS;
     if (Serial.available() > 0) {
       received_serial_input = Serial.read();
       switch ((int) received_serial_input) {
@@ -667,8 +667,8 @@ int getButtonPress() {
 // could have button pressed now - do that ignore any earlier press
 // could have seen button pressed earlier and just now handling it - do that
 // otherwise keep same pattern - no change
-int patternFromButtons() {
-  int myButton = getButtonPress(); // no change unless we see a change
+int16_t patternFromButtons() {
+  int16_t myButton = getButtonPress(); // no change unless we see a change
   if (myButton == NO_BUTTON_PRESS) {
     if (NO_BUTTON_CHANGE != nextPattern) {
       myButton = nextPattern;
@@ -682,8 +682,8 @@ int patternFromButtons() {
 
 // nextPatternFromButtons() - store nextPattern if button pressed
 //     nextPattern will get used when we get back to the main loop
-int nextPatternFromButtons() {
-  int myButton = getButtonPress();
+int16_t nextPatternFromButtons() {
+  int16_t myButton = getButtonPress();
   if (myButton != NO_BUTTON_PRESS) {
     nextPattern = myButton;
   }
@@ -691,12 +691,12 @@ int nextPatternFromButtons() {
 } // end nextPatternFromButtons()
 
 // obsolete - delete
-int doPattern_05(int prev_return) {
+int16_t doPattern_05(int16_t prev_return) {
   return(0);
 } // end doPattern_05()
 
 // obsolete - delete
-int doPattern_06(int prev_return) {
+int16_t doPattern_06(int16_t prev_return) {
   return(0);
 } // end doPattern_06()
 
