@@ -62,16 +62,16 @@
 #define BAD_LED_92 1 // LED [92] is not working in test hardware
 
 // I am using 93-LED rings - four of them.
-#define NUM_CIRCLES 1 // definitely not enough room for multiple circles in one Arduino
-#define NUM_LEDS_PER_CIRCLE 93
-#define NUM_LEDS (NUM_CIRCLES * NUM_LEDS_PER_CIRCLE)
-#define WHICH_CIRCLE 1 // if we have multiple Arduinos, this will identify them
-#define NUM_RINGS_PER_CIRCLE 6
-#define NUM_SHADOWS 1  // number of shadow circles
+#define NUM_DISKS 1 // definitely not enough room for multiple disks in one Arduino
+#define NUM_LEDS_PER_DISK 93
+#define NUM_LEDS (NUM_DISKS * NUM_LEDS_PER_DISK)
+#define WHICH_DISK 1 // if we have multiple Arduinos, this will identify them
+#define NUM_RINGS_PER_DISK 6
+#define NUM_SHADOWS 1  // number of shadow disks
 
 // LED count - number of LEDs in each ring in order of serial access
-byte  leds_per_ring[NUM_RINGS_PER_CIRCLE]  = { 32, 24, 16, 12,  8,  1 };
-byte  start_per_ring[NUM_RINGS_PER_CIRCLE] = {  0, 32, 56, 72, 84, 92 };
+byte  leds_per_ring[NUM_RINGS_PER_DISK]  = { 32, 24, 16, 12,  8,  1 };
+byte  start_per_ring[NUM_RINGS_PER_DISK] = {  0, 32, 56, 72, 84, 92 };
 
 // We'll be using Digital Data Pin D3 to control the WS2812 LEDs
 // We skip D2 to leave a space between our data and our GND connection
@@ -114,10 +114,10 @@ CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS]; // 1st set is for display, then shad
 // pattern lists are processed in 2.5 steps.
 // two major steps:
 //   1) process pattern-tokens that are one or more changes per LED, either letter LED or surround LED
-//     1.5) in the middle of this, do SPECIAL and SUPER-SPECIAL pattern-token processing
-//   2) process pattern-tokens that are done after the above
+//     1.5) in the middle of this, do SPECIAL and some SUPER-SPECIAL pattern-token processing
+//   2) process SUPER-SPECIAL pattern-tokens that are done after the above, typically disk-wide, ring-wide, or section-wide effects
 // SPECIAL processing allows things that should be done just once per pattern-list (or see SUPRSPCL_ALLOW_SPCL might be once per letter LED)
-//   SPCL_DRAW_BKGD_CLRBKGND: clear and set background pattern for entire circle
+//   SPCL_DRAW_BKGD_CLRBKGND: clear and set background pattern for entire disk
 // SUPER-SPECIAL:
 //   SUPRSPCL_STOP_WHEN_DONE when placed first ([0]) will stop the pattern-list and return
 //   SUPRSPCL_ALLOW_SPCL resets the SPECIAL counter. If placed before a SPECIAL, it will be done for each letter LED
@@ -180,9 +180,9 @@ CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS]; // 1st set is for display, then shad
 #define SPCL_DRAW_BKGD_CLRBKGND            92 // SPECIAL: set all LEDs to background color
 #define SUPRSPCL_SKIP_STEP2               110 //
 #define SUPRSPCL_SKIP_STEP1               111 //
-#define SUPRSPCL_FADECIRCLE2_BLACK              120 // // SUPER-SPECIAL: fade all circle LEDs to be more like BLACK
+#define SUPRSPCL_FADEDISK2_BLACK              120 // // SUPER-SPECIAL: fade all disk LEDs to be more like BLACK
 // #define SUPRSPCL_SAVE_SRND                121 // SUPER-SPECIAL: save current state of surround LEDs and current letter LED
-#define SUPRSPCL_FADECIRCLE_SHDW1              122 // SUPER-SPECIAL: fade all circle LEDs to be more like shadow1
+#define SUPRSPCL_FADEDISK_SHDW1              122 // SUPER-SPECIAL: fade all disk LEDs to be more like shadow1.
 #define SUPRSPCL_DRAW_NXT2_SHDW1          123 // SUPER-SPECIAL: next draw is to shadow1
 // #define SUPRSPCL_FADE2_SHDW2              124 // SUPER-SPECIAL: fade LEDs to be more like shadow2    --- NOT ENOUGH ROOM
 // #define SUPRSPCL_DRAW_NXT2_SHDW2          125 // SUPER-SPECIAL: next draw is to shadow2 --- NOT ENOUGH ROOM
@@ -201,7 +201,7 @@ const char ptrnRingDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1, AFTR
    AFTRLUP_DRAW_RING5_CLRBLNKNG, AFTRLUP_DRAW_RING4_CLRFORE,   AFTRLUP_DRAW_RING3_CLRBKGND,  AFTRLUP_DRAW_RING2_CLRBLNKNG, AFTRLUP_DRAW_RING1_CLRFORE,
    AFTRLUP_DRAW_RING5_CLRFORE,   AFTRLUP_DRAW_RING4_CLRBKGND,  AFTRLUP_DRAW_RING3_CLRBLNKNG, AFTRLUP_DRAW_RING2_CLRFORE,   AFTRLUP_DRAW_RING1_CLRBKGND,
    AFTRLUP_DRAW_RING5_CLRBKGND,  AFTRLUP_DRAW_RING4_CLRBLNKNG, AFTRLUP_DRAW_RING3_CLRFORE,   AFTRLUP_DRAW_RING2_CLRBKGND,  AFTRLUP_DRAW_RING1_CLRBLNKNG,
-   SUPRSPCL_FADECIRCLE2_BLACK, SUPRSPCL_END_OF_PTRNS };
+   SUPRSPCL_FADEDISK2_BLACK, SUPRSPCL_END_OF_PTRNS };
 
 
 // pattern vars
@@ -282,9 +282,8 @@ void loop() {
 // ******************************** UTILITIES ********************************
 
 // doPattern()
-//   organizes patterns for show, checking for button presses
+//   first level organization of patterns for show, checking for button presses
 //   keeps track of oldPattern and nextPattern
-//
 //   Calls: int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CRGB foreground, CRGB background, CRGB blinking, uint32_t parm1, uint32_t parm2, uint32_t parm3);
 //
 void doPattern() {
@@ -305,7 +304,7 @@ void doPattern() {
        // save_return = doPatternDraw(1000, ltr_Y, 5, CRGB::Red, CRGB::Blue, CRGB::Green, 0, 0, 0);
        doDwell(dwell);
        break;
-    case 4: // 4 = do surrounding circles around letter
+    case 4: // 4 = do surrounding disks around letter
        save_return = doPatternDraw(8, ltr_Y, ptrnDblClkws, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        break;
     case 5:
@@ -334,144 +333,52 @@ void doPattern() {
   } // end if pattern changed
 } // end doPattern()
 
-
-// doDwell(int dwell) - dwell or break out if button press
-//   returns TRUE if should switch to different pattern
-//   else returns false
-#define SMALL_DWELL 20
-int doDwell(int dwell) {
-  int numloops = dwell / SMALL_DWELL;
-  int i;
-
-  for (i = 0; i < numloops; i++) {
-    if (NO_BUTTON_PRESS != nextPatternFromButtons()) return(nextPattern != NO_BUTTON_CHANGE);
-    delay(SMALL_DWELL);
-  }
-  if ((dwell % SMALL_DWELL) != 0) {
-    if (NO_BUTTON_PRESS != nextPatternFromButtons()) return(nextPattern != NO_BUTTON_CHANGE);
-    delay(dwell % SMALL_DWELL);
-  }
-  return(nextPattern != NO_BUTTON_CHANGE);
-} // end doDwell()
-
-// doPtrnDwell(char draw_target, int dwell) - dwell or break out if button press
-// Used inside doPatternDraw
-// Two things that matter: value returned and timing
-//   value returned:
-//     returns TRUE if should switch to different pattern
-//     else returns false
-//   timing:
-//     if draw_target is 0 (visible display LEDs), either does entire delay or delays until button press
-//     if draw_target is non-zero, returns immediately after checking for button press
-int doPtrnDwell(char draw_target, int dwell) {
-  if (NO_BUTTON_PRESS != nextPatternFromButtons()) return(nextPattern != NO_BUTTON_CHANGE);
-  if (draw_target != 0) return(nextPattern != NO_BUTTON_CHANGE);
-  return(doDwell(dwell));
-} // end doPtrnDwell
-
-// getButtonPress() - get next button press, true button or debugging
-int getButtonPress() {
-#if REAL_BUTTONS
-  return(checkButtons());
-#else // end if REAL_BUTTONS; now NOT REAL_BUTTONS
-  return(checkKeyboard());
-#endif // not REAL_BUTTONS
-} // end getButtonPress()
-
-#if REAL_BUTTONS
-  // checkButtons() - returns number of button pressed (1 through 6) or NO_BUTTON_PRESS
-  int checkButtons() {
-    byte  val;
-    int thePin;
-    for (thePin = PSHBTN1; thePin <= PSHBTN6; thePin ++) {
-      val = digitalRead(thePin);
-      if (LOW == val) break;
-    } // end for all pushbuttons
-    if (PSHBTN6 < thePin) return(NO_BUTTON_PRESS); // if no button pushed
-    else                  return(thePin-PSHBTN1+1);
-  } // end checkButtons()
-#else // end if REAL_BUTTONS; now NOT REAL_BUTTONS
-  // checkKeyboard() - for debugging - serial port buttons
-  int checkKeyboard() { // not REAL_BUTTONS
-    char received_char;
-    int myButton = NO_BUTTON_PRESS;
-    if (Serial.available() > 0) {
-      received_char = Serial.read();
-      switch ((int) received_char) {
-        case (int) '1': myButton = 1; break;
-        case (int) '2': myButton = 2; break;
-        case (int) '3': myButton = 3; break;
-        case (int) '4': myButton = 4; break;
-        case (int) '5': myButton = 5; break;
-        case (int) '6': myButton = 6; break;
-        default: myButton = NO_BUTTON_PRESS; break;
-      } // end switch on received character
-    } // end if there was a character ready to read
-    return(myButton);
-  } // end checkKeyboard()
-#endif // not REAL_BUTTONS
-
-// patternFromButtons() - get pattern to use (called from main loop)
-// could have button pressed now - do that ignore any earlier press
-// could have seen button pressed earlier and just now handling it - do that
-// otherwise keep same pattern - no change
-int patternFromButtons() {
-  int myButton = getButtonPress(); // no change unless we see a change
-  if (myButton == NO_BUTTON_PRESS) {
-    if (NO_BUTTON_CHANGE != nextPattern) {
-      myButton = nextPattern;
-    } else {
-      myButton = pattern;
-    }
-  } // end if no button pressed now so process earlier button press
-  nextPattern = NO_BUTTON_CHANGE;
-  return(myButton);
-} // end patternFromButtons()
-
-// nextPatternFromButtons() - store nextPattern if button pressed
-//     nextPattern will get used when we get back to the main loop
-int nextPatternFromButtons() {
-  int myButton = getButtonPress();
-  if (myButton != NO_BUTTON_PRESS) {
-    nextPattern = myButton;
-  }
-  return (nextPattern);
-} // end nextPatternFromButtons()
-
-// saveSurroundEffectLEDs()
-void saveSurroundEffectLEDs(char ltr_index, const char * surround_ptrn_ptr, char draw_target, CRGB * save_here) {
-  save_here[0] =   led_display[draw_target*NUM_LEDS + ptrn_byteptr_01[ptrn_byte_01]]; // save_here[0] is the LED in the middle, [1..end] are the LEDs in the surround effect
-  for (byte i = 1; i <= -surround_ptrn_ptr[0]; i++) {
-    save_here[i] = led_display[draw_target*NUM_LEDS + surround_ptrn_ptr[i]];
-  } // end save the original LED info for surround effect area
-} // end saveSurroundEffectLEDs()
-
 // doPatternDraw() = draw pattern list with surround
+//   second level of organization for of patterns for show, checking for button presses
+//   implements all the pattern tokens: normal letter LED, normal surround LED, SPECIAL, SUPER-SPECIAL
 //
 // calling parameters:
+//     int led_delay - (starting) delay for pattern steps EXCEPT fade
+//     const char * ltr_ptr - points to array of LED indices for letter (or other shape)
+//     const char * ptrn_ptr - points to array of pattern tokens
+//     CRGB foreground - CRGB color for foreground (used to draw shape)
+//     CRGB background - CRGB color for background (used to draw rest of disk)
+//     CRGB blinking - CRGB color for special blinking effects (often used to draw surround for current LED in ltr_ptr)
+//     uint32_t parm1, parm2, parm3 - general param; depends on pattern token. BEWARE potential conflict between usage by different tokens
 //
-// variables used:
-  // ptrn_byteptr_01 - points to the letter/number array, example: (char *) &ltr_Y[0]
-  // ptrn_byte_01    - index for ptrn_byteptr_01[]. [0] = neg count of LED indexes, [1..-[0]] =  are the LED indexes
-  // ptrn_byteptr_02 - points to the effects array, example: (char *) effect_pointers[theLED-EFFECT_POINTERS_OFFSET]
-  // ptrn_byte_02    - index for ptrn_byteptr_02[]. [0] = neg count of LED indexes, [1..-[0]] =  are the LED indexes
-  // ptrn_byte_03    - num of LED indexes in ptrn_byteptr_01
-  // ptrn_byte_04    - num of LED indexes in ptrn_byteptr_02
-  // ptrn_byte_05    - index into thePatterns
-  // ptrn_byte_06    - next pattern
-  //
-  // for readability I had to stand the control structure on its head.
-  //    I just used loops for what the order of operations was through the entire pattern
-  //    after each LED change I check to see if there was an input; if so return
-  //
-  // this is the flow of LEDs through the pattern:
-  //     SUPER-SPECIAL: if called again and SUPRSPCL_STOP_WHEN_DONE then just return
-  //     cycle thru letter LEDs
-  //       cycle thru effect (on clockwise, off clockwise, blink-off, blink-on, on clockwise, off clockwise, blink-off, blink-on)    
-  //         process SPECIAL patterns, perhaps continuing to next pattern
-  //         cycle thru counter for effect (clockwise = surround LED, blink = letter LED)  
-  //           do effect one led (color for on, original for off, color for blink on, BLACK for blink off)
-  //
+// variables used: FIXME - rename now that there are no other pattern draw routines
+//
+//   ptrn_byteptr_01 - points to the letter/number array, example: (char *) &ltr_Y[0]
+//   ptrn_byte_01    - index for ptrn_byteptr_01[]. [0] = neg count of LED indexes, [1..-[0]] =  are the LED indexes
+//   ptrn_byteptr_02 - points to the effects array, example: (char *) effect_pointers[theLED-EFFECT_POINTERS_OFFSET]
+//   ptrn_byte_02    - index for ptrn_byteptr_02[]. [0] = neg count of LED indexes, [1..-[0]] =  are the LED indexes
+//   ptrn_byte_03    - num of LED indexes in ptrn_byteptr_01
+//   ptrn_byte_04    - num of LED indexes in ptrn_byteptr_02
+//   ptrn_byte_05    - index into thePatterns
+//   ptrn_byte_06    - next pattern
+//  
+// for readability I had to stand the control structure on its head.
+//      I just used loops for what the order of operations was through the entire pattern
+//      after each LED change I check to see if there was an input; if so return
+//  
+// this is the flow of LEDs through the pattern:
+//
+//   two major steps:
+//     1) process pattern-tokens that are one or more changes per LED, either letter LED or surround LED
+//       1.5) in the middle of this, do SPECIAL and some SUPER-SPECIAL pattern-token processing
+//     2) process SUPER-SPECIAL pattern-tokens that are done after the above, typically disk-wide, ring-wide, or section-wide effects
+//   SPECIAL processing allows things that should be done just once per pattern-list (or see SUPRSPCL_ALLOW_SPCL might be once per letter LED)
+//   NOTE: if called again with no pattern change and see SUPRSPCL_STOP_WHEN_DONE as first pattern token then just return
+//
+//       STEP-1:
+//         cycle thru letter LEDs
+//           cycle thru pattern tokens (on clockwise, off clockwise, blink-off, blink-on, on clockwise, off clockwise, blink-off, blink-on)    
+//             process SPECIAL patterns, perhaps continuing to next pattern
+//             cycle thru counter for effect (clockwise = surround LED, blink = letter LED)  
+//               do effect one led (color for on, original for off, color for blink on, BLACK for blink off)
+//       STEP-2:
+//         cycle through pattern tokens, processing only SUPER-SPECIAL pattern tokens designated for step 2
+//  
 #define DO_SKIP_STEP1 1
 #define DO_SKIP_STEP2 2
 int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CRGB foreground, CRGB background, CRGB blinking, uint32_t parm1, uint32_t parm2, uint32_t parm3) {
@@ -483,6 +390,7 @@ int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CR
   char do_display_delay = 0;
   byte skip_steps = 0;
   uint8_t fade_factor = 32; // default means each fade removes 32/256 = 0.125 = 1/8
+  uint16_t fade_dwell = 50; // default dwell during fade
 
   ptrn_byte_06 = NO_BUTTON_PRESS;
   if ((oldPattern == pattern) && (SUPRSPCL_STOP_WHEN_DONE == ptrn_ptr[0])) return(ptrn_byte_06);
@@ -647,7 +555,7 @@ int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CR
         }
         DEBUG_PRINT(" color-idx: ")
         DEBUG_PRINT((int) tmp_idx)
-        tmp_idx = NUM_RINGS_PER_CIRCLE - 1 - (thePtrn - AFTRLUP_DRAW_RING_SMALLEST) / AFTRLUP_DRAW_RING_CLRMAX; // ring index
+        tmp_idx = NUM_RINGS_PER_DISK - 1 - (thePtrn - AFTRLUP_DRAW_RING_SMALLEST) / AFTRLUP_DRAW_RING_CLRMAX; // ring index
         DEBUG_PRINT("   ring: ")
         DEBUG_PRINTLN((int) tmp_idx)
         fill_solid(&led_display[draw_target*NUM_LEDS+start_per_ring[tmp_idx]], leds_per_ring[tmp_idx], myColor);
@@ -655,26 +563,139 @@ int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CR
         led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
         #endif // BAD_LED_92
         FastLED.show();
-        if (doDwell(led_delay)) return(ptrn_byte_06);;
+        if (doPtrnDwell(draw_target,led_delay)) return(ptrn_byte_06);;
     } // end if AFTRLUP_DRAW_RING
-    else if (SUPRSPCL_FADECIRCLE2_BLACK == thePtrn) {
+    else if (SUPRSPCL_FADEDISK2_BLACK == thePtrn) {
       for (tmp_idx = fade_factor; tmp_idx < 256; tmp_idx += fade_factor) {
         fadeToBlackBy(&led_display[draw_target*NUM_LEDS], NUM_LEDS, fade_factor); // dim color by fade_factor/256 eventually fading to full black
         FastLED.show();
-        if (doDwell(led_delay)) return(ptrn_byte_06);;
+        if (doPtrnDwell(draw_target,led_delay)) return(ptrn_byte_06);;
       }
       fill_solid(&led_display[draw_target*NUM_LEDS], NUM_LEDS, CRGB::Black);
       FastLED.show();
-      if (doDwell(led_delay)) return(ptrn_byte_06);;
-    } // end if SUPRSPCL_FADECIRCLE2_BLACK
+      if (doPtrnDwell(draw_target,fade_dwell)) return(ptrn_byte_06);;
+    } // end if SUPRSPCL_FADEDISK2_BLACK
   } // end do the pattern-tokens that should happen after all the LEDs are drawn
   return(ptrn_byte_06);
 } // end doPatternDraw()
 
+// saveSurroundEffectLEDs()
+void saveSurroundEffectLEDs(char ltr_index, const char * surround_ptrn_ptr, char draw_target, CRGB * save_here) {
+  save_here[0] =   led_display[draw_target*NUM_LEDS + ptrn_byteptr_01[ptrn_byte_01]]; // save_here[0] is the LED in the middle, [1..end] are the LEDs in the surround effect
+  for (byte i = 1; i <= -surround_ptrn_ptr[0]; i++) {
+    save_here[i] = led_display[draw_target*NUM_LEDS + surround_ptrn_ptr[i]];
+  } // end save the original LED info for surround effect area
+} // end saveSurroundEffectLEDs()
+
+// doDwell(int dwell) - dwell or break out if button press
+//   returns TRUE if should switch to different pattern
+//   else returns false
+#define SMALL_DWELL 20
+int doDwell(int dwell) {
+  int numloops = dwell / SMALL_DWELL;
+  int i;
+
+  for (i = 0; i < numloops; i++) {
+    if (NO_BUTTON_PRESS != nextPatternFromButtons()) return(nextPattern != NO_BUTTON_CHANGE);
+    delay(SMALL_DWELL);
+  }
+  if ((dwell % SMALL_DWELL) != 0) {
+    if (NO_BUTTON_PRESS != nextPatternFromButtons()) return(nextPattern != NO_BUTTON_CHANGE);
+    delay(dwell % SMALL_DWELL);
+  }
+  return(nextPattern != NO_BUTTON_CHANGE);
+} // end doDwell()
+
+// doPtrnDwell(char draw_target, int dwell) - dwell or break out if button press
+// Used inside doPatternDraw
+// Two things that matter: value returned and timing
+//   value returned:
+//     returns TRUE if should switch to different pattern
+//     else returns false
+//   timing:
+//     if draw_target is 0 (visible display LEDs), either does entire delay or delays until button press
+//     if draw_target is non-zero, returns immediately after checking for button press
+int doPtrnDwell(char draw_target, int dwell) {
+  if (NO_BUTTON_PRESS != nextPatternFromButtons()) return(nextPattern != NO_BUTTON_CHANGE);
+  if (draw_target != 0) return(nextPattern != NO_BUTTON_CHANGE);
+  return(doDwell(dwell));
+} // end doPtrnDwell
+
+// getButtonPress() - get next button press, true button or debugging
+int getButtonPress() {
+#if REAL_BUTTONS
+  return(checkButtons());
+#else // end if REAL_BUTTONS; now NOT REAL_BUTTONS
+  return(checkKeyboard());
+#endif // not REAL_BUTTONS
+} // end getButtonPress()
+
+#if REAL_BUTTONS
+  // checkButtons() - returns number of button pressed (1 through 6) or NO_BUTTON_PRESS
+  int checkButtons() {
+    byte  val;
+    int thePin;
+    for (thePin = PSHBTN1; thePin <= PSHBTN6; thePin ++) {
+      val = digitalRead(thePin);
+      if (LOW == val) break;
+    } // end for all pushbuttons
+    if (PSHBTN6 < thePin) return(NO_BUTTON_PRESS); // if no button pushed
+    else                  return(thePin-PSHBTN1+1);
+  } // end checkButtons()
+#else // end if REAL_BUTTONS; now NOT REAL_BUTTONS
+  // checkKeyboard() - for debugging - serial port buttons
+  int checkKeyboard() { // not REAL_BUTTONS
+    char received_char;
+    int myButton = NO_BUTTON_PRESS;
+    if (Serial.available() > 0) {
+      received_char = Serial.read();
+      switch ((int) received_char) {
+        case (int) '1': myButton = 1; break;
+        case (int) '2': myButton = 2; break;
+        case (int) '3': myButton = 3; break;
+        case (int) '4': myButton = 4; break;
+        case (int) '5': myButton = 5; break;
+        case (int) '6': myButton = 6; break;
+        default: myButton = NO_BUTTON_PRESS; break;
+      } // end switch on received character
+    } // end if there was a character ready to read
+    return(myButton);
+  } // end checkKeyboard()
+#endif // not REAL_BUTTONS
+
+// patternFromButtons() - get pattern to use (called from main loop)
+// could have button pressed now - do that ignore any earlier press
+// could have seen button pressed earlier and just now handling it - do that
+// otherwise keep same pattern - no change
+int patternFromButtons() {
+  int myButton = getButtonPress(); // no change unless we see a change
+  if (myButton == NO_BUTTON_PRESS) {
+    if (NO_BUTTON_CHANGE != nextPattern) {
+      myButton = nextPattern;
+    } else {
+      myButton = pattern;
+    }
+  } // end if no button pressed now so process earlier button press
+  nextPattern = NO_BUTTON_CHANGE;
+  return(myButton);
+} // end patternFromButtons()
+
+// nextPatternFromButtons() - store nextPattern if button pressed
+//     nextPattern will get used when we get back to the main loop
+int nextPatternFromButtons() {
+  int myButton = getButtonPress();
+  if (myButton != NO_BUTTON_PRESS) {
+    nextPattern = myButton;
+  }
+  return (nextPattern);
+} // end nextPatternFromButtons()
+
+// obsolete - delete
 int doPattern_05(int prev_return) {
   return(0);
 } // end doPattern_05()
 
+// obsolete - delete
 int doPattern_06(int prev_return) {
   return(0);
 } // end doPattern_06()
