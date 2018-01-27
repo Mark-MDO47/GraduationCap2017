@@ -281,48 +281,49 @@ void loop() {
 
 // ******************************** UTILITIES ********************************
 
-// implements pattern for show
-// keeps track of oldPattern
+// doPattern()
+//   organizes patterns for show, checking for button presses
+//   keeps track of oldPattern and nextPattern
 //
-// Calls: int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CRGB foreground, CRGB background, CRGB blinking);
+//   Calls: int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CRGB foreground, CRGB background, CRGB blinking, uint32_t parm1, uint32_t parm2, uint32_t parm3);
 //
 void doPattern() {
   static int save_return = 0;
   int dwell = 1000;
   switch (pattern) {
     case 1: // 1 = OFF
-       save_return = doPatternDraw(10, ltr_Y, ptrnOff, CRGB::Gold, CRGB::Blue, CRGB::Green);
+       save_return = doPatternDraw(10, ltr_Y, ptrnOff, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        break;
     case 2: // 2 = draw skinny
     default:
-       save_return = doPatternDraw(10, ltr_Y, ptrnJustDraw, CRGB::Gold, CRGB::Blue, CRGB::Green);
+       save_return = doPatternDraw(10, ltr_Y, ptrnJustDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        break;
     case 3: // 3 = draw wide
-       // save_return = doPatternDraw(10, ltr_Y, ptrnWide, CRGB::Gold, CRGB::Blue, CRGB::Green);
-       save_return = doPatternDraw(10, ltr_Y, ptrnRingDraw, CRGB::Red, CRGB::Blue, CRGB::Green);
-       save_return = doPatternDraw(10, ltr_Y, ptrnRingDraw, CRGB::Red, CRGB::Blue, CRGB::Green);
-       // save_return = doPatternDraw(1000, ltr_Y, 5, CRGB::Red, CRGB::Blue, CRGB::Green);
+       // save_return = doPatternDraw(10, ltr_Y, ptrnWide, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(10, ltr_Y, ptrnRingDraw, CRGB::Red, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(10, ltr_Y, ptrnRingDraw, CRGB::Red, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       // save_return = doPatternDraw(1000, ltr_Y, 5, CRGB::Red, CRGB::Blue, CRGB::Green, 0, 0, 0);
        doDwell(dwell);
        break;
     case 4: // 4 = do surrounding circles around letter
-       save_return = doPatternDraw(8, ltr_Y, ptrnDblClkws, CRGB::Gold, CRGB::Blue, CRGB::Green);
+       save_return = doPatternDraw(8, ltr_Y, ptrnDblClkws, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        break;
     case 5:
-       save_return = doPatternDraw(8, ltr_P, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green);
+       save_return = doPatternDraw(8, ltr_P, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        if (doDwell(dwell)) break;
-       save_return = doPatternDraw(8, ltr_O, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green);
+       save_return = doPatternDraw(8, ltr_O, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        if (doDwell(dwell)) break;
-       save_return = doPatternDraw(8, ltr_L, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green);
+       save_return = doPatternDraw(8, ltr_L, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        if (doDwell(dwell)) break;
-       save_return = doPatternDraw(8, ltr_Y, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green);
+       save_return = doPatternDraw(8, ltr_Y, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        if (doDwell(dwell)) break;
-       save_return = doPatternDraw(8, ltr_2, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green);
+       save_return = doPatternDraw(8, ltr_2, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        if (doDwell(dwell)) break;
-       save_return = doPatternDraw(8, ltr_0, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green);
+       save_return = doPatternDraw(8, ltr_0, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        if (doDwell(dwell)) break;
-       save_return = doPatternDraw(8, ltr_1, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green);
+       save_return = doPatternDraw(8, ltr_1, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        if (doDwell(dwell)) break;
-       save_return = doPatternDraw(8, ltr_8, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green);
+       save_return = doPatternDraw(8, ltr_8, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        break;
     case 6:
        save_return = doPattern_06(save_return);
@@ -352,6 +353,21 @@ int doDwell(int dwell) {
   }
   return(nextPattern != NO_BUTTON_CHANGE);
 } // end doDwell()
+
+// doPtrnDwell(char draw_target, int dwell) - dwell or break out if button press
+// Used inside doPatternDraw
+// Two things that matter: value returned and timing
+//   value returned:
+//     returns TRUE if should switch to different pattern
+//     else returns false
+//   timing:
+//     if draw_target is 0 (visible display LEDs), either does entire delay or delays until button press
+//     if draw_target is non-zero, returns immediately after checking for button press
+int doPtrnDwell(char draw_target, int dwell) {
+  if (NO_BUTTON_PRESS != nextPatternFromButtons()) return(nextPattern != NO_BUTTON_CHANGE);
+  if (draw_target != 0) return(nextPattern != NO_BUTTON_CHANGE);
+  return(doDwell(dwell));
+} // end doPtrnDwell
 
 // getButtonPress() - get next button press, true button or debugging
 int getButtonPress() {
@@ -431,6 +447,10 @@ void saveSurroundEffectLEDs(char ltr_index, const char * surround_ptrn_ptr, char
 } // end saveSurroundEffectLEDs()
 
 // doPatternDraw() = draw pattern list with surround
+//
+// calling parameters:
+//
+// variables used:
   // ptrn_byteptr_01 - points to the letter/number array, example: (char *) &ltr_Y[0]
   // ptrn_byte_01    - index for ptrn_byteptr_01[]. [0] = neg count of LED indexes, [1..-[0]] =  are the LED indexes
   // ptrn_byteptr_02 - points to the effects array, example: (char *) effect_pointers[theLED-EFFECT_POINTERS_OFFSET]
@@ -454,7 +474,7 @@ void saveSurroundEffectLEDs(char ltr_index, const char * surround_ptrn_ptr, char
   //
 #define DO_SKIP_STEP1 1
 #define DO_SKIP_STEP2 2
-int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CRGB foreground, CRGB background, CRGB blinking) {
+int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CRGB foreground, CRGB background, CRGB blinking, uint32_t parm1, uint32_t parm2, uint32_t parm3) {
   int theLED = -1; // temp storage for the LED that is being written
   char thePtrn = -1; // temp storage for the pattern being processed
   byte do_specials = 1; // non-zero if do SPECIAL codes
@@ -566,7 +586,7 @@ int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CR
         if ((ptrn_byte_06 != NO_BUTTON_PRESS) && (ptrn_byte_06 != pattern)) return(ptrn_byte_06); // pressing our button again does not stop us
         if (0 != do_display_delay) {
           FastLED.show();
-          if (doDwell(led_delay)) return(ptrn_byte_06);;
+          if (doPtrnDwell(draw_target,led_delay)) return(ptrn_byte_06);;
         } // end if do_display_delay
       } else if ((thePtrn > 0)) { // one surround LED at a time pattern      
         for (ptrn_byte_02 = 1; ptrn_byte_02 <= ptrn_byte_04; ptrn_byte_02++) {    
@@ -588,7 +608,7 @@ int doPatternDraw(int led_delay, const char * ltr_ptr, const char * ptrn_ptr, CR
           if ((ptrn_byte_06 != NO_BUTTON_PRESS) && (ptrn_byte_06 != pattern)) return(ptrn_byte_06); // pressing our button again does not stop us
           if (0 != do_display_delay) {
             FastLED.show();
-            if (doDwell(led_delay)) return(ptrn_byte_06);;
+            if (doPtrnDwell(draw_target,led_delay)) return(ptrn_byte_06);;
           } // end if do_display_delay
         } // end for all surround LED 
       } // end if letter LED pattern or surround LED pattern
