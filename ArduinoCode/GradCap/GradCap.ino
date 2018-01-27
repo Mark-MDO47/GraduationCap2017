@@ -210,7 +210,7 @@ static int8_t  oldPattern = 2;
 static int8_t  nextPattern = 2;
 static short ptrn_delay = 100; // set by patterns to proper delay
 static word  bigCount;    // unsigned 16-bit int
-static byte  smallCount;  // unsigned  8-bit int
+static uint8_t smallCount;  // unsigned  8-bit int
 static int8_t  ptrn_byte_01 = -1;
 static int8_t  ptrn_byte_02 = -1;
 static int8_t  ptrn_byte_03 = -1;
@@ -384,11 +384,11 @@ void doPattern() {
 int doPatternDraw(int led_delay, const int8_t * ltr_ptr, const int8_t * ptrn_ptr, CRGB foreground, CRGB background, CRGB blinking, uint32_t parm1, uint32_t parm2, uint32_t parm3) {
   int theLED = -1; // temp storage for the LED that is being written
   int8_t thePtrn = -1; // temp storage for the pattern being processed
-  byte do_specials = 1; // non-zero if do SPECIAL codes
+  uint8_t do_specials = 1; // non-zero if do SPECIAL codes
   int8_t draw_target = TARGET_LEDS; // or TARGET_SHADOW
-  byte tmp_idx = 0; // temporary index
+  uint8_t tmp_idx = 0; // temporary index
   int8_t do_display_delay = 0;
-  byte skip_steps = 0;
+  uint8_t skip_steps = 0;
   uint8_t fade_factor = 32; // default means each fade removes 32/256 = 0.125 = 1/8
   uint16_t fade_dwell = 50; // default dwell during fade
 
@@ -582,7 +582,7 @@ int doPatternDraw(int led_delay, const int8_t * ltr_ptr, const int8_t * ptrn_ptr
 // saveSurroundEffectLEDs()
 void saveSurroundEffectLEDs(int8_t ltr_index, const int8_t * surround_ptrn_ptr, int8_t draw_target, CRGB * save_here) {
   save_here[0] =   led_display[draw_target*NUM_LEDS + ptrn_byteptr_01[ptrn_byte_01]]; // save_here[0] is the LED in the middle, [1..end] are the LEDs in the surround effect
-  for (byte i = 1; i <= -surround_ptrn_ptr[0]; i++) {
+  for (uint8_t i = 1; i <= -surround_ptrn_ptr[0]; i++) {
     save_here[i] = led_display[draw_target*NUM_LEDS + surround_ptrn_ptr[i]];
   } // end save the original LED info for surround effect area
 } // end saveSurroundEffectLEDs()
@@ -633,7 +633,7 @@ int getButtonPress() {
 #if REAL_BUTTONS
   // checkButtons() - returns number of button pressed (1 through 6) or NO_BUTTON_PRESS
   int checkButtons() {
-    byte  val;
+    uint8_t  val;
     int thePin;
     for (thePin = PSHBTN1; thePin <= PSHBTN6; thePin ++) {
       val = digitalRead(thePin);
