@@ -219,6 +219,8 @@ const int8_t ptrnRingDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1, ST
    SUPRSPCL_FADEDLY_ADD_100, SUPRSPCL_FADEFCT_DIV_2,
    SUPRSPCL_FADEDISK2_CLRBKGND, SUPRSPCL_FADEDISK2_CLRFORE, SUPRSPCL_FADEDISK2_CLRBLNKNG, SUPRSPCL_FADEDISK2_CLRBLACK, SUPRSPCL_END_OF_PTRNS };
 
+const int8_t ptrnWideDrawShdw1Fade[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_DRWTRGT_SHDW1_STICKY, SPCL_DRAW_BKGD_CLRBKGND, PER_LED_DRAW_BLNKING_LTR_ALL, SUPRSPCL_DRWTRGT_LEDS_NONSTICKY, SUPRSPCL_FADEDLY_ADD_100, SUPRSPCL_FADEFCT_DIV_2, SUPRSPCL_FADEDISK2_SHDW1, SUPRSPCL_END_OF_PTRNS };
+
 // pattern vars
 static int8_t   pattern = 1;
 static int8_t   oldPattern = 2;
@@ -319,8 +321,9 @@ void doPattern() {
        // save_return = doPatternDraw(1000, ltr_Y, 5, CRGB::Red, CRGB::Blue, CRGB::Green, 0, 0, 0);
        doDwell(dwell);
        break;
-    case 4: // 4 = do surrounding disks around letter
+    case 4: // 4 = do surrounding around letter then fade one to the other
        save_return = doPatternDraw(8, ltr_Y, ptrnDblClkws, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(8, ltr_8, ptrnWideDrawShdw1Fade, CRGB::Green, CRGB::Gold, CRGB::Blue, 0, 0, 0);
        break;
     case 5:
        save_return = doPatternDraw(8, ltr_P, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
@@ -673,19 +676,24 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
     else if (thePtrn == SUPRSPCL_FADEDISK2_SHDW1) {
       DEBUG_PRINTLN(F("   ...processing SUPRSPCL_FADEDISK2_SHDW1"))
       for (uint16_t factor = fade_factor; factor < 256; factor += fade_factor) {
-        blend(&led_display[TARGET_LEDS*NUM_LEDS+92], &led_display[TARGET_SHDW1*NUM_LEDS+92], &led_display[TARGET_LEDS*NUM_LEDS+92], NUM_LEDS, factor);
+        DEBUG_PRINT(F(" ..... factor "))
+        DEBUG_PRINTLN((int16_t) factor);
+        // ??? blend(&led_display[TARGET_LEDS*NUM_LEDS+92], &led_display[TARGET_SHDW1*NUM_LEDS+92], &led_display[TARGET_LEDS*NUM_LEDS+92], NUM_LEDS, factor);
+        for (theLED = 0; theLED < NUM_LEDS_PER_DISK; theLED++) {
+          led_display[TARGET_LEDS*NUM_LEDS+theLED] = blend(led_display[TARGET_LEDS*NUM_LEDS+theLED], led_display[TARGET_SHDW1*NUM_LEDS+theLED], factor);
+        }
         #if BAD_LED_92
-        led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
+        led_display[TARGET_LEDS*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
         #endif // BAD_LED_92
-        if (doPtrnShowDwell(draw_target,fade_dwell)) return(ptrn_byte_06);
+        if (doPtrnShowDwell(TARGET_LEDS,fade_dwell)) return(ptrn_byte_06);
       } // end for fade_factor
       for (theLED = 0; theLED < NUM_LEDS_PER_DISK; theLED++) {
         led_display[TARGET_LEDS*NUM_LEDS+theLED] = led_display[TARGET_SHDW1*NUM_LEDS+theLED];
       }
       #if BAD_LED_92
-      led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
+      led_display[TARGET_LEDS*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
       #endif // BAD_LED_92
-      if (doPtrnShowDwell(draw_target,fade_dwell)) return(ptrn_byte_06);
+      if (doPtrnShowDwell(TARGET_LEDS,fade_dwell)) return(ptrn_byte_06);
     } // end if SUPRSPCL_FADEDISK2_SHDW1
 
     DEBUG_PRINTLN(F("  sticky processing then next token"))
