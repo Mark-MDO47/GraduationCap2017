@@ -186,11 +186,16 @@ CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS]; // 1st set is for display, then shad
 #define SUPRSPCL_DRWTRGT_SHDW1_STICKY     113 // SUPER-SPECIAL: draw target is usually reset to TARGET_LEDS after each token; this re-enables that. Do before changing target
 #define SUPRSPCL_DRWTRGT_LEDS_NONSTICKY   114 // SUPER-SPECIAL: draw target is now default: TARGET_LEDS and NONSTICKY (same behavior as TARGET_LEDS and STICKY) 
 
-#define SUPRSPCL_FADEDISK2_CLR_SMALLEST           SUPRSPCL_FADEDISK2_CLRBKGND //
-#define SUPRSPCL_FADEDISK2_CLRBKGND       119 // // SUPER-SPECIAL: fade all disk LEDs to be more like background color
-#define SUPRSPCL_FADEDISK2_CLRFORE        120 // // SUPER-SPECIAL: fade all disk LEDs to be more like foreground color
-#define SUPRSPCL_FADEDISK2_CLRBLACK       121 // // SUPER-SPECIAL: fade all disk LEDs to be more like BLACK
-#define SUPRSPCL_FADEDISK2_CLRBLNKNG      122 // // SUPER-SPECIAL: fade all disk LEDs to be more like blinking color
+#define SUPRSPCL_FADEDLY_ADD_100          115 // SUPER-SPECIAL: add 50 millisec to   fade delay
+#define SUPRSPCL_FADEDLY_SUB_100          116 // SUPER-SPECIAL: sub 50 millisec from fade delay
+#define SUPRSPCL_FADEFCT_MLT_2            117 // SUPER-SPECIAL: multply fade factor by 2
+#define SUPRSPCL_FADEFCT_DIV_2            118 // SUPER-SPECIAL: divide  fade factor by 2
+
+#define SUPRSPCL_FADEDISK2_CLR_SMALLEST   SUPRSPCL_FADEDISK2_CLRBKGND //
+#define SUPRSPCL_FADEDISK2_CLRBKGND       119 // SUPER-SPECIAL: fade all disk LEDs to be more like background color
+#define SUPRSPCL_FADEDISK2_CLRFORE        120 // SUPER-SPECIAL: fade all disk LEDs to be more like foreground color
+#define SUPRSPCL_FADEDISK2_CLRBLACK       121 // SUPER-SPECIAL: fade all disk LEDs to be more like BLACK
+#define SUPRSPCL_FADEDISK2_CLRBLNKNG      122 // SUPER-SPECIAL: fade all disk LEDs to be more like blinking color
 #define SUPRSPCL_FADEDISK2_CLR_LARGEST    SUPRSPCL_FADEDISK2_CLRBLNKNG //
 // #define SUPRSPCL_SAVE_SRND                123 // SUPER-SPECIAL: save current state of surround LEDs and current letter LED
 #define SUPRSPCL_FADEDISK2_SHDW1           124 // SUPER-SPECIAL: fade all disk LEDs to be more like shadow1.
@@ -211,6 +216,7 @@ const int8_t ptrnRingDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1, ST
    STEP2_DRAW_RING5_CLRBLNKNG, STEP2_DRAW_RING4_CLRFORE,   STEP2_DRAW_RING3_CLRBKGND,  STEP2_DRAW_RING2_CLRBLNKNG, STEP2_DRAW_RING1_CLRFORE,
    STEP2_DRAW_RING5_CLRFORE,   STEP2_DRAW_RING4_CLRBKGND,  STEP2_DRAW_RING3_CLRBLNKNG, STEP2_DRAW_RING2_CLRFORE,   STEP2_DRAW_RING1_CLRBKGND,
    STEP2_DRAW_RING5_CLRBKGND,  STEP2_DRAW_RING4_CLRBLNKNG, STEP2_DRAW_RING3_CLRFORE,   STEP2_DRAW_RING2_CLRBKGND,  STEP2_DRAW_RING1_CLRBLNKNG,
+   SUPRSPCL_FADEDLY_ADD_100, SUPRSPCL_FADEFCT_DIV_2,
    SUPRSPCL_FADEDISK2_CLRBKGND, SUPRSPCL_FADEDISK2_CLRFORE, SUPRSPCL_FADEDISK2_CLRBLNKNG, SUPRSPCL_FADEDISK2_CLRBLACK, SUPRSPCL_END_OF_PTRNS };
 
 // pattern vars
@@ -558,6 +564,26 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
       draw_target = TARGET_SHDW1;
       continue;
     } // end if SUPRSPCL_DRWTRGT_SHDW1_NONSTICKY
+    if (SUPRSPCL_FADEDLY_ADD_100 == thePtrn) {
+      DEBUG_PRINTLN(F("   ...processing SUPRSPCL_FADEDLY_ADD_100"))
+      if ((uint8_t) (fade_dwell + 50) > fade_dwell) fade_dwell += 100;
+      continue;
+    } // end if SUPRSPCL_FADEDLY_ADD_100
+    if (SUPRSPCL_FADEDLY_SUB_100 == thePtrn) {
+      DEBUG_PRINTLN(F("   ...processing SUPRSPCL_FADEDLY_SUB_100"))
+      if ((uint8_t) (fade_dwell - 50) < fade_dwell) fade_dwell -= 100;
+      continue;
+    } // end if SUPRSPCL_FADEDLY_SUB_100
+    if (SUPRSPCL_FADEFCT_MLT_2 == thePtrn) {
+      DEBUG_PRINTLN(F("   ...processing SUPRSPCL_FADEFCT_MLT_2"))
+      if ((uint8_t) (fade_factor * 2) > fade_dwell) fade_factor *= 2;
+      continue;
+    } // end if SUPRSPCL_FADEFCT_MLT_2
+    if (SUPRSPCL_FADEFCT_DIV_2 == thePtrn) {
+      DEBUG_PRINTLN(F("   ...processing SUPRSPCL_FADEFCT_DIV_2"))
+      if ((uint8_t) (fade_factor / 2) < fade_dwell) fade_factor /= 2;
+      continue;
+    } // end if SUPRSPCL_FADEFCT_DIV_2
     else if (SUPRSPCL_DRWTRGT_SHDW1_STICKY == thePtrn) {
       DEBUG_PRINTLN(F("   ...processing SUPRSPCL_DRWTRGT_SHDW1_STICKY"))
       draw_target_sticky = 1;
@@ -639,6 +665,9 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
       } // end for fade_factor
       DEBUG_PRINTLN(F(" ... Fade Final"))
       fill_solid(&led_display[draw_target*NUM_LEDS], NUM_LEDS, myColor);
+      #if BAD_LED_92
+      led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
+      #endif // BAD_LED_92
       if (doPtrnShowDwell(draw_target,fade_dwell)) return(ptrn_byte_06);
     } // end if SUPRSPCL_FADEDISK2_CLRxxx
     else if (thePtrn == SUPRSPCL_FADEDISK2_SHDW1) {
