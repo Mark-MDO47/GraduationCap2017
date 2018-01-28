@@ -228,13 +228,12 @@ static int8_t   nextPattern = 2;
 static int16_t  ptrn_delay = 100; // set by patterns to proper delay
 static uint16_t bigCount;  // unsigned 16-bit int
 static uint8_t  smallCount;  // unsigned  8-bit int
-static int8_t   ptrn_byte_01 = -1;
-static int8_t   ptrn_byte_02 = -1;
-static int8_t   ptrn_byte_03 = -1;
-static int8_t   ptrn_byte_04 = -1;
-static int8_t   ptrn_byte_05 = -1;
-static int8_t   ptrn_byte_06 = -1;
-static int8_t * ptrn_byteptr_02 = (int8_t *) 0;
+static int8_t   ltr_ptr_idx = -1;
+static int8_t   this_effect_ptr_idx = -1;
+static int8_t   count_of_ltr_ptr = -1;
+static int8_t   count_of_this_effect_ptr = -1;
+static int8_t   ptrn_token_array_ptr_idx = -1;
+static int8_t * this_effect_ptr = (int8_t *) 0;
 
 #define EFFECT_POINTERS_OFFSET 32 // surround_pointers[0] corresponds to LED 32. Currently only effect is surround
 #define EFFECT_NUM_LED_SAV 8 // save up to eight "effect" LEDs
@@ -280,15 +279,18 @@ void setup() {
 
 // ******************************** LOOP ********************************
 void loop() {
-  pattern = patternFromButtons();
+  nextPatternFromButtons();
+  if ((NO_BUTTON_CHANGE != nextPattern) && (nextPattern != pattern)) {
+    pattern = nextPattern;
+  }
+  nextPattern = NO_BUTTON_CHANGE;
   if (oldPattern != pattern) {
     Serial.print(F("switch to pattern ")); Serial.println((int16_t) pattern);
-    nextPattern = NO_BUTTON_CHANGE;
   }
   doPattern();
   FastLED.show();
   oldPattern = pattern;
-  doDwell(ptrn_delay);
+  doDwell(ptrn_delay, 1);
 
   smallCount += 1;
   bigCount += 1;
@@ -318,7 +320,7 @@ void doPattern() {
        save_return = doPatternDraw(10, ltr_Y, ptrnRingDraw, CRGB::Red, CRGB::Blue, CRGB::Green, 0, 0, 0);
        save_return = doPatternDraw(10, ltr_Y, ptrnRingDraw, CRGB::Red, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // save_return = doPatternDraw(1000, ltr_Y, 5, CRGB::Red, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       doDwell(dwell);
+       doDwell(dwell, 1);
        break;
     case 4: // 4 = do surrounding around letter then fade one to the other
        save_return = doPatternDraw(8, ltr_Y, ptrnDblClkws, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
@@ -326,19 +328,19 @@ void doPattern() {
        break;
     case 5:
        save_return = doPatternDraw(8, ltr_P, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       if (doDwell(dwell)) break;
+       if (doDwell(dwell, 1)) break;
        save_return = doPatternDraw(8, ltr_O, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       if (doDwell(dwell)) break;
+       if (doDwell(dwell, 1)) break;
        save_return = doPatternDraw(8, ltr_L, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       if (doDwell(dwell)) break;
+       if (doDwell(dwell, 1)) break;
        save_return = doPatternDraw(8, ltr_Y, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       if (doDwell(dwell)) break;
+       if (doDwell(dwell, 1)) break;
        save_return = doPatternDraw(8, ltr_2, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       if (doDwell(dwell)) break;
+       if (doDwell(dwell, 1)) break;
        save_return = doPatternDraw(8, ltr_0, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       if (doDwell(dwell)) break;
+       if (doDwell(dwell, 1)) break;
        save_return = doPatternDraw(8, ltr_1, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       if (doDwell(dwell)) break;
+       if (doDwell(dwell, 1)) break;
        save_return = doPatternDraw(8, ltr_8, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        break;
     case 6:
@@ -363,15 +365,14 @@ void doPattern() {
 //     CRGB blinking - CRGB color for special blinking effects (often used to draw surround for current LED in ltr_ptr)
 //     uint32_t parm1, parm2, parm3 - general param; depends on pattern token. BEWARE potential conflict between usage by different tokens
 //
-// variables used: FIXME - rename now that there are no other pattern draw routines
+// static variables used:
 //
-//   ptrn_byte_01    - index for ltr_ptr[]. [0] = neg count of LED indexes, [1..-[0]] =  are the LED indexes
-//   ptrn_byteptr_02 - points to the effects array, example: (int8_t *) surround_pointers[theLED-EFFECT_POINTERS_OFFSET]
-//   ptrn_byte_02    - index for ptrn_byteptr_02[]. [0] = neg count of LED indexes, [1..-[0]] =  are the LED indexes
-//   ptrn_byte_03    - num of LED indexes in ltr_ptr
-//   ptrn_byte_04    - num of LED indexes in ptrn_byteptr_02
-//   ptrn_byte_05    - index into thePatterns
-//   ptrn_byte_06    - next pattern
+//   ltr_ptr_idx    - index for ltr_ptr[]. [0] = neg count of LED indexes, [1..-[0]] =  are the LED indexes
+//   this_effect_ptr - points to the effects array, example: (int8_t *) surround_pointers[theLED-EFFECT_POINTERS_OFFSET]
+//   this_effect_ptr_idx    - index for this_effect_ptr[]. [0] = neg count of LED indexes, [1..-[0]] =  are the LED indexes
+//   count_of_ltr_ptr    - num of LED indexes in ltr_ptr
+//   count_of_this_effect_ptr    - num of LED indexes in this_effect_ptr
+//   ptrn_token_array_ptr_idx    - index into ptrn_token_array_ptr
 //  
 // for readability I had to stand the control structure on its head.
 //      I just used loops for what the order of operations was through the entire pattern
@@ -399,7 +400,7 @@ void doPattern() {
 #define DO_SKIP_STEP2 2
 int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * ptrn_token_array_ptr, CRGB foreground, CRGB background, CRGB blinking, uint32_t parm1, uint32_t parm2, uint32_t parm3) {
   int16_t theLED = -1; // temp storage for the LED that is being written
-  int8_t thePtrn = -1; // temp storage for the pattern being processed
+  int8_t this_ptrn_token = -1; // temp storage for the pattern token being processed
   uint8_t do_specials = 1; // non-zero if do SPECIAL codes
   int8_t draw_target = TARGET_LEDS; // or TARGET_SHDW1
   int8_t draw_target_sticky = 0; // or 1 = sticky
@@ -409,137 +410,138 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
   uint8_t fade_factor = 32; // default means each fade removes 32/256 = 0.125 = 1/8
   uint16_t fade_dwell = 100; // default dwell during fade
 
-  ptrn_byte_06 = NO_BUTTON_PRESS;
-  if ((oldPattern == pattern) && (SUPRSPCL_STOP_WHEN_DONE == ptrn_token_array_ptr[0])) return(ptrn_byte_06);
+  if ((oldPattern == pattern) && (SUPRSPCL_STOP_WHEN_DONE == ptrn_token_array_ptr[0])) return(nextPattern);
   
-  ptrn_byte_03 = -(ltr_ptr[0]); // length of letter LEDstring
+  count_of_ltr_ptr = -(ltr_ptr[0]); // length of letter LEDstring
 
   DEBUG_PRINTLN(F("doPatternDraw step 1"))
-  for (ptrn_byte_01 = 1; ptrn_byte_01 <= ptrn_byte_03; ptrn_byte_01++) {
+  for (ltr_ptr_idx = 1; ltr_ptr_idx <= count_of_ltr_ptr; ltr_ptr_idx++) {
     if (skip_steps & DO_SKIP_STEP1) break;
-    ptrn_byteptr_02 = (int8_t *) surround_pointers[ltr_ptr[ptrn_byte_01]-EFFECT_POINTERS_OFFSET];  // to convert from (const int8_t *); we promise not to write into it
-    ptrn_byte_04 = -(ptrn_byteptr_02[0]); // length of surround LED string
-    saveSurroundEffectLEDs(ltr_ptr[ptrn_byte_01], ptrn_byteptr_02, draw_target, led_effect_save);
+    this_effect_ptr = (int8_t *) surround_pointers[ltr_ptr[ltr_ptr_idx]-EFFECT_POINTERS_OFFSET];  // to convert from (const int8_t *); we promise not to write into it
+    count_of_this_effect_ptr = -(this_effect_ptr[0]); // length of surround LED string
+    saveSurroundEffectLEDs(ltr_ptr[ltr_ptr_idx], this_effect_ptr, draw_target, led_effect_save);
     DEBUG_PRINT(F("   step 1 ltr-LED: "))
-    DEBUG_PRINTLN((int16_t) ltr_ptr[ptrn_byte_01])
+    DEBUG_PRINTLN((int16_t) ltr_ptr[ltr_ptr_idx])
 
-    for (ptrn_byte_05 = 0; ptrn_token_array_ptr[ptrn_byte_05] != SUPRSPCL_END_OF_PTRNS; ptrn_byte_05++) {
-      thePtrn = ptrn_token_array_ptr[ptrn_byte_05];
+    for (ptrn_token_array_ptr_idx = 0; ptrn_token_array_ptr[ptrn_token_array_ptr_idx] != SUPRSPCL_END_OF_PTRNS; ptrn_token_array_ptr_idx++) {
+      this_ptrn_token = ptrn_token_array_ptr[ptrn_token_array_ptr_idx];
       DEBUG_PRINT(F("   step 1 ptrn_token: "))
-      DEBUG_PRINTLN((int16_t) thePtrn)
-      if (SUPRSPCL_SKIP_STEP1 == thePtrn) {
+      DEBUG_PRINTLN((int16_t) this_ptrn_token)
+      if (SUPRSPCL_SKIP_STEP1 == this_ptrn_token) {
         skip_steps |= DO_SKIP_STEP1;
         break;
       }
-      if (SUPRSPCL_SKIP_STEP2 == thePtrn) {
+      if (SUPRSPCL_SKIP_STEP2 == this_ptrn_token) {
         skip_steps |= DO_SKIP_STEP2;
       }
       do_display_delay = 0;
 
       // do the special cases
-      if (SUPRSPCL_STOP_WHEN_DONE == thePtrn) {
+      if (SUPRSPCL_STOP_WHEN_DONE == this_ptrn_token) {
         continue; // this is handled on entry, skip it here
       } // end if SUPRSPCL_STOP_WHEN_DONE
-      if (SUPRSPCL_ALLOW_SPCL == thePtrn) {
+      if (SUPRSPCL_ALLOW_SPCL == this_ptrn_token) {
         do_specials = 1; // next special encountered will always happen
         continue;
       } // end if SUPRSPCL_ALLOW_SPCL
-      else if (SUPRSPCL_DRWTRGT_SHDW1_NONSTICKY == thePtrn) {
+      else if (SUPRSPCL_DRWTRGT_SHDW1_NONSTICKY == this_ptrn_token) {
         draw_target_sticky = 0;
         draw_target = TARGET_SHDW1;
         continue;
       } // end if SUPRSPCL_DRWTRGT_SHDW1_NONSTICKY
-      else if (SUPRSPCL_DRWTRGT_SHDW1_STICKY == thePtrn) {
+      else if (SUPRSPCL_DRWTRGT_SHDW1_STICKY == this_ptrn_token) {
         draw_target_sticky = 1;
         draw_target = TARGET_SHDW1;
         continue;
       } // end if SUPRSPCL_DRWTRGT_SHDW1_STICKY
-      else if (SUPRSPCL_DRWTRGT_LEDS_NONSTICKY == thePtrn) {
+      else if (SUPRSPCL_DRWTRGT_LEDS_NONSTICKY == this_ptrn_token) {
         draw_target_sticky = 0;
         draw_target = TARGET_LEDS;
         continue;
       } // end if SUPRSPCL_DRWTRGT_LEDS_NONSTICKY
-      else if ((SPCL_DRAW_BKGD_CLRFORE == thePtrn) && (0 != do_specials)) {
+      else if ((SPCL_DRAW_BKGD_CLRFORE == this_ptrn_token) && (0 != do_specials)) {
           fill_solid(&led_display[draw_target*NUM_LEDS], NUM_LEDS, foreground);
           #if BAD_LED_92
           led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware
           #endif // BAD_LED_92
-          saveSurroundEffectLEDs(ltr_ptr[ptrn_byte_01], ptrn_byteptr_02, draw_target, led_effect_save);
+          saveSurroundEffectLEDs(ltr_ptr[ltr_ptr_idx], this_effect_ptr, draw_target, led_effect_save);
           do_specials = 0;
           do_display_delay = 1;
           continue;
       } // end if SPCL_DRAW_BKGD_CLRFORE
-      else if ((SPCL_DRAW_BKGD_CLRBKGND == thePtrn) && (0 != do_specials)) {
+      else if ((SPCL_DRAW_BKGD_CLRBKGND == this_ptrn_token) && (0 != do_specials)) {
           fill_solid(&led_display[draw_target*NUM_LEDS], NUM_LEDS, background);
           #if BAD_LED_92
           led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware
           #endif // BAD_LED_92
-          saveSurroundEffectLEDs(ltr_ptr[ptrn_byte_01], ptrn_byteptr_02, draw_target, led_effect_save);
+          saveSurroundEffectLEDs(ltr_ptr[ltr_ptr_idx], this_effect_ptr, draw_target, led_effect_save);
           do_specials = 0;
           do_display_delay = 1;
           continue;
       } // end if SPCL_DRAW_BKGD_CLRBKGND
-      else if ((SPCL_DRAW_BKGD_CLRBLACK == thePtrn) && (0 != do_specials)) {
+      else if ((SPCL_DRAW_BKGD_CLRBLACK == this_ptrn_token) && (0 != do_specials)) {
           fill_solid(&led_display[draw_target*NUM_LEDS], NUM_LEDS, CRGB::Black);
           #if BAD_LED_92
           led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
           #endif // BAD_LED_92
-          saveSurroundEffectLEDs(ltr_ptr[ptrn_byte_01], ptrn_byteptr_02, draw_target, led_effect_save);
+          saveSurroundEffectLEDs(ltr_ptr[ltr_ptr_idx], this_effect_ptr, draw_target, led_effect_save);
           do_specials = 0;
           do_display_delay = 1;
           continue;
       } // end if SPCL_DRAW_BKGD_CLRBKGND
 
       // do the cases where it is either LED pattern or surround pattern
-      if ((thePtrn < 0) && (thePtrn > STEP2_DRAW_RING1_CLRBLNKNG)) { // all at once pattern
-        theLED = ltr_ptr[ptrn_byte_01];
-        if (PER_LED_DRAW_BLNKING == thePtrn) {
+      if ((this_ptrn_token < 0) && (this_ptrn_token > STEP2_DRAW_RING1_CLRBLNKNG)) { // all at once pattern
+        theLED = ltr_ptr[ltr_ptr_idx];
+        if (PER_LED_DRAW_BLNKING == this_ptrn_token) {
           led_display[draw_target*NUM_LEDS+theLED] = blinking;
           do_display_delay = 1;
-        } else if (PER_LED_DRAW_FORE == thePtrn) {
+        } else if (PER_LED_DRAW_FORE == this_ptrn_token) {
           led_display[draw_target*NUM_LEDS+theLED] = foreground;
           do_display_delay = 1;
-        } else if (PER_LED_DRAW_BLNKING_SRND_ALL == thePtrn) {
-          for (tmp_idx = 1; tmp_idx <= ptrn_byte_04; tmp_idx++) {
-            led_display[draw_target*NUM_LEDS+ptrn_byteptr_02[tmp_idx]] = blinking;
+        } else if (PER_LED_DRAW_BLNKING_SRND_ALL == this_ptrn_token) {
+          for (tmp_idx = 1; tmp_idx <= count_of_this_effect_ptr; tmp_idx++) {
+            led_display[draw_target*NUM_LEDS+this_effect_ptr[tmp_idx]] = blinking;
           } // end for all surround LEDs
           do_display_delay = 1;
-        } else if (PER_LED_DRAW_PREV_SRND_ALL == thePtrn) {
-          for (tmp_idx = 1; tmp_idx <= ptrn_byte_04; tmp_idx++) {
-            led_display[draw_target*NUM_LEDS+ptrn_byteptr_02[tmp_idx]] = led_effect_save[tmp_idx];
+        } else if (PER_LED_DRAW_PREV_SRND_ALL == this_ptrn_token) {
+          for (tmp_idx = 1; tmp_idx <= count_of_this_effect_ptr; tmp_idx++) {
+            led_display[draw_target*NUM_LEDS+this_effect_ptr[tmp_idx]] = led_effect_save[tmp_idx];
           } // end for all surround LEDs
           do_display_delay = 1;
-        } else if (PER_LED_DRAW_BLNKING_LTR_ALL == thePtrn) {
-          for (tmp_idx = 1; tmp_idx <= ptrn_byte_03; tmp_idx++) {
+        } else if (PER_LED_DRAW_BLNKING_LTR_ALL == this_ptrn_token) {
+          for (tmp_idx = 1; tmp_idx <= count_of_ltr_ptr; tmp_idx++) {
             led_display[draw_target*NUM_LEDS+ltr_ptr[tmp_idx]] = blinking;
           } // end for all letter LEDs
           do_display_delay = 1;
-        } else if (PER_LED_DRAW_FORE_LTR_ALL == thePtrn) {
-          for (tmp_idx = 1; tmp_idx <= ptrn_byte_03; tmp_idx++) {
+        } else if (PER_LED_DRAW_FORE_LTR_ALL == this_ptrn_token) {
+          for (tmp_idx = 1; tmp_idx <= count_of_ltr_ptr; tmp_idx++) {
             led_display[draw_target*NUM_LEDS+ltr_ptr[tmp_idx]] = foreground;
           } // end for all letter LEDs
           do_display_delay = 1;
         } // end if one of the all at once patterns
-        ptrn_byte_06 = nextPatternFromButtons();
-        if ((ptrn_byte_06 != NO_BUTTON_PRESS) && (ptrn_byte_06 != pattern)) return(ptrn_byte_06); // pressing our button again does not stop us
-        if (0 != do_display_delay) { if (doPtrnShowDwell(draw_target,led_delay)) return(ptrn_byte_06); }
-      } else if ((thePtrn > 0)) { // one surround LED at a time pattern      
-        for (ptrn_byte_02 = 1; ptrn_byte_02 <= ptrn_byte_04; ptrn_byte_02++) {    
-          theLED = ptrn_byteptr_02[ptrn_byte_02];  
-          if (PER_LED_DRAW_BLNKNG_SRND_CLKWS == thePtrn) {  
+        nextPatternFromButtons(); // look for new button press even if 0 == do_display_delay
+        if ((nextPattern != NO_BUTTON_PRESS) && (nextPattern != pattern)) return(nextPattern); // pressing our button again does not stop us
+        if (0 != do_display_delay) { if (doPtrnShowDwell(draw_target,led_delay)) return(nextPattern); }
+      } else if ((this_ptrn_token > 0)) { // one surround LED at a time pattern      
+        for (this_effect_ptr_idx = 1; this_effect_ptr_idx <= count_of_this_effect_ptr; this_effect_ptr_idx++) {    
+          theLED = this_effect_ptr[this_effect_ptr_idx];  
+          if (PER_LED_DRAW_BLNKNG_SRND_CLKWS == this_ptrn_token) {  
             led_display[draw_target*NUM_LEDS+theLED] = blinking;
             do_display_delay = 1;
-          } else if (PER_LED_DRAW_PREV_SRND_CLKWS == thePtrn) {  
-            led_display[draw_target*NUM_LEDS+theLED] = led_effect_save[ptrn_byte_02];
+          } else if (PER_LED_DRAW_PREV_SRND_CLKWS == this_ptrn_token) {  
+            led_display[draw_target*NUM_LEDS+theLED] = led_effect_save[this_effect_ptr_idx];
             do_display_delay = 1;
-          } else if (PER_LED_DRAW_BLNKNG_SRND_CTRCLKWS == thePtrn) {  
+          } else if (PER_LED_DRAW_BLNKNG_SRND_CTRCLKWS == this_ptrn_token) {  
             led_display[draw_target*NUM_LEDS+theLED] = blinking;
             do_display_delay = 1;
-          } else if (PER_LED_DRAW_PREV_SRND_CTRCLKWS == thePtrn) {  
-            led_display[draw_target*NUM_LEDS+theLED] = led_effect_save[ptrn_byte_04-ptrn_byte_02+1];
+          } else if (PER_LED_DRAW_PREV_SRND_CTRCLKWS == this_ptrn_token) {  
+            led_display[draw_target*NUM_LEDS+theLED] = led_effect_save[count_of_this_effect_ptr-this_effect_ptr_idx+1];
             do_display_delay = 1;
           } // end if one of the one surround LED at a time patterns
-          if (0 != do_display_delay)  { if (doPtrnShowDwell(draw_target,led_delay)) return(ptrn_byte_06); }
+          nextPatternFromButtons(); // look for new button press even if 0 == do_display_delay
+          if ((nextPattern != NO_BUTTON_PRESS) && (nextPattern != pattern)) return(nextPattern); // pressing our button again does not stop us
+          if (0 != do_display_delay)  { if (doPtrnShowDwell(draw_target,led_delay)) return(nextPattern); }
         } // end for all surround LED 
       } // end if letter LED pattern or surround LED pattern
 
@@ -549,57 +551,57 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
 
   // STEP 2: do the pattern-tokens that should happen after all the LEDs are drawn
   DEBUG_PRINTLN(F("doPatternDraw step 2"))
-  for (ptrn_byte_05 = 0; ptrn_token_array_ptr[ptrn_byte_05] != SUPRSPCL_END_OF_PTRNS; ptrn_byte_05++) {
-    thePtrn = ptrn_token_array_ptr[ptrn_byte_05];
+  for (ptrn_token_array_ptr_idx = 0; ptrn_token_array_ptr[ptrn_token_array_ptr_idx] != SUPRSPCL_END_OF_PTRNS; ptrn_token_array_ptr_idx++) {
+    this_ptrn_token = ptrn_token_array_ptr[ptrn_token_array_ptr_idx];
     DEBUG_PRINT(F("   step 2 ptrn-token: "))
-    DEBUG_PRINTLN((int16_t) thePtrn)
-    if (SUPRSPCL_SKIP_STEP2 == thePtrn) {
+    DEBUG_PRINTLN((int16_t) this_ptrn_token)
+    if (SUPRSPCL_SKIP_STEP2 == this_ptrn_token) {
       DEBUG_PRINTLN(F("   ...processing SUPRSPCL_SKIP_STEP2"))
       skip_steps |= DO_SKIP_STEP2;
       break;
     }
-    if (SUPRSPCL_DRWTRGT_SHDW1_NONSTICKY == thePtrn) {
+    if (SUPRSPCL_DRWTRGT_SHDW1_NONSTICKY == this_ptrn_token) {
       DEBUG_PRINTLN(F("   ...processing SUPRSPCL_DRWTRGT_SHDW1_NONSTICKY"))
       draw_target_sticky = 0;
       draw_target = TARGET_SHDW1;
       continue;
     } // end if SUPRSPCL_DRWTRGT_SHDW1_NONSTICKY
-    if (SUPRSPCL_FADEDLY_ADD_100 == thePtrn) {
+    if (SUPRSPCL_FADEDLY_ADD_100 == this_ptrn_token) {
       DEBUG_PRINTLN(F("   ...processing SUPRSPCL_FADEDLY_ADD_100"))
       if ((uint8_t) (fade_dwell + 50) > fade_dwell) fade_dwell += 100;
       continue;
     } // end if SUPRSPCL_FADEDLY_ADD_100
-    if (SUPRSPCL_FADEDLY_SUB_100 == thePtrn) {
+    if (SUPRSPCL_FADEDLY_SUB_100 == this_ptrn_token) {
       DEBUG_PRINTLN(F("   ...processing SUPRSPCL_FADEDLY_SUB_100"))
       if ((uint8_t) (fade_dwell - 50) < fade_dwell) fade_dwell -= 100;
       continue;
     } // end if SUPRSPCL_FADEDLY_SUB_100
-    if (SUPRSPCL_FADEFCT_MLT_2 == thePtrn) {
+    if (SUPRSPCL_FADEFCT_MLT_2 == this_ptrn_token) {
       DEBUG_PRINTLN(F("   ...processing SUPRSPCL_FADEFCT_MLT_2"))
       if ((uint8_t) (fade_factor * 2) > fade_dwell) fade_factor *= 2;
       continue;
     } // end if SUPRSPCL_FADEFCT_MLT_2
-    if (SUPRSPCL_FADEFCT_DIV_2 == thePtrn) {
+    if (SUPRSPCL_FADEFCT_DIV_2 == this_ptrn_token) {
       DEBUG_PRINTLN(F("   ...processing SUPRSPCL_FADEFCT_DIV_2"))
       if ((uint8_t) (fade_factor / 2) < fade_dwell) fade_factor /= 2;
       continue;
     } // end if SUPRSPCL_FADEFCT_DIV_2
-    else if (SUPRSPCL_DRWTRGT_SHDW1_STICKY == thePtrn) {
+    else if (SUPRSPCL_DRWTRGT_SHDW1_STICKY == this_ptrn_token) {
       DEBUG_PRINTLN(F("   ...processing SUPRSPCL_DRWTRGT_SHDW1_STICKY"))
       draw_target_sticky = 1;
       draw_target = TARGET_SHDW1;
       continue;
     } // end if SUPRSPCL_DRWTRGT_SHDW1_STICKY
-    else if (SUPRSPCL_DRWTRGT_LEDS_NONSTICKY == thePtrn) {
+    else if (SUPRSPCL_DRWTRGT_LEDS_NONSTICKY == this_ptrn_token) {
       DEBUG_PRINTLN(F("   ...processing SUPRSPCL_DRWTRGT_LEDS_NONSTICKY"))
       draw_target_sticky = 0;
       draw_target = TARGET_LEDS;
       continue;
     } // end if SUPRSPCL_DRWTRGT_LEDS_NONSTICKY
-    else if ((thePtrn <= STEP2_DRAW_RING_LARGEST) && (thePtrn >= STEP2_DRAW_RING_SMALLEST)) {
+    else if ((this_ptrn_token <= STEP2_DRAW_RING_LARGEST) && (this_ptrn_token >= STEP2_DRAW_RING_SMALLEST)) {
       DEBUG_PRINTLN(F("   ...processing STEP2_DRAW_RING_xxx"))
       CRGB myColor;
-      tmp_idx = (thePtrn - STEP2_DRAW_RING_SMALLEST) % STEP2_DRAW_RING_CLRMAX; // color index
+      tmp_idx = (this_ptrn_token - STEP2_DRAW_RING_SMALLEST) % STEP2_DRAW_RING_CLRMAX; // color index
       switch (tmp_idx) {
         case STEP2_DRAW_RING_CLRBLNKNG:
           myColor = blinking;
@@ -617,19 +619,19 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
       }
       DEBUG_PRINT(F(" color-idx: "))
       DEBUG_PRINT((int16_t) tmp_idx)
-      tmp_idx = NUM_RINGS_PER_DISK - 1 - (thePtrn - STEP2_DRAW_RING_SMALLEST) / STEP2_DRAW_RING_CLRMAX; // ring index
+      tmp_idx = NUM_RINGS_PER_DISK - 1 - (this_ptrn_token - STEP2_DRAW_RING_SMALLEST) / STEP2_DRAW_RING_CLRMAX; // ring index
       DEBUG_PRINT(F("   ring: "))
       DEBUG_PRINTLN((int16_t) tmp_idx)
       fill_solid(&led_display[draw_target*NUM_LEDS+start_per_ring[tmp_idx]], leds_per_ring[tmp_idx], myColor);
       #if BAD_LED_92
       led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
       #endif // BAD_LED_92
-      if (doPtrnShowDwell(draw_target,led_delay)) return(ptrn_byte_06);
+      if (doPtrnShowDwell(draw_target,led_delay)) return(nextPattern);
     } // end if STEP2_DRAW_RING
-    else if ((thePtrn <= SUPRSPCL_FADEDISK2_CLR_LARGEST) && (thePtrn >= SUPRSPCL_FADEDISK2_CLR_SMALLEST)) {
+    else if ((this_ptrn_token <= SUPRSPCL_FADEDISK2_CLR_LARGEST) && (this_ptrn_token >= SUPRSPCL_FADEDISK2_CLR_SMALLEST)) {
       DEBUG_PRINTLN(F("   ...processing SUPRSPCL_FADEDISK2_CLRxxx"))
       CRGB myColor;
-      tmp_idx = (thePtrn - SUPRSPCL_FADEDISK2_CLR_SMALLEST) % STEP2_DRAW_RING_CLRMAX; // color index
+      tmp_idx = (this_ptrn_token - SUPRSPCL_FADEDISK2_CLR_SMALLEST) % STEP2_DRAW_RING_CLRMAX; // color index
       DEBUG_PRINT(F(" color-idx: "))
       DEBUG_PRINT((int16_t) tmp_idx)
       switch (tmp_idx) {
@@ -661,16 +663,16 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
         #if BAD_LED_92
         led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
         #endif // BAD_LED_92
-        if (doPtrnShowDwell(draw_target,fade_dwell)) return(ptrn_byte_06);
+        if (doPtrnShowDwell(draw_target,fade_dwell)) return(nextPattern);
       } // end for fade_factor
       DEBUG_PRINTLN(F(" ... Fade Final"))
       fill_solid(&led_display[draw_target*NUM_LEDS], NUM_LEDS, myColor);
       #if BAD_LED_92
       led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
       #endif // BAD_LED_92
-      if (doPtrnShowDwell(draw_target,fade_dwell)) return(ptrn_byte_06);
+      if (doPtrnShowDwell(draw_target,fade_dwell)) return(nextPattern);
     } // end if SUPRSPCL_FADEDISK2_CLRxxx
-    else if (thePtrn == SUPRSPCL_FADEDISK2_SHDW1) {
+    else if (this_ptrn_token == SUPRSPCL_FADEDISK2_SHDW1) {
       DEBUG_PRINTLN(F("   ...processing SUPRSPCL_FADEDISK2_SHDW1"))
       for (uint16_t factor = fade_factor; factor < 256; factor += fade_factor) {
         DEBUG_PRINT(F(" ..... factor "))
@@ -682,7 +684,7 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
         #if BAD_LED_92
         led_display[TARGET_LEDS*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
         #endif // BAD_LED_92
-        if (doPtrnShowDwell(TARGET_LEDS,fade_dwell)) return(ptrn_byte_06);
+        if (doPtrnShowDwell(TARGET_LEDS,fade_dwell)) return(nextPattern);
       } // end for fade_factor
       for (theLED = 0; theLED < NUM_LEDS_PER_DISK; theLED++) {
         led_display[TARGET_LEDS*NUM_LEDS+theLED] = led_display[TARGET_SHDW1*NUM_LEDS+theLED];
@@ -690,14 +692,14 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
       #if BAD_LED_92
       led_display[TARGET_LEDS*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
       #endif // BAD_LED_92
-      if (doPtrnShowDwell(TARGET_LEDS,fade_dwell)) return(ptrn_byte_06);
+      if (doPtrnShowDwell(TARGET_LEDS,fade_dwell)) return(nextPattern);
     } // end if SUPRSPCL_FADEDISK2_SHDW1
 
     DEBUG_PRINTLN(F("  sticky processing then next token"))
     if (0 == draw_target_sticky) draw_target = TARGET_LEDS; // restore draw target for each pattern-token if not STICKY
     DEBUG_PRINTLN(F("   ...loop to next token"))
   } // end for step-2 pattern-tokens
-  return(ptrn_byte_06);
+  return(nextPattern);
 } // end doPatternDraw()
 
 // saveSurroundEffectLEDs()
@@ -708,26 +710,30 @@ void saveSurroundEffectLEDs(int8_t ltr_index, const int8_t * effect_LEDidx_array
   } // end save the original LED info for surround effect area
 } // end saveSurroundEffectLEDs()
 
-// doDwell(int16_t dwell) - dwell or break out if button press
+// doDwell(int16_t dwell, uint8_t must_be_diff_pattern) - dwell or break out if button press
 //   returns TRUE if should switch to different pattern
 //   else returns false
 #define SMALL_DWELL 20
-int16_t doDwell(int16_t dwell) {
+int16_t doDwell(int16_t dwell, uint8_t must_be_diff_pattern) {
   int16_t numloops = dwell / SMALL_DWELL;
   int16_t i;
 
   for (i = 0; i < numloops; i++) {
-    if (NO_BUTTON_PRESS != nextPatternFromButtons()) return(nextPattern != NO_BUTTON_CHANGE);
+    nextPatternFromButtons();
+    if ((0 != must_be_diff_pattern) && (nextPattern == pattern)) nextPattern = NO_BUTTON_CHANGE;
+    if (nextPattern != NO_BUTTON_CHANGE) return(nextPattern != NO_BUTTON_CHANGE);
     delay(SMALL_DWELL);
   }
   if ((dwell % SMALL_DWELL) != 0) {
-    if (NO_BUTTON_PRESS != nextPatternFromButtons()) return(nextPattern != NO_BUTTON_CHANGE);
+    nextPatternFromButtons();
+    if ((0 != must_be_diff_pattern) && (nextPattern == pattern)) nextPattern = NO_BUTTON_CHANGE;
+    if (nextPattern != NO_BUTTON_CHANGE) return(nextPattern != NO_BUTTON_CHANGE);
     delay(dwell % SMALL_DWELL);
   }
   return(nextPattern != NO_BUTTON_CHANGE);
 } // end doDwell()
 
-// doPtrnShowDwell(int8_t draw_target, int16_t dwell) - break out if button press, then show, then dwll
+// doPtrnShowDwell(int8_t draw_target, int16_t dwell) - break out if button press, then show, then dwell
 // Used inside doPatternDraw
 // Idea is to not do delays when drawing to target that is not visible
 // Two things that matter: value returned and timing
@@ -738,10 +744,12 @@ int16_t doDwell(int16_t dwell) {
 //     if draw_target is TARGET_LEDS (visible display LEDs), either does entire delay or delays until button press
 //     if draw_target is not TARGET_LEDS, returns immediately after checking for button press
 int16_t doPtrnShowDwell(int8_t draw_target, int16_t dwell) {
-  if (NO_BUTTON_PRESS != nextPatternFromButtons()) return(nextPattern != NO_BUTTON_CHANGE);
+  nextPatternFromButtons();
+  if (nextPattern == pattern) nextPattern = NO_BUTTON_CHANGE;
+  if (nextPattern != pattern) return(nextPattern != NO_BUTTON_CHANGE);
   if (draw_target != TARGET_LEDS) return(nextPattern != NO_BUTTON_CHANGE);
   FastLED.show();
-  return(doDwell(dwell));
+  return(doDwell(dwell, 1));
 } // end doPtrnShowDwell()
 
 // getButtonPress() - get next button press, true button or debugging
