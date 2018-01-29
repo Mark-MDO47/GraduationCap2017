@@ -92,8 +92,12 @@ byte  start_per_ring[NUM_RINGS_PER_DISK] = {  0, 32, 56, 72, 84, 92 };
 #define SERIALPORT 1 // use serial port
 #define DEBUG 1 // 1 = debug thru serial port, 0 = no debug
 #if DEBUG
-#define DEBUG_PRINTLN(param) Serial.println((param));
-#define DEBUG_PRINT(param)   Serial.print((param));
+// #define DEBUG_PRINTLN(param) Serial.println((param));
+// #define DEBUG_PRINT(param)   Serial.print((param));
+#define DEBUG_PRINTLN(param) // nothing
+#define DEBUG_PRINT(param)   // nothing
+#define DEBUG2_PRINTLN(param) Serial.println((param));
+#define DEBUG2_PRINT(param)   Serial.print((param));
 #endif // DEBUG
 
 #define REAL_BUTTONS 0 // 1 = use buttons for input, 0 = use serial port
@@ -745,9 +749,14 @@ int16_t doDwell(int16_t dwell, uint8_t must_be_diff_pattern) {
 //     if draw_target is not TARGET_LEDS, returns immediately after checking for button press
 int16_t doPtrnShowDwell(int8_t draw_target, int16_t dwell) {
   nextPatternFromButtons();
+  DEBUG2_PRINT(F("doPtrnShowDwell pattern: "))
+  DEBUG2_PRINT((int16_t) pattern)
+  DEBUG2_PRINT(F(" nextPattern: "))
+  DEBUG2_PRINTLN((int16_t) nextPattern)
   if (nextPattern == pattern) nextPattern = NO_BUTTON_CHANGE;
   if (nextPattern != pattern) return(nextPattern != NO_BUTTON_CHANGE);
   if (draw_target != TARGET_LEDS) return(nextPattern != NO_BUTTON_CHANGE);
+  DEBUG2_PRINTLN(F("  FastLED.show()"))
   FastLED.show();
   return(doDwell(dwell, 1));
 } // end doPtrnShowDwell()
