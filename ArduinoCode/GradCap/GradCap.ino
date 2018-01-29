@@ -91,13 +91,16 @@ byte  start_per_ring[NUM_RINGS_PER_DISK] = {  0, 32, 56, 72, 84, 92 };
 
 #define SERIALPORT 1 // use serial port
 #define DEBUG 1 // 1 = debug thru serial port, 0 = no debug
+#define DEBUG2 0 // 1 = debug thru serial port, 0 = no debug
 #if DEBUG
 // #define DEBUG_PRINTLN(param) Serial.println((param));
 // #define DEBUG_PRINT(param)   Serial.print((param));
 #define DEBUG_PRINTLN(param) // nothing
 #define DEBUG_PRINT(param)   // nothing
-#define DEBUG2_PRINTLN(param) Serial.println((param));
-#define DEBUG2_PRINT(param)   Serial.print((param));
+// #define DEBUG2_PRINTLN(param) Serial.println((param));
+// #define DEBUG2_PRINT(param)   Serial.print((param));
+#define DEBUG2_PRINTLN(param) // nothing
+#define DEBUG2_PRINT(param)   // nothing
 #endif // DEBUG
 
 #define REAL_BUTTONS 0 // 1 = use buttons for input, 0 = use serial port
@@ -303,6 +306,13 @@ void loop() {
 
 // ******************************** UTILITIES ********************************
 
+void debug2_return(int16_t rtn_from, int16_t rtn_to) {
+  DEBUG2_PRINT(F("returned from doPatternDraw:"))
+  DEBUG2_PRINT(rtn_from)
+  DEBUG2_PRINT(F(" to line:"))
+  DEBUG2_PRINTLN(rtn_to)
+}
+
 // doPattern()
 //   first level organization of patterns for show, checking for button presses
 //   keeps track of oldPattern and nextPattern
@@ -314,41 +324,56 @@ void doPattern() {
   switch (pattern) {
     case 1: // 1 = OFF
        save_return = doPatternDraw(10, ltr_Y, ptrnOff, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       debug2_return(save_return, __LINE__);
        break;
     case 2: // 2 = draw skinny
     default:
        save_return = doPatternDraw(10, ltr_Y, ptrnJustDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       debug2_return(save_return, __LINE__);
        break;
     case 3: // 3 = draw wide
        // save_return = doPatternDraw(10, ltr_Y, ptrnWide, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       save_return = doPatternDraw(10, ltr_Y, ptrnRingDraw, CRGB::Red, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       save_return = doPatternDraw(10, ltr_Y, ptrnRingDraw, CRGB::Red, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(100, ltr_Y, ptrnRingDraw, CRGB::Red, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       debug2_return(save_return, __LINE__);
+       save_return = doPatternDraw(100, ltr_Y, ptrnRingDraw, CRGB::Red, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       debug2_return(save_return, __LINE__);
        // save_return = doPatternDraw(1000, ltr_Y, 5, CRGB::Red, CRGB::Blue, CRGB::Green, 0, 0, 0);
        doDwell(dwell, 1);
        break;
     case 4: // 4 = do surrounding around letter then fade one to the other
        save_return = doPatternDraw(8, ltr_Y, ptrnDblClkws, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       debug2_return(save_return, __LINE__);
        save_return = doPatternDraw(8, ltr_8, ptrnWideDrawShdw1Fade, CRGB::Green, CRGB::Gold, CRGB::Blue, 0, 0, 0);
+       debug2_return(save_return, __LINE__);
        break;
     case 5:
        save_return = doPatternDraw(8, ltr_P, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       debug2_return(save_return, __LINE__);
        if (doDwell(dwell, 1)) break;
        save_return = doPatternDraw(8, ltr_O, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       debug2_return(save_return, __LINE__);
        if (doDwell(dwell, 1)) break;
        save_return = doPatternDraw(8, ltr_L, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       debug2_return(save_return, __LINE__);
        if (doDwell(dwell, 1)) break;
        save_return = doPatternDraw(8, ltr_Y, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       debug2_return(save_return, __LINE__);
        if (doDwell(dwell, 1)) break;
        save_return = doPatternDraw(8, ltr_2, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       debug2_return(save_return, __LINE__);
        if (doDwell(dwell, 1)) break;
        save_return = doPatternDraw(8, ltr_0, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       debug2_return(save_return, __LINE__);
        if (doDwell(dwell, 1)) break;
        save_return = doPatternDraw(8, ltr_1, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       debug2_return(save_return, __LINE__);
        if (doDwell(dwell, 1)) break;
        save_return = doPatternDraw(8, ltr_8, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       debug2_return(save_return, __LINE__);
        break;
     case 6:
        save_return = doPatternDraw(10, ltr_Y, ptrnOff, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       debug2_return(save_return, __LINE__);
        break;
   } // end switch on pattern
   if (pattern != oldPattern) {
@@ -414,7 +439,10 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
   uint8_t fade_factor = 32; // default means each fade removes 32/256 = 0.125 = 1/8
   uint16_t fade_dwell = 100; // default dwell during fade
 
-  if ((oldPattern == pattern) && (SUPRSPCL_STOP_WHEN_DONE == ptrn_token_array_ptr[0])) return(nextPattern);
+  nextPatternFromButtons(); // look for new button press even if 0 == do_display_delay
+  if ((nextPattern != NO_BUTTON_PRESS) && (nextPattern != pattern)) return(__LINE__); // pressing our button again does not stop us
+
+  if ((oldPattern == pattern) && (SUPRSPCL_STOP_WHEN_DONE == ptrn_token_array_ptr[0])) return(__LINE__);
   
   count_of_ltr_ptr = -(ltr_ptr[0]); // length of letter LEDstring
 
@@ -525,8 +553,8 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
           do_display_delay = 1;
         } // end if one of the all at once patterns
         nextPatternFromButtons(); // look for new button press even if 0 == do_display_delay
-        if ((nextPattern != NO_BUTTON_PRESS) && (nextPattern != pattern)) return(nextPattern); // pressing our button again does not stop us
-        if (0 != do_display_delay) { if (doPtrnShowDwell(draw_target,led_delay)) return(nextPattern); }
+        if ((nextPattern != NO_BUTTON_PRESS) && (nextPattern != pattern)) return(__LINE__); // pressing our button again does not stop us
+        if (0 != do_display_delay) { if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__); }
       } else if ((this_ptrn_token > 0)) { // one surround LED at a time pattern      
         for (this_effect_ptr_idx = 1; this_effect_ptr_idx <= count_of_this_effect_ptr; this_effect_ptr_idx++) {    
           theLED = this_effect_ptr[this_effect_ptr_idx];  
@@ -544,8 +572,8 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
             do_display_delay = 1;
           } // end if one of the one surround LED at a time patterns
           nextPatternFromButtons(); // look for new button press even if 0 == do_display_delay
-          if ((nextPattern != NO_BUTTON_PRESS) && (nextPattern != pattern)) return(nextPattern); // pressing our button again does not stop us
-          if (0 != do_display_delay)  { if (doPtrnShowDwell(draw_target,led_delay)) return(nextPattern); }
+          if ((nextPattern != NO_BUTTON_PRESS) && (nextPattern != pattern)) return(__LINE__); // pressing our button again does not stop us
+          if (0 != do_display_delay)  { if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__); }
         } // end for all surround LED 
       } // end if letter LED pattern or surround LED pattern
 
@@ -630,7 +658,7 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
       #if BAD_LED_92
       led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
       #endif // BAD_LED_92
-      if (doPtrnShowDwell(draw_target,led_delay)) return(nextPattern);
+      if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__);
     } // end if STEP2_DRAW_RING
     else if ((this_ptrn_token <= SUPRSPCL_FADEDISK2_CLR_LARGEST) && (this_ptrn_token >= SUPRSPCL_FADEDISK2_CLR_SMALLEST)) {
       DEBUG_PRINTLN(F("   ...processing SUPRSPCL_FADEDISK2_CLRxxx"))
@@ -667,14 +695,14 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
         #if BAD_LED_92
         led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
         #endif // BAD_LED_92
-        if (doPtrnShowDwell(draw_target,fade_dwell)) return(nextPattern);
+        if (doPtrnShowDwell(draw_target,fade_dwell,__LINE__)) return(__LINE__);
       } // end for fade_factor
       DEBUG_PRINTLN(F(" ... Fade Final"))
       fill_solid(&led_display[draw_target*NUM_LEDS], NUM_LEDS, myColor);
       #if BAD_LED_92
       led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
       #endif // BAD_LED_92
-      if (doPtrnShowDwell(draw_target,fade_dwell)) return(nextPattern);
+      if (doPtrnShowDwell(draw_target,fade_dwell,__LINE__)) return(__LINE__);
     } // end if SUPRSPCL_FADEDISK2_CLRxxx
     else if (this_ptrn_token == SUPRSPCL_FADEDISK2_SHDW1) {
       DEBUG_PRINTLN(F("   ...processing SUPRSPCL_FADEDISK2_SHDW1"))
@@ -688,7 +716,7 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
         #if BAD_LED_92
         led_display[TARGET_LEDS*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
         #endif // BAD_LED_92
-        if (doPtrnShowDwell(TARGET_LEDS,fade_dwell)) return(nextPattern);
+        if (doPtrnShowDwell(TARGET_LEDS,fade_dwell,__LINE__)) return(__LINE__);
       } // end for fade_factor
       for (theLED = 0; theLED < NUM_LEDS_PER_DISK; theLED++) {
         led_display[TARGET_LEDS*NUM_LEDS+theLED] = led_display[TARGET_SHDW1*NUM_LEDS+theLED];
@@ -696,14 +724,14 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
       #if BAD_LED_92
       led_display[TARGET_LEDS*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
       #endif // BAD_LED_92
-      if (doPtrnShowDwell(TARGET_LEDS,fade_dwell)) return(nextPattern);
+      if (doPtrnShowDwell(TARGET_LEDS,fade_dwell,__LINE__)) return(__LINE__);
     } // end if SUPRSPCL_FADEDISK2_SHDW1
 
     DEBUG_PRINTLN(F("  sticky processing then next token"))
     if (0 == draw_target_sticky) draw_target = TARGET_LEDS; // restore draw target for each pattern-token if not STICKY
     DEBUG_PRINTLN(F("   ...loop to next token"))
   } // end for step-2 pattern-tokens
-  return(nextPattern);
+  return(__LINE__);
 } // end doPatternDraw()
 
 // saveSurroundEffectLEDs()
@@ -747,15 +775,25 @@ int16_t doDwell(int16_t dwell, uint8_t must_be_diff_pattern) {
 //   timing:
 //     if draw_target is TARGET_LEDS (visible display LEDs), either does entire delay or delays until button press
 //     if draw_target is not TARGET_LEDS, returns immediately after checking for button press
-int16_t doPtrnShowDwell(int8_t draw_target, int16_t dwell) {
+int16_t doPtrnShowDwell(int8_t draw_target, int16_t dwell, int16_t called_from) {
   nextPatternFromButtons();
-  DEBUG2_PRINT(F("doPtrnShowDwell pattern: "))
+  DEBUG2_PRINT(F("doPtrnShowDwell called from: "))
+  DEBUG2_PRINT((int16_t) called_from)
+  DEBUG2_PRINT(F(" pattern: "))
   DEBUG2_PRINT((int16_t) pattern)
   DEBUG2_PRINT(F(" nextPattern: "))
-  DEBUG2_PRINTLN((int16_t) nextPattern)
+  DEBUG2_PRINT((int16_t) nextPattern)
+  DEBUG2_PRINT(F(" draw_target: "))
+  DEBUG2_PRINTLN((int16_t) draw_target)
   if (nextPattern == pattern) nextPattern = NO_BUTTON_CHANGE;
-  if (nextPattern != pattern) return(nextPattern != NO_BUTTON_CHANGE);
-  if (draw_target != TARGET_LEDS) return(nextPattern != NO_BUTTON_CHANGE);
+  if ((nextPattern != pattern) && ( nextPattern != NO_BUTTON_CHANGE)) {
+    DEBUG2_PRINTLN(F("  doPtrnShowDwell rtn; pattern != nextPattern"))
+    return(nextPattern != NO_BUTTON_CHANGE);
+  }
+  if (draw_target != TARGET_LEDS) {
+    DEBUG2_PRINTLN(F("  doPtrnShowDwell rtn; draw_target != TARGET_LEDS"))
+    return(nextPattern != NO_BUTTON_CHANGE);
+  }
   DEBUG2_PRINTLN(F("  FastLED.show()"))
   FastLED.show();
   return(doDwell(dwell, 1));
