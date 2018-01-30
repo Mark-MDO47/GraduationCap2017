@@ -71,6 +71,7 @@
 
 // LED count - number of LEDs in each ring in order of serial access
 byte  leds_per_ring[NUM_RINGS_PER_DISK]  = { 32, 24, 16, 12,  8,  1 };
+byte  leds_per_ringqrtr[NUM_RINGS_PER_DISK]  = { 8, 6, 4, 3,  2,  1 };
 byte  start_per_ring[NUM_RINGS_PER_DISK] = {  0, 32, 56, 72, 84, 92 };
 
 // We'll be using Digital Data Pin D3 to control the WS2812 LEDs
@@ -101,6 +102,8 @@ byte  start_per_ring[NUM_RINGS_PER_DISK] = {  0, 32, 56, 72, 84, 92 };
 // #define DEBUG2_PRINT(param)   Serial.print((param));
 #define DEBUG2_PRINTLN(param) // nothing
 #define DEBUG2_PRINT(param)   // nothing
+#define DEBUG3_PRINTLN(param) Serial.println((param));
+#define DEBUG3_PRINT(param)   Serial.print((param));
 #endif // DEBUG
 
 #define REAL_BUTTONS 0 // 1 = use buttons for input, 0 = use serial port
@@ -124,7 +127,7 @@ CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS]; // 1st set is for display, then shad
 //     1.5) in the middle of this, do SPECIAL and some SUPER-SPECIAL pattern-token processing
 //   2) process SUPER-SPECIAL pattern-tokens that are done after the above, typically disk-wide, ring-wide, or section-wide effects
 // SPECIAL processing allows things that should be done just once per pattern-list (or see SUPRSPCL_ALLOW_SPCL might be once per letter LED)
-//   SPCL_DRAW_BKGD_CLRBKGND: clear and set background pattern for entire disk
+//   SPCL_DRAW_BKGD_CLR_BKGND: clear and set background pattern for entire disk
 // SUPER-SPECIAL:
 //   SUPRSPCL_STOP_WHEN_DONE when placed first ([0]) will stop the pattern-list and return
 //   SUPRSPCL_ALLOW_SPCL resets the SPECIAL counter. If placed before a SPECIAL, it will be done for each letter LED
@@ -150,41 +153,48 @@ CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS]; // 1st set is for display, then shad
 #define PER_LED_DRAW_BLNKING_LTR_ALL    (-5) // set all letter LEDs to blinking color
 #define PER_LED_DRAW_FORE_LTR_ALL       (-6) // set all letter LED to foreground color
 
-#define STEP2_DRAW_RING_CLRMAX           4 //
-#define STEP2_DRAW_RING_CLRBLNKNG        3 //
-#define STEP2_DRAW_RING_CLRBLACK         2 //
-#define STEP2_DRAW_RING_CLRFORE          1 //
-#define STEP2_DRAW_RING_CLRBKGND         0 //
-#define STEP2_DRAW_RING_LARGEST      STEP2_DRAW_RING1_CLRBLNKNG
-#define STEP2_DRAW_RING1_CLRBLNKNG    -60
-#define STEP2_DRAW_RING1_CLRBLACK    -61
-#define STEP2_DRAW_RING1_CLRFORE    -62
-#define STEP2_DRAW_RING1_CLRBKGND    -63
-#define STEP2_DRAW_RING2_CLRBLNKNG    -64
-#define STEP2_DRAW_RING2_CLRBLACK    -65
-#define STEP2_DRAW_RING2_CLRFORE    -66
-#define STEP2_DRAW_RING2_CLRBKGND    -67
-#define STEP2_DRAW_RING3_CLRBLNKNG    -68
-#define STEP2_DRAW_RING3_CLRBLACK    -69
-#define STEP2_DRAW_RING3_CLRFORE    -70
-#define STEP2_DRAW_RING3_CLRBKGND    -71
-#define STEP2_DRAW_RING4_CLRBLNKNG    -72
-#define STEP2_DRAW_RING4_CLRBLACK    -73
-#define STEP2_DRAW_RING4_CLRFORE    -74
-#define STEP2_DRAW_RING4_CLRBKGND    -75
-#define STEP2_DRAW_RING5_CLRBLNKNG    -76
-#define STEP2_DRAW_RING5_CLRBLACK    -77
-#define STEP2_DRAW_RING5_CLRFORE    -78
-#define STEP2_DRAW_RING5_CLRBKGND    -79
-#define STEP2_DRAW_RING6_CLRBLNKNG    -80
-#define STEP2_DRAW_RING6_CLRBLACK    -81
-#define STEP2_DRAW_RING6_CLRFORE    -82
-#define STEP2_DRAW_RING6_CLRBKGND    -83
-#define STEP2_DRAW_RING_SMALLEST     STEP2_DRAW_RING6_CLRBKGND
+#define STEP2_DRAW_CLR_MAX           4 //
+#define STEP2_DRAW_CLR_BLNKNG        3 //
+#define STEP2_DRAW_CLR_BLACK         2 //
+#define STEP2_DRAW_CLR_FRGND         1 //
+#define STEP2_DRAW_CLR_BKGND         0 //
 
-#define SPCL_DRAW_BKGD_CLRBLACK            90 // SPECIAL: set all LEDs to black
-#define SPCL_DRAW_BKGD_CLRFORE             91 // SPECIAL: set all LEDs to foreground color
-#define SPCL_DRAW_BKGD_CLRBKGND            92 // SPECIAL: set all LEDs to background color
+#define STEP2_DRAW_RING_LARGEST      STEP2_DRAW_RING_CLR_BLNKNG
+#define STEP2_DRAW_RING_CLR_BLNKNG     -60
+#define STEP2_DRAW_RING_CLR_BLACK      -61
+#define STEP2_DRAW_RING_CLR_FRGND      -62
+#define STEP2_DRAW_RING_CLR_BKGND      -63
+#define STEP2_DRAW_RING_SMALLEST     STEP2_DRAW_RING_CLR_BKGND
+
+#define STEP2_DRAW_RINGQRTR_LARGEST      STEP2_DRAW_RINGQRTR_CLR_BLNKNG
+#define STEP2_DRAW_RINGQRTR_CLR_BLNKNG     -64
+#define STEP2_DRAW_RINGQRTR_CLR_BLACK      -65
+#define STEP2_DRAW_RINGQRTR_CLR_FRGND      -66
+#define STEP2_DRAW_RINGQRTR_CLR_BKGND      -67
+#define STEP2_DRAW_RINGQRTR_SMALLEST     STEP2_DRAW_RINGQRTR_CLR_BKGND
+
+#define STEP2_DRAW_DISKQRTR_LARGEST      STEP2_DRAW_DISKQRTR_CLR_BLNKNG
+#define STEP2_DRAW_DISKQRTR_CLR_BLNKNG     -68
+#define STEP2_DRAW_DISKQRTR_CLR_BLACK      -69
+#define STEP2_DRAW_DISKQRTR_CLR_FRGND      -70
+#define STEP2_DRAW_DISKQRTR_CLR_BKGND      -71
+#define STEP2_DRAW_DISKQRTR_SMALLEST     STEP2_DRAW_DISKQRTR_CLR_BKGND
+
+
+#define STEP2_SET_RING_6               -84 // 0 is ring_6 is outer ring; 5 is ring_1 is inner ring (one LED)
+#define STEP2_SET_RING_1               -85 // 0 is ring_6 is outer ring; 5 is ring_1 is inner ring (one LED)
+#define STEP2_SET_RING_ADD1            -86 // stops at ring_6 is outer ring
+#define STEP2_SET_RING_SUB1            -87 // stops at ring_1 is inner ring (one LED)
+#define STEP2_SET_QRTR_1               -88
+#define STEP2_SET_QRTR_3               -88
+#define STEP2_SET_QRTR_ADD1            -89 // keeps going modulo
+#define STEP2_SET_QRTR_SUB1            -90 // keeps going modulo
+
+
+#define SPCL_DRAW_BKGD_CLR_BLACK          90 // SPECIAL: set all LEDs to black
+#define SPCL_DRAW_BKGD_CLR_FRGND           91 // SPECIAL: set all LEDs to foreground color
+#define SPCL_DRAW_BKGD_CLR_BKGND           92 // SPECIAL: set all LEDs to background color
+
 
 #define SUPRSPCL_SKIP_STEP2               110 // SUPER-SPECIAL: do not do any (more) step-2 processing for this call do doPatternDraw()
 #define SUPRSPCL_SKIP_STEP1               111 // SUPER-SPECIAL: do not do any (more) step-1 processing for this call do doPatternDraw()
@@ -198,12 +208,12 @@ CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS]; // 1st set is for display, then shad
 #define SUPRSPCL_FADEFCT_MLT_2            117 // SUPER-SPECIAL: multply fade factor by 2
 #define SUPRSPCL_FADEFCT_DIV_2            118 // SUPER-SPECIAL: divide  fade factor by 2
 
-#define SUPRSPCL_FADEDISK2_CLR_SMALLEST   SUPRSPCL_FADEDISK2_CLRBKGND //
-#define SUPRSPCL_FADEDISK2_CLRBKGND       119 // SUPER-SPECIAL: fade all disk LEDs to be more like background color
-#define SUPRSPCL_FADEDISK2_CLRFORE        120 // SUPER-SPECIAL: fade all disk LEDs to be more like foreground color
-#define SUPRSPCL_FADEDISK2_CLRBLACK       121 // SUPER-SPECIAL: fade all disk LEDs to be more like BLACK
-#define SUPRSPCL_FADEDISK2_CLRBLNKNG      122 // SUPER-SPECIAL: fade all disk LEDs to be more like blinking color
-#define SUPRSPCL_FADEDISK2_CLR_LARGEST    SUPRSPCL_FADEDISK2_CLRBLNKNG //
+#define SUPRSPCL_FADEDISK2_CLR_SMALLEST   SUPRSPCL_FADEDISK2_CLR_BKGND //
+#define SUPRSPCL_FADEDISK2_CLR_BKGND       119 // SUPER-SPECIAL: fade all disk LEDs to be more like background color
+#define SUPRSPCL_FADEDISK2_CLR_FRGND        120 // SUPER-SPECIAL: fade all disk LEDs to be more like foreground color
+#define SUPRSPCL_FADEDISK2_CLR_BLACK       121 // SUPER-SPECIAL: fade all disk LEDs to be more like BLACK
+#define SUPRSPCL_FADEDISK2_CLR_BLNKNG      122 // SUPER-SPECIAL: fade all disk LEDs to be more like blinking color
+#define SUPRSPCL_FADEDISK2_CLR_LARGEST    SUPRSPCL_FADEDISK2_CLR_BLNKNG //
 // #define SUPRSPCL_SAVE_SRND                123 // SUPER-SPECIAL: save current state of surround LEDs and current letter LED
 #define SUPRSPCL_FADEDISK2_SHDW1           124 // SUPER-SPECIAL: fade all disk LEDs to be more like shadow1.
 // #define SUPRSPCL_FADEDISK2_SHDW2          125 // SUPER-SPECIAL: fade LEDs to be more like shadow2    --- NOT ENOUGH ROOM
@@ -214,19 +224,46 @@ CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS]; // 1st set is for display, then shad
 #define TARGET_SHDW1               1 // target or DRAW is SHADOW1 LEDs
 // #define TARGET_SHDW2               2 // target or DRAW is SHADOW2 LEDs --- NOTE ENOUGH ROOM
 
-const int8_t ptrnOff[]      = { SUPRSPCL_STOP_WHEN_DONE, SPCL_DRAW_BKGD_CLRBLACK, SUPRSPCL_SKIP_STEP2, SUPRSPCL_SKIP_STEP1, SUPRSPCL_END_OF_PTRNS };
-const int8_t ptrnJustDraw[] = { SPCL_DRAW_BKGD_CLRBKGND, SUPRSPCL_SKIP_STEP2, PER_LED_DRAW_BLNKING, PER_LED_DRAW_FORE, SUPRSPCL_END_OF_PTRNS };
-const int8_t ptrnWideDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SPCL_DRAW_BKGD_CLRBKGND, SUPRSPCL_SKIP_STEP2, PER_LED_DRAW_BLNKING_SRND_ALL, PER_LED_DRAW_FORE_LTR_ALL, SUPRSPCL_END_OF_PTRNS };
-const int8_t ptrnDblClkws[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP2, SPCL_DRAW_BKGD_CLRBKGND, PER_LED_DRAW_BLNKNG_SRND_CLKWS, PER_LED_DRAW_PREV_SRND_CLKWS, PER_LED_DRAW_BLNKING, PER_LED_DRAW_FORE, PER_LED_DRAW_BLNKNG_SRND_CLKWS, PER_LED_DRAW_PREV_SRND_CLKWS, PER_LED_DRAW_BLNKING, PER_LED_DRAW_FORE, SUPRSPCL_END_OF_PTRNS };
+const int8_t ptrnOff[]      = { SUPRSPCL_STOP_WHEN_DONE, SPCL_DRAW_BKGD_CLR_BLACK, SUPRSPCL_SKIP_STEP2, SUPRSPCL_SKIP_STEP1, SUPRSPCL_END_OF_PTRNS };
+const int8_t ptrnJustDraw[] = { SPCL_DRAW_BKGD_CLR_BKGND, SUPRSPCL_SKIP_STEP2, PER_LED_DRAW_BLNKING, PER_LED_DRAW_FORE, SUPRSPCL_END_OF_PTRNS };
+const int8_t ptrnWideDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SPCL_DRAW_BKGD_CLR_BKGND, SUPRSPCL_SKIP_STEP2, PER_LED_DRAW_BLNKING_SRND_ALL, PER_LED_DRAW_FORE_LTR_ALL, SUPRSPCL_END_OF_PTRNS };
+const int8_t ptrnDblClkws[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP2, SPCL_DRAW_BKGD_CLR_BKGND, PER_LED_DRAW_BLNKNG_SRND_CLKWS, PER_LED_DRAW_PREV_SRND_CLKWS, PER_LED_DRAW_BLNKING, PER_LED_DRAW_FORE, PER_LED_DRAW_BLNKNG_SRND_CLKWS, PER_LED_DRAW_PREV_SRND_CLKWS, PER_LED_DRAW_BLNKING, PER_LED_DRAW_FORE, SUPRSPCL_END_OF_PTRNS };
 // const int8_t ptrnRingDraw[] = { SUPRSPCL_END_OF_PTRNS };
-const int8_t ptrnRingDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1, STEP2_DRAW_RING6_CLRBLACK, 
-   STEP2_DRAW_RING5_CLRBLNKNG, STEP2_DRAW_RING4_CLRFORE,   STEP2_DRAW_RING3_CLRBKGND,  STEP2_DRAW_RING2_CLRBLNKNG, STEP2_DRAW_RING1_CLRFORE,
-   STEP2_DRAW_RING5_CLRFORE,   STEP2_DRAW_RING4_CLRBKGND,  STEP2_DRAW_RING3_CLRBLNKNG, STEP2_DRAW_RING2_CLRFORE,   STEP2_DRAW_RING1_CLRBKGND,
-   STEP2_DRAW_RING5_CLRBKGND,  STEP2_DRAW_RING4_CLRBLNKNG, STEP2_DRAW_RING3_CLRFORE,   STEP2_DRAW_RING2_CLRBKGND,  STEP2_DRAW_RING1_CLRBLNKNG,
+const int8_t ptrnRingDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1, 
+   STEP2_SET_RING_6, STEP2_DRAW_RING_CLR_BKGND,      // ring 6
+   STEP2_SET_RING_SUB1, STEP2_DRAW_RING_CLR_BLNKNG,  // ring 5
+   STEP2_SET_RING_SUB1, STEP2_DRAW_RING_CLR_FRGND,   // ring 4
+   STEP2_SET_RING_SUB1, STEP2_DRAW_RING_CLR_BKGND,   // ring 3
+   STEP2_SET_RING_SUB1, STEP2_DRAW_RING_CLR_BLNKNG,  // ring 2
+   STEP2_SET_RING_1, STEP2_DRAW_RING_CLR_FRGND,      // ring 1
+   STEP2_SET_RING_6, STEP2_DRAW_RING_CLR_FRGND,       // ring 6
+   STEP2_SET_RING_SUB1, STEP2_DRAW_RING_CLR_BKGND,   // ring 5
+   STEP2_SET_RING_SUB1, STEP2_DRAW_RING_CLR_BLNKNG,  // ring 4
+   STEP2_SET_RING_SUB1, STEP2_DRAW_RING_CLR_FRGND,   // ring 3
+   STEP2_SET_RING_SUB1, STEP2_DRAW_RING_CLR_BKGND,   // ring 2
+   STEP2_SET_RING_1, STEP2_DRAW_RING_CLR_BKGND,      // ring 1
+   STEP2_SET_RING_6, STEP2_DRAW_RING_CLR_BLNKNG,      // ring 6
+   STEP2_SET_RING_SUB1, STEP2_DRAW_RING_CLR_FRGND,   // ring 5
+   STEP2_SET_RING_SUB1, STEP2_DRAW_RING_CLR_BKGND,   // ring 4
+   STEP2_SET_RING_SUB1, STEP2_DRAW_RING_CLR_BLNKNG,  // ring 3
+   STEP2_SET_RING_SUB1, STEP2_DRAW_RING_CLR_FRGND,   // ring 2
+   STEP2_SET_RING_1, STEP2_DRAW_RING_CLR_BKGND,      // ring 1
    SUPRSPCL_FADEDLY_ADD_100, SUPRSPCL_FADEFCT_DIV_2,
-   SUPRSPCL_FADEDISK2_CLRBKGND, SUPRSPCL_FADEDISK2_CLRFORE, SUPRSPCL_FADEDISK2_CLRBLNKNG, SUPRSPCL_FADEDISK2_CLRBLACK, SUPRSPCL_END_OF_PTRNS };
+   SUPRSPCL_FADEDISK2_CLR_BKGND, SUPRSPCL_FADEDISK2_CLR_FRGND, SUPRSPCL_FADEDISK2_CLR_BLNKNG, SUPRSPCL_FADEDISK2_CLR_BLACK, SUPRSPCL_END_OF_PTRNS };
 
-const int8_t ptrnWideDrawShdw1Fade[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_DRWTRGT_SHDW1_STICKY, SPCL_DRAW_BKGD_CLRBKGND, PER_LED_DRAW_BLNKING_LTR_ALL, SUPRSPCL_DRWTRGT_LEDS_NONSTICKY, SUPRSPCL_FADEDLY_ADD_100, SUPRSPCL_FADEFCT_DIV_2, SUPRSPCL_FADEDISK2_SHDW1, SUPRSPCL_END_OF_PTRNS };
+const int8_t ptrnRingQrtrDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1, 
+   STEP2_SET_RING_6, STEP2_SET_QRTR_1,
+   STEP2_DRAW_RINGQRTR_CLR_BLNKNG, STEP2_SET_QRTR_ADD1, STEP2_DRAW_RINGQRTR_CLR_BLACK, STEP2_SET_QRTR_ADD1, STEP2_DRAW_RINGQRTR_CLR_FRGND, STEP2_SET_QRTR_ADD1, STEP2_DRAW_RINGQRTR_CLR_BKGND, STEP2_SET_RING_SUB1, // ring 6
+   STEP2_DRAW_RINGQRTR_CLR_BLNKNG, STEP2_SET_QRTR_ADD1, STEP2_DRAW_RINGQRTR_CLR_BLACK, STEP2_SET_QRTR_ADD1, STEP2_DRAW_RINGQRTR_CLR_FRGND, STEP2_SET_QRTR_ADD1, STEP2_DRAW_RINGQRTR_CLR_BKGND, STEP2_SET_RING_SUB1, // ring 5
+   STEP2_DRAW_RINGQRTR_CLR_BLNKNG, STEP2_SET_QRTR_ADD1, STEP2_DRAW_RINGQRTR_CLR_BLACK, STEP2_SET_QRTR_ADD1, STEP2_DRAW_RINGQRTR_CLR_FRGND, STEP2_SET_QRTR_ADD1, STEP2_DRAW_RINGQRTR_CLR_BKGND, STEP2_SET_RING_SUB1, // ring 4
+   STEP2_DRAW_RINGQRTR_CLR_BLNKNG, STEP2_SET_QRTR_ADD1, STEP2_DRAW_RINGQRTR_CLR_BLACK, STEP2_SET_QRTR_ADD1, STEP2_DRAW_RINGQRTR_CLR_FRGND, STEP2_SET_QRTR_ADD1, STEP2_DRAW_RINGQRTR_CLR_BKGND, STEP2_SET_RING_SUB1, // ring 3
+   STEP2_DRAW_RINGQRTR_CLR_BLNKNG, STEP2_SET_QRTR_ADD1, STEP2_DRAW_RINGQRTR_CLR_BLACK, STEP2_SET_QRTR_ADD1, STEP2_DRAW_RINGQRTR_CLR_FRGND, STEP2_SET_QRTR_ADD1, STEP2_DRAW_RINGQRTR_CLR_BKGND, STEP2_SET_RING_SUB1, // ring 2
+   STEP2_DRAW_RINGQRTR_CLR_BLNKNG, STEP2_SET_QRTR_ADD1, STEP2_DRAW_RINGQRTR_CLR_BLACK, STEP2_SET_QRTR_ADD1, STEP2_DRAW_RINGQRTR_CLR_FRGND, STEP2_SET_QRTR_ADD1, STEP2_DRAW_RINGQRTR_CLR_BKGND, STEP2_SET_RING_6,    // ring 1
+   SUPRSPCL_FADEDLY_ADD_100, SUPRSPCL_FADEFCT_DIV_2,
+   SUPRSPCL_FADEDISK2_CLR_BKGND, SUPRSPCL_FADEDISK2_CLR_FRGND, SUPRSPCL_FADEDISK2_CLR_BLNKNG, SUPRSPCL_FADEDISK2_CLR_BLACK, SUPRSPCL_END_OF_PTRNS };
+
+
+const int8_t ptrnWideDrawShdw1Fade[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_DRWTRGT_SHDW1_STICKY, SPCL_DRAW_BKGD_CLR_BKGND, PER_LED_DRAW_BLNKING_LTR_ALL, SUPRSPCL_DRWTRGT_LEDS_NONSTICKY, SUPRSPCL_FADEDLY_ADD_100, SUPRSPCL_FADEFCT_DIV_2, SUPRSPCL_FADEDISK2_SHDW1, SUPRSPCL_END_OF_PTRNS };
 
 // pattern vars
 static int8_t   pattern = 1;
@@ -241,6 +278,8 @@ static int8_t   count_of_ltr_ptr = -1;
 static int8_t   count_of_this_effect_ptr = -1;
 static int8_t   ptrn_token_array_ptr_idx = -1;
 static int8_t * this_effect_ptr = (int8_t *) 0;
+static int8_t   this_ring = 0; // from ring_6 (value 0, outer ring) to ring_1 (value 5,  inner ring (one LED)
+static int8_t   this_qrtr = 0; // from qrtr_1 (value 0) to qrtr_4 (value 3), count modulo in either direction
 
 #define EFFECT_POINTERS_OFFSET 32 // surround_pointers[0] corresponds to LED 32. Currently only effect is surround
 #define EFFECT_NUM_LED_SAV 8 // save up to eight "effect" LEDs
@@ -372,7 +411,7 @@ void doPattern() {
        debug2_return(save_return, __LINE__);
        break;
     case 6:
-       save_return = doPatternDraw(10, ltr_Y, ptrnOff, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(100, ltr_Y, ptrnRingQrtrDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        debug2_return(save_return, __LINE__);
        break;
   } // end switch on pattern
@@ -491,7 +530,7 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
         draw_target = TARGET_LEDS;
         continue;
       } // end if SUPRSPCL_DRWTRGT_LEDS_NONSTICKY
-      else if ((SPCL_DRAW_BKGD_CLRFORE == this_ptrn_token) && (0 != do_specials)) {
+      else if ((SPCL_DRAW_BKGD_CLR_FRGND == this_ptrn_token) && (0 != do_specials)) {
           fill_solid(&led_display[draw_target*NUM_LEDS], NUM_LEDS, foreground);
           #if BAD_LED_92
           led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware
@@ -500,8 +539,8 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
           do_specials = 0;
           do_display_delay = 1;
           continue;
-      } // end if SPCL_DRAW_BKGD_CLRFORE
-      else if ((SPCL_DRAW_BKGD_CLRBKGND == this_ptrn_token) && (0 != do_specials)) {
+      } // end if SPCL_DRAW_BKGD_CLR_FRGND
+      else if ((SPCL_DRAW_BKGD_CLR_BKGND == this_ptrn_token) && (0 != do_specials)) {
           fill_solid(&led_display[draw_target*NUM_LEDS], NUM_LEDS, background);
           #if BAD_LED_92
           led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware
@@ -510,8 +549,8 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
           do_specials = 0;
           do_display_delay = 1;
           continue;
-      } // end if SPCL_DRAW_BKGD_CLRBKGND
-      else if ((SPCL_DRAW_BKGD_CLRBLACK == this_ptrn_token) && (0 != do_specials)) {
+      } // end if SPCL_DRAW_BKGD_CLR_BKGND
+      else if ((SPCL_DRAW_BKGD_CLR_BLACK == this_ptrn_token) && (0 != do_specials)) {
           fill_solid(&led_display[draw_target*NUM_LEDS], NUM_LEDS, CRGB::Black);
           #if BAD_LED_92
           led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
@@ -520,10 +559,10 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
           do_specials = 0;
           do_display_delay = 1;
           continue;
-      } // end if SPCL_DRAW_BKGD_CLRBKGND
+      } // end if SPCL_DRAW_BKGD_CLR_BKGND
 
       // do the cases where it is either LED pattern or surround pattern
-      if ((this_ptrn_token < 0) && (this_ptrn_token > STEP2_DRAW_RING1_CLRBLNKNG)) { // all at once pattern
+      if ((this_ptrn_token < 0) && (this_ptrn_token > STEP2_DRAW_RING_CLR_BLNKNG)) { // all at once pattern
         theLED = ltr_ptr[ltr_ptr_idx];
         if (PER_LED_DRAW_BLNKING == this_ptrn_token) {
           led_display[draw_target*NUM_LEDS+theLED] = blinking;
@@ -630,57 +669,134 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
       draw_target = TARGET_LEDS;
       continue;
     } // end if SUPRSPCL_DRWTRGT_LEDS_NONSTICKY
+    
+    else if (STEP2_SET_RING_6 == this_ptrn_token) {
+      DEBUG_PRINTLN(F("   ...processing STEP2_SET_RING_6"))
+      this_ring = 0; // 0 is ring_6 is outer ring; 5 is ring_1 is inner ring (one LED)
+      continue;
+    } // end if STEP2_SET_RING_6
+    else if (STEP2_SET_RING_1 == this_ptrn_token) {
+      DEBUG_PRINTLN(F("   ...processing STEP2_SET_RING_1"))
+      this_ring = 5; // 0 is ring_6 is outer ring; 5 is ring_1 is inner ring (one LED)
+      continue;
+    } // end if STEP2_SET_RING_1
+    else if (STEP2_SET_RING_ADD1 == this_ptrn_token) {
+      DEBUG_PRINTLN(F("   ...processing STEP2_SET_RING_ADD1"))
+      this_ring -= 1; // 0 is ring_6 is outer ring; 5 is ring_1 is inner ring (one LED)
+      if (this_ring < 0) this_ring = 0; // no interrupts to protect against
+      continue;
+    } // end if STEP2_SET_RING_ADD1
+    else if (STEP2_SET_RING_SUB1 == this_ptrn_token) {
+      DEBUG_PRINTLN(F("   ...processing STEP2_SET_RING_SUB1"))
+      this_ring += 1; // 0 is ring_6 is outer ring; 5 is ring_1 is inner ring (one LED)
+      if (this_ring > 5) this_ring = 5; // no interrupts to protect against
+      continue;
+    } // end if STEP2_SET_RING_SUB1
+    else if (STEP2_SET_QRTR_1 == this_ptrn_token) {
+      DEBUG_PRINTLN(F("   ...processing STEP2_SET_QRTR_1"))
+      this_qrtr = 0;
+      continue;
+    } // end if STEP2_SET_QRTR_1
+    else if (STEP2_SET_QRTR_3 == this_ptrn_token) {
+      DEBUG_PRINTLN(F("   ...processing STEP2_SET_QRTR_3"))
+      this_qrtr = 2;
+      continue;
+    } // end if STEP2_SET_QRTR_3
+    else if (STEP2_SET_QRTR_ADD1 == this_ptrn_token) {
+      DEBUG_PRINTLN(F("   ...processing STEP2_SET_QRTR_ADD1"))
+      this_qrtr = (this_qrtr+1) % 4; // keeps going modulo
+      continue;
+    } // end if STEP2_SET_QRTR_ADD1
+    else if (STEP2_SET_QRTR_SUB1 == this_ptrn_token) {
+      DEBUG_PRINTLN(F("   ...processing STEP2_SET_QRTR_SUB1"))
+      this_qrtr = (this_qrtr+3) % 4; // keeps going modulo
+      continue;
+    } // end if STEP2_SET_QRTR_SUB1
     else if ((this_ptrn_token <= STEP2_DRAW_RING_LARGEST) && (this_ptrn_token >= STEP2_DRAW_RING_SMALLEST)) {
       DEBUG_PRINTLN(F("   ...processing STEP2_DRAW_RING_xxx"))
       CRGB myColor;
-      tmp_idx = (this_ptrn_token - STEP2_DRAW_RING_SMALLEST) % STEP2_DRAW_RING_CLRMAX; // color index
+      tmp_idx = (this_ptrn_token - STEP2_DRAW_RING_SMALLEST) % STEP2_DRAW_CLR_MAX; // color index
       switch (tmp_idx) {
-        case STEP2_DRAW_RING_CLRBLNKNG:
+        case STEP2_DRAW_CLR_BLNKNG:
           myColor = blinking;
           break;
-        case STEP2_DRAW_RING_CLRBLACK:
+        case STEP2_DRAW_CLR_BLACK:
         default:
           myColor = CRGB::Black ;
           break;
-        case STEP2_DRAW_RING_CLRFORE:
+        case STEP2_DRAW_CLR_FRGND:
           myColor = foreground;
           break;
-        case STEP2_DRAW_RING_CLRBKGND:
+        case STEP2_DRAW_CLR_BKGND:
           myColor = background;
           break;
       }
       DEBUG_PRINT(F(" color-idx: "))
       DEBUG_PRINT((int16_t) tmp_idx)
-      tmp_idx = NUM_RINGS_PER_DISK - 1 - (this_ptrn_token - STEP2_DRAW_RING_SMALLEST) / STEP2_DRAW_RING_CLRMAX; // ring index
       DEBUG_PRINT(F("   ring: "))
-      DEBUG_PRINTLN((int16_t) tmp_idx)
-      fill_solid(&led_display[draw_target*NUM_LEDS+start_per_ring[tmp_idx]], leds_per_ring[tmp_idx], myColor);
+      DEBUG_PRINTLN((int16_t) this_ring)
+      fill_solid(&led_display[draw_target*NUM_LEDS+start_per_ring[this_ring]], leds_per_ring[this_ring], myColor);
       #if BAD_LED_92
       led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
       #endif // BAD_LED_92
       if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__);
     } // end if STEP2_DRAW_RING
+    else if ((this_ptrn_token <= STEP2_DRAW_RINGQRTR_LARGEST) && (this_ptrn_token >= STEP2_DRAW_RINGQRTR_SMALLEST)) {
+      DEBUG3_PRINTLN(F("   ...processing STEP2_DRAW_RINGQRTR_xxx"))
+      CRGB myColor;
+      tmp_idx = (this_ptrn_token - STEP2_DRAW_RINGQRTR_SMALLEST) % STEP2_DRAW_CLR_MAX; // color index
+      switch (tmp_idx) {
+        case STEP2_DRAW_CLR_BLNKNG:
+          myColor = blinking;
+          break;
+        case STEP2_DRAW_CLR_BLACK:
+        default:
+          myColor = CRGB::Black ;
+          break;
+        case STEP2_DRAW_CLR_FRGND:
+          myColor = foreground;
+          break;
+        case STEP2_DRAW_CLR_BKGND:
+          myColor = background;
+          break;
+      }
+      DEBUG3_PRINT(F(" color-idx: "))
+      DEBUG3_PRINT((int16_t) tmp_idx)
+      DEBUG3_PRINT(F("   ring: "))
+      DEBUG3_PRINT((int16_t) this_ring)
+      DEBUG3_PRINT(F("   qrtr: "))
+      DEBUG3_PRINTLN((int16_t) this_qrtr)
+      if (5 != this_ring) {
+        fill_solid(&led_display[draw_target*NUM_LEDS+start_per_ring[this_ring]]+this_qrtr*leds_per_ringqrtr[this_ring], leds_per_ringqrtr[this_ring], myColor);
+      } else {
+        led_display[draw_target*NUM_LEDS+92] = myColor;
+      }
+      #if BAD_LED_92
+      led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
+      #endif // BAD_LED_92
+      if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__);
+    } // end if STEP2_DRAW_RINGQRTR
     else if ((this_ptrn_token <= SUPRSPCL_FADEDISK2_CLR_LARGEST) && (this_ptrn_token >= SUPRSPCL_FADEDISK2_CLR_SMALLEST)) {
       DEBUG_PRINTLN(F("   ...processing SUPRSPCL_FADEDISK2_CLRxxx"))
       CRGB myColor;
-      tmp_idx = (this_ptrn_token - SUPRSPCL_FADEDISK2_CLR_SMALLEST) % STEP2_DRAW_RING_CLRMAX; // color index
+      tmp_idx = (this_ptrn_token - SUPRSPCL_FADEDISK2_CLR_SMALLEST) % STEP2_DRAW_CLR_MAX; // color index
       DEBUG_PRINT(F(" color-idx: "))
       DEBUG_PRINT((int16_t) tmp_idx)
       switch (tmp_idx) {
-        case STEP2_DRAW_RING_CLRBLNKNG:
+        case STEP2_DRAW_CLR_BLNKNG:
           DEBUG_PRINTLN(F(" color blinking"))
           myColor = blinking;
           break;
-        case STEP2_DRAW_RING_CLRBLACK:
+        case STEP2_DRAW_CLR_BLACK:
         default:
           DEBUG_PRINTLN(F(" color CRGB::Black"))
           myColor = CRGB::Black;
           break;
-        case STEP2_DRAW_RING_CLRFORE:
+        case STEP2_DRAW_CLR_FRGND:
           DEBUG_PRINTLN(F(" color foreground"))
           myColor = foreground;
           break;
-        case STEP2_DRAW_RING_CLRBKGND:
+        case STEP2_DRAW_CLR_BKGND:
           DEBUG_PRINTLN(F(" color background"))
           myColor = background;
           break;
