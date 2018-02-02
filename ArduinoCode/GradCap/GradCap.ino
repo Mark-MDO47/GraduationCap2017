@@ -54,7 +54,7 @@
 // useful FastLED functions
 // Dim a color by 25% (64/256ths) eventually fading to full black
 //   leds[i].fadeToBlackBy( 64 );
-//   fadeToBlackBy(leds, NUM_LEDS, 64);
+//   fadeToBlackBy(leds, NUM_LEDS_PER_DISK, 64);
 //
 // in Arduino, int=16bits and 
 
@@ -64,7 +64,6 @@
 // I am using 93-LED rings - four of them.
 #define NUM_DISKS 1 // definitely not enough room for multiple disks in one Arduino
 #define NUM_LEDS_PER_DISK 93
-#define NUM_LEDS (NUM_DISKS * NUM_LEDS_PER_DISK)
 #define WHICH_DISK 1 // if we have multiple Arduinos, this will identify them
 #define NUM_RINGS_PER_DISK 6
 #define NUM_SHADOWS 1  // number of shadow disks
@@ -116,9 +115,9 @@ int16_t tmp_DEBUG2 = 0;
 #endif // DEBUG
 
 
-// Creates an array with the length set by NUM_LEDS above
+// Creates an array with the length set by NUM_LEDS_PER_DISK above
 // This is the array the library will read to determine how each LED in the strand should be set
-CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS]; // 1st set is for display, then shadow1 then shadow2
+CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS_PER_DISK]; // 1st set is for display, then shadow1 then shadow2
 
 // lists of pattern tokens for drawing letters and other shapes
 // pattern lists are processed in 2.5 steps.
@@ -316,7 +315,7 @@ CRGB led_effect_save[EFFECT_NUM_LED_SAV+1]; // place to save original values of 
 void setup() {
   delay(100); // for debugging & show
   
-  FastLED.addLeds<NEOPIXEL,LED_DATA_PIN>(led_display, NUM_LEDS);
+  FastLED.addLeds<NEOPIXEL,LED_DATA_PIN>(led_display, NUM_LEDS_PER_DISK);
   FastLED.setBrightness(BRIGHTMAX); // we will do our own power management
 
   // initialize the input pins. Not sure if my nano actually has a pullup...
@@ -554,9 +553,9 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
         continue;
       } // end if SUPRSPCL_DRWTRGT_LEDS_NONSTICKY
       else if ((SPCL_DRAW_BKGD_CLR_FRGND == this_ptrn_token) && (0 != do_specials)) {
-          fill_solid(&led_display[draw_target*NUM_LEDS], NUM_LEDS, foreground);
+          fill_solid(&led_display[draw_target*NUM_LEDS_PER_DISK], NUM_LEDS_PER_DISK, foreground);
           #if BAD_LED_92
-          led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware
+          led_display[draw_target*NUM_LEDS_PER_DISK+92] = CRGB::Black; // this LED is not working in the test hardware
           #endif // BAD_LED_92
           saveSurroundEffectLEDs(ltr_ptr[ltr_ptr_idx], this_effect_ptr, draw_target, led_effect_save);
           do_specials = 0;
@@ -564,9 +563,9 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
           continue;
       } // end if SPCL_DRAW_BKGD_CLR_FRGND
       else if ((SPCL_DRAW_BKGD_CLR_BKGND == this_ptrn_token) && (0 != do_specials)) {
-          fill_solid(&led_display[draw_target*NUM_LEDS], NUM_LEDS, background);
+          fill_solid(&led_display[draw_target*NUM_LEDS_PER_DISK], NUM_LEDS_PER_DISK, background);
           #if BAD_LED_92
-          led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware
+          led_display[draw_target*NUM_LEDS_PER_DISK+92] = CRGB::Black; // this LED is not working in the test hardware
           #endif // BAD_LED_92
           saveSurroundEffectLEDs(ltr_ptr[ltr_ptr_idx], this_effect_ptr, draw_target, led_effect_save);
           do_specials = 0;
@@ -574,9 +573,9 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
           continue;
       } // end if SPCL_DRAW_BKGD_CLR_BKGND
       else if ((SPCL_DRAW_BKGD_CLR_BLACK == this_ptrn_token) && (0 != do_specials)) {
-          fill_solid(&led_display[draw_target*NUM_LEDS], NUM_LEDS, CRGB::Black);
+          fill_solid(&led_display[draw_target*NUM_LEDS_PER_DISK], NUM_LEDS_PER_DISK, CRGB::Black);
           #if BAD_LED_92
-          led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
+          led_display[draw_target*NUM_LEDS_PER_DISK+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
           #endif // BAD_LED_92
           saveSurroundEffectLEDs(ltr_ptr[ltr_ptr_idx], this_effect_ptr, draw_target, led_effect_save);
           do_specials = 0;
@@ -588,29 +587,29 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
       if ((this_ptrn_token < 0) && (this_ptrn_token > STEP2_DRAW_RING_CLR_BLNKNG)) { // all at once pattern
         theLED = ltr_ptr[ltr_ptr_idx];
         if (PER_LED_DRAW_BLNKING == this_ptrn_token) {
-          led_display[draw_target*NUM_LEDS+theLED] = blinking;
+          led_display[draw_target*NUM_LEDS_PER_DISK+theLED] = blinking;
           do_display_delay = 1;
         } else if (PER_LED_DRAW_FORE == this_ptrn_token) {
-          led_display[draw_target*NUM_LEDS+theLED] = foreground;
+          led_display[draw_target*NUM_LEDS_PER_DISK+theLED] = foreground;
           do_display_delay = 1;
         } else if (PER_LED_DRAW_BLNKING_SRND_ALL == this_ptrn_token) {
           for (tmp_idx = 1; tmp_idx <= count_of_this_effect_ptr; tmp_idx++) {
-            led_display[draw_target*NUM_LEDS+this_effect_ptr[tmp_idx]] = blinking;
+            led_display[draw_target*NUM_LEDS_PER_DISK+this_effect_ptr[tmp_idx]] = blinking;
           } // end for all surround LEDs
           do_display_delay = 1;
         } else if (PER_LED_DRAW_PREV_SRND_ALL == this_ptrn_token) {
           for (tmp_idx = 1; tmp_idx <= count_of_this_effect_ptr; tmp_idx++) {
-            led_display[draw_target*NUM_LEDS+this_effect_ptr[tmp_idx]] = led_effect_save[tmp_idx];
+            led_display[draw_target*NUM_LEDS_PER_DISK+this_effect_ptr[tmp_idx]] = led_effect_save[tmp_idx];
           } // end for all surround LEDs
           do_display_delay = 1;
         } else if (PER_LED_DRAW_BLNKING_LTR_ALL == this_ptrn_token) {
           for (tmp_idx = 1; tmp_idx <= count_of_ltr_ptr; tmp_idx++) {
-            led_display[draw_target*NUM_LEDS+ltr_ptr[tmp_idx]] = blinking;
+            led_display[draw_target*NUM_LEDS_PER_DISK+ltr_ptr[tmp_idx]] = blinking;
           } // end for all letter LEDs
           do_display_delay = 1;
         } else if (PER_LED_DRAW_FORE_LTR_ALL == this_ptrn_token) {
           for (tmp_idx = 1; tmp_idx <= count_of_ltr_ptr; tmp_idx++) {
-            led_display[draw_target*NUM_LEDS+ltr_ptr[tmp_idx]] = foreground;
+            led_display[draw_target*NUM_LEDS_PER_DISK+ltr_ptr[tmp_idx]] = foreground;
           } // end for all letter LEDs
           do_display_delay = 1;
         } // end if one of the all at once patterns
@@ -621,16 +620,16 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
         for (this_effect_ptr_idx = 1; this_effect_ptr_idx <= count_of_this_effect_ptr; this_effect_ptr_idx++) {    
           theLED = this_effect_ptr[this_effect_ptr_idx];  
           if (PER_LED_DRAW_BLNKNG_SRND_CLKWS == this_ptrn_token) {  
-            led_display[draw_target*NUM_LEDS+theLED] = blinking;
+            led_display[draw_target*NUM_LEDS_PER_DISK+theLED] = blinking;
             do_display_delay = 1;
           } else if (PER_LED_DRAW_PREV_SRND_CLKWS == this_ptrn_token) {  
-            led_display[draw_target*NUM_LEDS+theLED] = led_effect_save[this_effect_ptr_idx];
+            led_display[draw_target*NUM_LEDS_PER_DISK+theLED] = led_effect_save[this_effect_ptr_idx];
             do_display_delay = 1;
           } else if (PER_LED_DRAW_BLNKNG_SRND_CTRCLKWS == this_ptrn_token) {  
-            led_display[draw_target*NUM_LEDS+theLED] = blinking;
+            led_display[draw_target*NUM_LEDS_PER_DISK+theLED] = blinking;
             do_display_delay = 1;
           } else if (PER_LED_DRAW_PREV_SRND_CTRCLKWS == this_ptrn_token) {  
-            led_display[draw_target*NUM_LEDS+theLED] = led_effect_save[count_of_this_effect_ptr-this_effect_ptr_idx+1];
+            led_display[draw_target*NUM_LEDS_PER_DISK+theLED] = led_effect_save[count_of_this_effect_ptr-this_effect_ptr_idx+1];
             do_display_delay = 1;
           } // end if one of the one surround LED at a time patterns
           nextPatternFromButtons(); // look for new button press even if 0 == do_display_delay
@@ -696,16 +695,16 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
       DEBUG_PRINTLN(F("   ...processing STEP2_DOWN_DRAIN"))
       myColor = calcColor_step2DawClrMax(this_ptrn_token, STEP2_DOWN_DRAIN_SMALLEST, blinking, foreground, background);
       if (doPtrnShowDwell(draw_target,500,__LINE__)) return(__LINE__);
-      for (tmp_idx = 0; tmp_idx < NUM_LEDS; tmp_idx++) { // move down drain all the way
-        for (uint16_t idx2 = NUM_LEDS-1; idx2 >= 1; idx2--) {
-          led_display[draw_target*NUM_LEDS+idx2] = led_display[draw_target*NUM_LEDS+idx2-1];
+      for (tmp_idx = 0; tmp_idx < NUM_LEDS_PER_DISK; tmp_idx++) { // move down drain all the way
+        for (uint16_t idx2 = NUM_LEDS_PER_DISK-1; idx2 >= 1; idx2--) {
+          led_display[draw_target*NUM_LEDS_PER_DISK+idx2] = led_display[draw_target*NUM_LEDS_PER_DISK+idx2-1];
         } // end move LEDs down the drain
-        led_display[draw_target*NUM_LEDS] = myColor;
+        led_display[draw_target*NUM_LEDS_PER_DISK] = myColor;
         #if BAD_LED_92
-        led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
+        led_display[draw_target*NUM_LEDS_PER_DISK+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
         #endif // BAD_LED_92
         if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__);
-      } // end NUM_LEDS steps to go all the way down the drain
+      } // end NUM_LEDS_PER_DISK steps to go all the way down the drain
       if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__);
       continue;
     } // end if STEP2_DOWN_DRAIN
@@ -713,21 +712,21 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
       DEBUG_PRINTLN(F("   ...processing STEP2_UP_DRAIN"))
       myColor = calcColor_step2DawClrMax(this_ptrn_token, STEP2_UP_DRAIN_SMALLEST, blinking, foreground, background);
       if (doPtrnShowDwell(draw_target,500,__LINE__)) return(__LINE__);
-      for (tmp_idx = 0; tmp_idx < NUM_LEDS; tmp_idx++) { // move up drain all the way
-        for (uint16_t idx2 = 1; idx2 < NUM_LEDS; idx2++) {
-          led_display[draw_target*NUM_LEDS+idx2-1] = led_display[draw_target*NUM_LEDS+idx2];
+      for (tmp_idx = 0; tmp_idx < NUM_LEDS_PER_DISK; tmp_idx++) { // move up drain all the way
+        for (uint16_t idx2 = 1; idx2 < NUM_LEDS_PER_DISK; idx2++) {
+          led_display[draw_target*NUM_LEDS_PER_DISK+idx2-1] = led_display[draw_target*NUM_LEDS_PER_DISK+idx2];
         } // end move LEDs down the drain
-        led_display[draw_target*NUM_LEDS+92] = myColor;
+        led_display[draw_target*NUM_LEDS_PER_DISK+92] = myColor;
         #if BAD_LED_92
-        led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
+        led_display[draw_target*NUM_LEDS_PER_DISK+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
         #endif // BAD_LED_92
         if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__);
         #if BAD_LED_92
-        led_display[draw_target*NUM_LEDS+92] = myColor;
+        led_display[draw_target*NUM_LEDS_PER_DISK+92] = myColor;
         #endif // BAD_LED_92
-      } // end NUM_LEDS steps to go all the way down the drain
+      } // end NUM_LEDS_PER_DISK steps to go all the way down the drain
       #if BAD_LED_92
-      led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
+      led_display[draw_target*NUM_LEDS_PER_DISK+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
       #endif // BAD_LED_92
       if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__);
       continue;
@@ -781,9 +780,9 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
       DEBUG_PRINT(F("   ring: "))
       DEBUG_PRINTLN((int16_t) this_ring)
       myColor = calcColor_step2DawClrMax(this_ptrn_token, STEP2_DRAW_RING_SMALLEST, blinking, foreground, background);
-      fill_solid(&led_display[draw_target*NUM_LEDS+start_per_ring[this_ring]], leds_per_ring[this_ring], myColor);
+      fill_solid(&led_display[draw_target*NUM_LEDS_PER_DISK+start_per_ring[this_ring]], leds_per_ring[this_ring], myColor);
       #if BAD_LED_92
-      led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
+      led_display[draw_target*NUM_LEDS_PER_DISK+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
       #endif // BAD_LED_92
       if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__);
     } // end if STEP2_DRAW_RING
@@ -797,12 +796,12 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
       DEBUG3_PRINTLN((int16_t) this_qrtr)
       myColor = calcColor_step2DawClrMax(this_ptrn_token, STEP2_DRAW_RINGQRTR_SMALLEST, blinking, foreground, background);
       if (5 != this_ring) {
-        fill_solid(&led_display[draw_target*NUM_LEDS+start_per_ring[this_ring]]+this_qrtr*leds_per_ringqrtr[this_ring], leds_per_ringqrtr[this_ring], myColor);
+        fill_solid(&led_display[draw_target*NUM_LEDS_PER_DISK+start_per_ring[this_ring]]+this_qrtr*leds_per_ringqrtr[this_ring], leds_per_ringqrtr[this_ring], myColor);
       } else {
-        led_display[draw_target*NUM_LEDS+92] = myColor;
+        led_display[draw_target*NUM_LEDS_PER_DISK+92] = myColor;
       }
       #if BAD_LED_92
-      led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
+      led_display[draw_target*NUM_LEDS_PER_DISK+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
       #endif // BAD_LED_92
       if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__);
     } // end if STEP2_DRAW_RINGQRTR
@@ -816,17 +815,17 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
         DEBUG_PRINT(F(" ..... factor "))
         DEBUG_PRINTLN((int16_t) factor);
         for (theLED = 0; theLED < NUM_LEDS_PER_DISK; theLED++) {
-          led_display[draw_target*NUM_LEDS+theLED] = blend(led_display[draw_target*NUM_LEDS+theLED], myColor, factor);
+          led_display[draw_target*NUM_LEDS_PER_DISK+theLED] = blend(led_display[draw_target*NUM_LEDS_PER_DISK+theLED], myColor, factor);
         }
         #if BAD_LED_92
-        led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
+        led_display[draw_target*NUM_LEDS_PER_DISK+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
         #endif // BAD_LED_92
         if (doPtrnShowDwell(draw_target,fade_dwell,__LINE__)) return(__LINE__);
       } // end for fade_factor
       DEBUG_PRINTLN(F(" ... Fade Final"))
-      fill_solid(&led_display[draw_target*NUM_LEDS], NUM_LEDS, myColor);
+      fill_solid(&led_display[draw_target*NUM_LEDS_PER_DISK], NUM_LEDS_PER_DISK, myColor);
       #if BAD_LED_92
-      led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
+      led_display[draw_target*NUM_LEDS_PER_DISK+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
       #endif // BAD_LED_92
       if (doPtrnShowDwell(draw_target,fade_dwell,__LINE__)) return(__LINE__);
     } // end if SUPRSPCL_FADEDISK2_CLRxxx
@@ -835,20 +834,20 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
       for (uint16_t factor = fade_factor; factor < 256; factor += fade_factor) {
         DEBUG_PRINT(F(" ..... factor "))
         DEBUG_PRINTLN((int16_t) factor);
-        // ??? blend(&led_display[TARGET_LEDS*NUM_LEDS+92], &led_display[TARGET_SHDW1*NUM_LEDS+92], &led_display[TARGET_LEDS*NUM_LEDS+92], NUM_LEDS, factor);
+        // ??? blend(&led_display[TARGET_LEDS*NUM_LEDS_PER_DISK+92], &led_display[TARGET_SHDW1*NUM_LEDS_PER_DISK+92], &led_display[TARGET_LEDS*NUM_LEDS_PER_DISK+92], NUM_LEDS_PER_DISK, factor);
         for (theLED = 0; theLED < NUM_LEDS_PER_DISK; theLED++) {
-          led_display[TARGET_LEDS*NUM_LEDS+theLED] = blend(led_display[TARGET_LEDS*NUM_LEDS+theLED], led_display[TARGET_SHDW1*NUM_LEDS+theLED], factor);
+          led_display[TARGET_LEDS*NUM_LEDS_PER_DISK+theLED] = blend(led_display[TARGET_LEDS*NUM_LEDS_PER_DISK+theLED], led_display[TARGET_SHDW1*NUM_LEDS_PER_DISK+theLED], factor);
         }
         #if BAD_LED_92
-        led_display[TARGET_LEDS*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
+        led_display[TARGET_LEDS*NUM_LEDS_PER_DISK+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
         #endif // BAD_LED_92
         if (doPtrnShowDwell(TARGET_LEDS,fade_dwell,__LINE__)) return(__LINE__);
       } // end for fade_factor
       for (theLED = 0; theLED < NUM_LEDS_PER_DISK; theLED++) {
-        led_display[TARGET_LEDS*NUM_LEDS+theLED] = led_display[TARGET_SHDW1*NUM_LEDS+theLED];
+        led_display[TARGET_LEDS*NUM_LEDS_PER_DISK+theLED] = led_display[TARGET_SHDW1*NUM_LEDS_PER_DISK+theLED];
       }
       #if BAD_LED_92
-      led_display[TARGET_LEDS*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
+      led_display[TARGET_LEDS*NUM_LEDS_PER_DISK+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
       #endif // BAD_LED_92
       if (doPtrnShowDwell(TARGET_LEDS,fade_dwell,__LINE__)) return(__LINE__);
     } // end if SUPRSPCL_FADEDISK2_SHDW1
@@ -862,9 +861,9 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
 
 // saveSurroundEffectLEDs()
 void saveSurroundEffectLEDs(int8_t ltr_index, const int8_t * effect_LEDidx_array_ptr, int8_t draw_target, CRGB * save_here) {
-  save_here[0] =   led_display[draw_target*NUM_LEDS + ltr_index]; // save_here[0] is the LED in the middle, [1..end] are the LEDs in the surround effect
+  save_here[0] =   led_display[draw_target*NUM_LEDS_PER_DISK + ltr_index]; // save_here[0] is the LED in the middle, [1..end] are the LEDs in the surround effect
   for (uint8_t i = 1; i <= -effect_LEDidx_array_ptr[0]; i++) {
-    save_here[i] = led_display[draw_target*NUM_LEDS + effect_LEDidx_array_ptr[i]];
+    save_here[i] = led_display[draw_target*NUM_LEDS_PER_DISK + effect_LEDidx_array_ptr[i]];
   } // end save the original LED info for surround effect area
 } // end saveSurroundEffectLEDs()
 
