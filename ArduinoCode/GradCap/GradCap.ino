@@ -180,6 +180,19 @@ CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS]; // 1st set is for display, then shad
 #define STEP2_DRAW_DISKQRTR_CLR_BKGND      -71
 #define STEP2_DRAW_DISKQRTR_SMALLEST     STEP2_DRAW_DISKQRTR_CLR_BKGND
 
+#define STEP2_DOWN_DRAIN_LARGEST         STEP2_DOWN_DRAIN_CLR_BLNKNG
+#define STEP2_DOWN_DRAIN_CLR_BLNKNG        -72
+#define STEP2_DOWN_DRAIN_CLR_BLACK         -73
+#define STEP2_DOWN_DRAIN_CLR_FRGND         -74
+#define STEP2_DOWN_DRAIN_CLR_BKGND         -75
+#define STEP2_DOWN_DRAIN_SMALLEST        STEP2_DOWN_DRAIN_CLR_BKGND
+
+#define STEP2_UP_DRAIN_LARGEST           STEP2_UP_DRAIN_CLR_BLNKNG
+#define STEP2_UP_DRAIN_CLR_BLNKNG          -76
+#define STEP2_UP_DRAIN_CLR_BLACK           -77
+#define STEP2_UP_DRAIN_CLR_FRGND           -78
+#define STEP2_UP_DRAIN_CLR_BKGND           -79
+#define STEP2_UP_DRAIN_SMALLEST          STEP2_UP_DRAIN_CLR_BKGND
 
 #define STEP2_SET_RING_6               -84 // 0 is ring_6 is outer ring; 5 is ring_1 is inner ring (one LED)
 #define STEP2_SET_RING_1               -85 // 0 is ring_6 is outer ring; 5 is ring_1 is inner ring (one LED)
@@ -250,6 +263,9 @@ const int8_t ptrnRingDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1,
    STEP2_SET_RING_1, STEP2_DRAW_RING_CLR_BKGND,      // ring 1
    SUPRSPCL_FADEDLY_ADD_100, SUPRSPCL_FADEFCT_DIV_2,
    SUPRSPCL_FADEDISK2_CLR_BKGND, SUPRSPCL_FADEDISK2_CLR_FRGND, SUPRSPCL_FADEDISK2_CLR_BLNKNG, SUPRSPCL_FADEDISK2_CLR_BLACK, SUPRSPCL_END_OF_PTRNS };
+
+const int8_t ptrnDownTheDrain[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1, STEP2_DOWN_DRAIN_CLR_FRGND, SUPRSPCL_END_OF_PTRNS };
+const int8_t ptrnUpTheDrain[] =   { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1, STEP2_UP_DRAIN_CLR_BKGND,   SUPRSPCL_END_OF_PTRNS };
 
 const int8_t ptrnRingQrtrDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1, 
    STEP2_SET_RING_6, STEP2_SET_QRTR_1,
@@ -365,9 +381,15 @@ void doPattern() {
        save_return = doPatternDraw(10, ltr_Y, ptrnOff, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        debug2_return(save_return, __LINE__);
        break;
-    case 2: // 2 = draw skinny
+    case 2: // 2 = draw then down the drain
     default:
-       save_return = doPatternDraw(10, ltr_Y, ptrnJustDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(10, ltr_P, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       debug2_return(save_return, __LINE__);
+       save_return = doPatternDraw(10, ltr_Y, ptrnDownTheDrain, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       debug2_return(save_return, __LINE__);
+       save_return = doPatternDraw(10, ltr_L, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       debug2_return(save_return, __LINE__);
+       save_return = doPatternDraw(10, ltr_Y, ptrnUpTheDrain, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        debug2_return(save_return, __LINE__);
        break;
     case 3: // 3 = draw wide
@@ -477,6 +499,7 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
   uint8_t skip_steps = 0;
   uint8_t fade_factor = 32; // default means each fade removes 32/256 = 0.125 = 1/8
   uint16_t fade_dwell = 100; // default dwell during fade
+  CRGB myColor;
 
   nextPatternFromButtons(); // look for new button press even if 0 == do_display_delay
   if ((nextPattern != NO_BUTTON_PRESS) && (nextPattern != pattern)) return(__LINE__); // pressing our button again does not stop us
@@ -630,7 +653,7 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
       DEBUG_PRINTLN(F("   ...processing SUPRSPCL_SKIP_STEP2"))
       skip_steps |= DO_SKIP_STEP2;
       break;
-    }
+    } // end if SUPRSPCL_SKIP_STEP2
     if (SUPRSPCL_DRWTRGT_SHDW1_NONSTICKY == this_ptrn_token) {
       DEBUG_PRINTLN(F("   ...processing SUPRSPCL_DRWTRGT_SHDW1_NONSTICKY"))
       draw_target_sticky = 0;
@@ -669,7 +692,46 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
       draw_target = TARGET_LEDS;
       continue;
     } // end if SUPRSPCL_DRWTRGT_LEDS_NONSTICKY
-    
+    else if ((this_ptrn_token <= STEP2_DOWN_DRAIN_LARGEST) && (this_ptrn_token >= STEP2_DOWN_DRAIN_SMALLEST)) {
+      DEBUG_PRINTLN(F("   ...processing STEP2_DOWN_DRAIN"))
+      myColor = calcColor_step2DawClrMax(this_ptrn_token, STEP2_DOWN_DRAIN_SMALLEST, blinking, foreground, background);
+      if (doPtrnShowDwell(draw_target,500,__LINE__)) return(__LINE__);
+      for (tmp_idx = 0; tmp_idx < NUM_LEDS; tmp_idx++) { // move down drain all the way
+        for (uint16_t idx2 = NUM_LEDS-1; idx2 >= 1; idx2--) {
+          led_display[draw_target*NUM_LEDS+idx2] = led_display[draw_target*NUM_LEDS+idx2-1];
+        } // end move LEDs down the drain
+        led_display[draw_target*NUM_LEDS] = myColor;
+        #if BAD_LED_92
+        led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
+        #endif // BAD_LED_92
+        if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__);
+      } // end NUM_LEDS steps to go all the way down the drain
+      if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__);
+      continue;
+    } // end if STEP2_DOWN_DRAIN
+    else if ((this_ptrn_token <= STEP2_UP_DRAIN_LARGEST) && (this_ptrn_token >= STEP2_UP_DRAIN_SMALLEST)) {
+      DEBUG_PRINTLN(F("   ...processing STEP2_UP_DRAIN"))
+      myColor = calcColor_step2DawClrMax(this_ptrn_token, STEP2_UP_DRAIN_SMALLEST, blinking, foreground, background);
+      if (doPtrnShowDwell(draw_target,500,__LINE__)) return(__LINE__);
+      for (tmp_idx = 0; tmp_idx < NUM_LEDS; tmp_idx++) { // move up drain all the way
+        for (uint16_t idx2 = 1; idx2 < NUM_LEDS; idx2++) {
+          led_display[draw_target*NUM_LEDS+idx2-1] = led_display[draw_target*NUM_LEDS+idx2];
+        } // end move LEDs down the drain
+        led_display[draw_target*NUM_LEDS+92] = myColor;
+        #if BAD_LED_92
+        led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
+        #endif // BAD_LED_92
+        if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__);
+        #if BAD_LED_92
+        led_display[draw_target*NUM_LEDS+92] = myColor;
+        #endif // BAD_LED_92
+      } // end NUM_LEDS steps to go all the way down the drain
+      #if BAD_LED_92
+      led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
+      #endif // BAD_LED_92
+      if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__);
+      continue;
+    } // end if STEP2_DOWN_DRAIN
     else if (STEP2_SET_RING_6 == this_ptrn_token) {
       DEBUG_PRINTLN(F("   ...processing STEP2_SET_RING_6"))
       this_ring = 0; // 0 is ring_6 is outer ring; 5 is ring_1 is inner ring (one LED)
@@ -714,27 +776,11 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
     } // end if STEP2_SET_QRTR_SUB1
     else if ((this_ptrn_token <= STEP2_DRAW_RING_LARGEST) && (this_ptrn_token >= STEP2_DRAW_RING_SMALLEST)) {
       DEBUG_PRINTLN(F("   ...processing STEP2_DRAW_RING_xxx"))
-      CRGB myColor;
-      tmp_idx = (this_ptrn_token - STEP2_DRAW_RING_SMALLEST) % STEP2_DRAW_CLR_MAX; // color index
-      switch (tmp_idx) {
-        case STEP2_DRAW_CLR_BLNKNG:
-          myColor = blinking;
-          break;
-        case STEP2_DRAW_CLR_BLACK:
-        default:
-          myColor = CRGB::Black ;
-          break;
-        case STEP2_DRAW_CLR_FRGND:
-          myColor = foreground;
-          break;
-        case STEP2_DRAW_CLR_BKGND:
-          myColor = background;
-          break;
-      }
-      DEBUG_PRINT(F(" color-idx: "))
-      DEBUG_PRINT((int16_t) tmp_idx)
+      DEBUG_PRINT(F(" this_ptrn_token: "))
+      DEBUG_PRINT((int16_t) this_ptrn_token)
       DEBUG_PRINT(F("   ring: "))
       DEBUG_PRINTLN((int16_t) this_ring)
+      myColor = calcColor_step2DawClrMax(this_ptrn_token, STEP2_DRAW_RING_SMALLEST, blinking, foreground, background);
       fill_solid(&led_display[draw_target*NUM_LEDS+start_per_ring[this_ring]], leds_per_ring[this_ring], myColor);
       #if BAD_LED_92
       led_display[draw_target*NUM_LEDS+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
@@ -743,29 +789,13 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
     } // end if STEP2_DRAW_RING
     else if ((this_ptrn_token <= STEP2_DRAW_RINGQRTR_LARGEST) && (this_ptrn_token >= STEP2_DRAW_RINGQRTR_SMALLEST)) {
       DEBUG3_PRINTLN(F("   ...processing STEP2_DRAW_RINGQRTR_xxx"))
-      CRGB myColor;
-      tmp_idx = (this_ptrn_token - STEP2_DRAW_RINGQRTR_SMALLEST) % STEP2_DRAW_CLR_MAX; // color index
-      switch (tmp_idx) {
-        case STEP2_DRAW_CLR_BLNKNG:
-          myColor = blinking;
-          break;
-        case STEP2_DRAW_CLR_BLACK:
-        default:
-          myColor = CRGB::Black ;
-          break;
-        case STEP2_DRAW_CLR_FRGND:
-          myColor = foreground;
-          break;
-        case STEP2_DRAW_CLR_BKGND:
-          myColor = background;
-          break;
-      }
-      DEBUG3_PRINT(F(" color-idx: "))
-      DEBUG3_PRINT((int16_t) tmp_idx)
+      DEBUG3_PRINT(F(" this_ptrn_token: "))
+      DEBUG3_PRINT((int16_t) this_ptrn_token)
       DEBUG3_PRINT(F("   ring: "))
       DEBUG3_PRINT((int16_t) this_ring)
       DEBUG3_PRINT(F("   qrtr: "))
       DEBUG3_PRINTLN((int16_t) this_qrtr)
+      myColor = calcColor_step2DawClrMax(this_ptrn_token, STEP2_DRAW_RINGQRTR_SMALLEST, blinking, foreground, background);
       if (5 != this_ring) {
         fill_solid(&led_display[draw_target*NUM_LEDS+start_per_ring[this_ring]]+this_qrtr*leds_per_ringqrtr[this_ring], leds_per_ringqrtr[this_ring], myColor);
       } else {
@@ -778,30 +808,10 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
     } // end if STEP2_DRAW_RINGQRTR
     else if ((this_ptrn_token <= SUPRSPCL_FADEDISK2_CLR_LARGEST) && (this_ptrn_token >= SUPRSPCL_FADEDISK2_CLR_SMALLEST)) {
       DEBUG_PRINTLN(F("   ...processing SUPRSPCL_FADEDISK2_CLRxxx"))
-      CRGB myColor;
-      tmp_idx = (this_ptrn_token - SUPRSPCL_FADEDISK2_CLR_SMALLEST) % STEP2_DRAW_CLR_MAX; // color index
-      DEBUG_PRINT(F(" color-idx: "))
-      DEBUG_PRINT((int16_t) tmp_idx)
-      switch (tmp_idx) {
-        case STEP2_DRAW_CLR_BLNKNG:
-          DEBUG_PRINTLN(F(" color blinking"))
-          myColor = blinking;
-          break;
-        case STEP2_DRAW_CLR_BLACK:
-        default:
-          DEBUG_PRINTLN(F(" color CRGB::Black"))
-          myColor = CRGB::Black;
-          break;
-        case STEP2_DRAW_CLR_FRGND:
-          DEBUG_PRINTLN(F(" color foreground"))
-          myColor = foreground;
-          break;
-        case STEP2_DRAW_CLR_BKGND:
-          DEBUG_PRINTLN(F(" color background"))
-          myColor = background;
-          break;
-      }
+      DEBUG_PRINT(F(" this_ptrn_token: "))
+      DEBUG_PRINT((int16_t) this_ptrn_token)
       DEBUG_PRINTLN(F(" ... Fade Loop"))
+      myColor = calcColor_step2DawClrMax(this_ptrn_token, SUPRSPCL_FADEDISK2_CLR_SMALLEST, blinking, foreground, background);
       for (uint16_t factor = fade_factor; factor < 256; factor += fade_factor) {
         DEBUG_PRINT(F(" ..... factor "))
         DEBUG_PRINTLN((int16_t) factor);
@@ -857,6 +867,26 @@ void saveSurroundEffectLEDs(int8_t ltr_index, const int8_t * effect_LEDidx_array
     save_here[i] = led_display[draw_target*NUM_LEDS + effect_LEDidx_array_ptr[i]];
   } // end save the original LED info for surround effect area
 } // end saveSurroundEffectLEDs()
+
+CRGB calcColor_step2DawClrMax(int8_t thePtrnToken, int8_t tokenSmallest, CRGB blinking, CRGB foreground, CRGB background) {
+  CRGB theColor;
+  switch ((thePtrnToken - tokenSmallest) % STEP2_DRAW_CLR_MAX) {
+    case STEP2_DRAW_CLR_BLNKNG:
+      theColor = blinking;
+      break;
+    case STEP2_DRAW_CLR_BLACK:
+    default:
+      theColor = CRGB::Black ;
+      break;
+    case STEP2_DRAW_CLR_FRGND:
+      theColor = foreground;
+      break;
+    case STEP2_DRAW_CLR_BKGND:
+      theColor = background;
+      break;
+  }
+  return(theColor);
+} // end calcColor_step2DawClrMax
 
 // doDwell(int16_t dwell, uint8_t must_be_diff_pattern) - dwell or break out if button press
 //   returns TRUE if should switch to different pattern
