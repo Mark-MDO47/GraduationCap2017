@@ -93,8 +93,10 @@ uint8_t  start_per_ring[NUM_RINGS_PER_DISK] = {  0, 32, 56, 72, 84, 92 };
 #define DEBUG_PRINT(param)   // nothing
 // #define DEBUG2_PRINTLN(param) Serial.println((param));
 // #define DEBUG2_PRINT(param)   Serial.print((param));
+// #define DEBUG2_RETURN(p1, p2)  debug2_return((p1), (p2));
 #define DEBUG2_PRINTLN(param) // nothing
 #define DEBUG2_PRINT(param)   // nothing
+#define DEBUG2_RETURN(p1, p2)  // nothing
 // #define DEBUG3_PRINTLN(param) Serial.println((param));
 // #define DEBUG3_PRINT(param)   Serial.print((param));
 #define DEBUG3_PRINTLN(param) // nothing
@@ -391,62 +393,64 @@ void doPattern() {
   switch (pattern) {
     case 1: // 1 = OFF
        save_return = doPatternDraw(10, ltr_Y, ptrnOff, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       debug2_return(save_return, __LINE__);
+       // DEBUG2_RETURN(save_return, __LINE__)
        break;
     case 2: // 2 = draw then down the drain
     default:
-       save_return = doPatternDraw(10, ltr_P, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       debug2_return(save_return, __LINE__);
+       save_return = doPatternDraw(10, shape_star, ptrnJustDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       // DEBUG2_RETURN(save_return, __LINE__)
        save_return = doPatternDraw(10, ltr_Y, ptrnDownTheDrain, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       debug2_return(save_return, __LINE__);
-       save_return = doPatternDraw(10, ltr_L, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       debug2_return(save_return, __LINE__);
+       // DEBUG2_RETURN(save_return, __LINE__)
+       /*
+       save_return = doPatternDraw(10, shape_star, ptrnJustDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       // DEBUG2_RETURN(save_return, __LINE__);
        save_return = doPatternDraw(10, ltr_Y, ptrnUpTheDrain, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       debug2_return(save_return, __LINE__);
+       // DEBUG2_RETURN(save_return, __LINE__);
+       */
        break;
     case 3: // 3 = draw wide
        // save_return = doPatternDraw(10, ltr_Y, ptrnWide, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        save_return = doPatternDraw(100, ltr_Y, ptrnRingDraw, CRGB::Red, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       debug2_return(save_return, __LINE__);
+       // DEBUG2_RETURN(save_return, __LINE__)
        save_return = doPatternDraw(100, ltr_Y, ptrnRingDraw, CRGB::Red, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       debug2_return(save_return, __LINE__);
+       // DEBUG2_RETURN(save_return, __LINE__)
        // save_return = doPatternDraw(1000, ltr_Y, 5, CRGB::Red, CRGB::Blue, CRGB::Green, 0, 0, 0);
        doDwell(dwell, 1);
        break;
     case 4: // 4 = do surrounding around letter then fade one to the other
        save_return = doPatternDraw(8, ltr_Y, ptrnDblClkws, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       debug2_return(save_return, __LINE__);
+       // DEBUG2_RETURN(save_return, __LINE__)
        save_return = doPatternDraw(8, ltr_8, ptrnWideDrawShdw1Fade, CRGB::Green, CRGB::Gold, CRGB::Blue, 0, 0, 0);
-       debug2_return(save_return, __LINE__);
+       // DEBUG2_RETURN(save_return, __LINE__)
        break;
     case 5:
        save_return = doPatternDraw(8, ltr_P, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       debug2_return(save_return, __LINE__);
+       // DEBUG2_RETURN(save_return, __LINE__)
        if (doDwell(dwell, 1)) break;
        save_return = doPatternDraw(8, ltr_O, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       debug2_return(save_return, __LINE__);
+       // DEBUG2_RETURN(save_return, __LINE__)
        if (doDwell(dwell, 1)) break;
        save_return = doPatternDraw(8, ltr_L, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       debug2_return(save_return, __LINE__);
+       // DEBUG2_RETURN(save_return, __LINE__)
        if (doDwell(dwell, 1)) break;
        save_return = doPatternDraw(8, ltr_Y, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       debug2_return(save_return, __LINE__);
+       // DEBUG2_RETURN(save_return, __LINE__)
        if (doDwell(dwell, 1)) break;
        save_return = doPatternDraw(8, ltr_2, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       debug2_return(save_return, __LINE__);
+       // DEBUG2_RETURN(save_return, __LINE__)
        if (doDwell(dwell, 1)) break;
        save_return = doPatternDraw(8, ltr_0, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       debug2_return(save_return, __LINE__);
+       // DEBUG2_RETURN(save_return, __LINE__)
        if (doDwell(dwell, 1)) break;
        save_return = doPatternDraw(8, ltr_1, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       debug2_return(save_return, __LINE__);
+       // DEBUG2_RETURN(save_return, __LINE__)
        if (doDwell(dwell, 1)) break;
        save_return = doPatternDraw(8, ltr_8, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       debug2_return(save_return, __LINE__);
+       // DEBUG2_RETURN(save_return, __LINE__)
        break;
     case 6:
        save_return = doPatternDraw(100, ltr_Y, ptrnRingQrtrDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       debug2_return(save_return, __LINE__);
+       // DEBUG2_RETURN(save_return, __LINE__)
        break;
   } // end switch on pattern
   if (pattern != oldPattern) {
@@ -523,9 +527,16 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
   DEBUG_PRINTLN(F("doPatternDraw step 1"))
   for (ltr_ptr_idx = 1; ltr_ptr_idx <= count_of_ltr_ptr; ltr_ptr_idx++) {
     if (skip_steps & DO_SKIP_STEP1) break;
-    this_effect_ptr = (int8_t *) surround_pointers[ltr_ptr[ltr_ptr_idx]-EFFECT_POINTERS_OFFSET];  // to convert from (const int8_t *); we promise not to write into it
-    count_of_this_effect_ptr = -(this_effect_ptr[0]); // length of surround LED string
-    saveSurroundEffectLEDs(ltr_ptr[ltr_ptr_idx], this_effect_ptr, draw_target, led_effect_save);
+    // shapes go onto ring 1, cannot do surround
+    if (ltr_ptr[ltr_ptr_idx] >= EFFECT_POINTERS_OFFSET) {
+      this_effect_ptr = (int8_t *) surround_pointers[ltr_ptr[ltr_ptr_idx]-EFFECT_POINTERS_OFFSET];  // to convert from (const int8_t *); we promise not to write into it
+      count_of_this_effect_ptr = -(this_effect_ptr[0]); // length of surround LED string
+      saveSurroundEffectLEDs(ltr_ptr[ltr_ptr_idx], this_effect_ptr, draw_target, led_effect_save);
+    }
+    else {
+      this_effect_ptr = (int8_t *) 0; // barf if we try to use it
+      count_of_this_effect_ptr = 0;
+    }
     DEBUG_PRINT(F("   step 1 ltr-LED: "))
     DEBUG_PRINTLN((int16_t) ltr_ptr[ltr_ptr_idx])
 
@@ -629,27 +640,31 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
         nextPatternFromButtons(); // look for new button press even if 0 == do_display_delay
         if ((nextPattern != NO_BUTTON_PRESS) && (nextPattern != pattern)) return(__LINE__); // pressing our button again does not stop us
         if (0 != do_display_delay) { if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__); }
-      } else if ((this_ptrn_token > 0)) { // one surround LED at a time pattern      
+      } // end step1 all at once pattern
+      else if ((this_ptrn_token > 0)) { // one surround LED at a time pattern      
         for (this_effect_ptr_idx = 1; this_effect_ptr_idx <= count_of_this_effect_ptr; this_effect_ptr_idx++) {    
           theLED = this_effect_ptr[this_effect_ptr_idx];  
           if (PER_LED_DRAW_BLNKNG_SRND_CLKWS == this_ptrn_token) {  
             led_display[draw_target+theLED] = blinking;
             do_display_delay = 1;
-          } else if (PER_LED_DRAW_PREV_SRND_CLKWS == this_ptrn_token) {  
+          } 
+          else if (PER_LED_DRAW_PREV_SRND_CLKWS == this_ptrn_token) {  
             led_display[draw_target+theLED] = led_effect_save[this_effect_ptr_idx];
             do_display_delay = 1;
-          } else if (PER_LED_DRAW_BLNKNG_SRND_CTRCLKWS == this_ptrn_token) {  
+          }
+          else if (PER_LED_DRAW_BLNKNG_SRND_CTRCLKWS == this_ptrn_token) {  
             led_display[draw_target+theLED] = blinking;
             do_display_delay = 1;
-          } else if (PER_LED_DRAW_PREV_SRND_CTRCLKWS == this_ptrn_token) {  
+          }
+          else if (PER_LED_DRAW_PREV_SRND_CTRCLKWS == this_ptrn_token) {  
             led_display[draw_target+theLED] = led_effect_save[count_of_this_effect_ptr-this_effect_ptr_idx+1];
             do_display_delay = 1;
           } // end if one of the one surround LED at a time patterns
           nextPatternFromButtons(); // look for new button press even if 0 == do_display_delay
           if ((nextPattern != NO_BUTTON_PRESS) && (nextPattern != pattern)) return(__LINE__); // pressing our button again does not stop us
           if (0 != do_display_delay)  { if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__); }
-        } // end for all surround LED 
-      } // end if letter LED pattern or surround LED pattern
+        } // end step1 for surround LED 
+      } // end step1 if letter LED pattern or surround LED pattern
 
       if (0 == draw_target_sticky) draw_target = TARGET_DSPLAY; // restore draw target for each pattern-token if not STICKY
     } // end for all pattern-tokens in ptrn_token_array_ptr        
@@ -873,11 +888,19 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
 } // end doPatternDraw()
 
 // saveSurroundEffectLEDs()
+//    NOTE: if shape goes onto ring 1 (less than EFFECT_POINTERS_OFFSET) then cannot do this
 void saveSurroundEffectLEDs(int8_t ltr_index, const int8_t * effect_LEDidx_array_ptr, int8_t draw_target, CRGB * save_here) {
-  save_here[0] =   led_display[draw_target + ltr_index]; // save_here[0] is the LED in the middle, [1..end] are the LEDs in the surround effect
-  for (uint8_t i = 1; i <= -effect_LEDidx_array_ptr[0]; i++) {
-    save_here[i] = led_display[draw_target + effect_LEDidx_array_ptr[i]];
-  } // end save the original LED info for surround effect area
+  if (ltr_index >= EFFECT_POINTERS_OFFSET) {
+    save_here[0] =   led_display[draw_target + ltr_index]; // save_here[0] is the LED in the middle, [1..end] are the LEDs in the surround effect
+    for (uint8_t i = 1; i <= -effect_LEDidx_array_ptr[0]; i++) {
+      save_here[i] = led_display[draw_target + effect_LEDidx_array_ptr[i]];
+    } // end save the original LED info for surround effect area
+  }
+  else { // cannot save surround for this LED
+    for (uint8_t i = 0; i <= EFFECT_NUM_LED_SAV; i++) {
+      save_here[i] = CRGB::Black;
+    } // end save the original LED info for surround effect area
+  }
 } // end saveSurroundEffectLEDs()
 
 CRGB calcColor_step2DawClrMax(int8_t thePtrnToken, int8_t tokenSmallest, CRGB blinking, CRGB foreground, CRGB background) {
