@@ -51,11 +51,6 @@
 //    Placing a small-ish resistor between your Arduino's data output and the WS2812's data input will help protect the data pin. A resistor between 220 and 470 O should do nicely. Try to place the resistor as close to the WS2812 as possible.
 //    Keep Wires Short!
 //
-// useful FastLED functions
-// Dim a color by 25% (64/256ths) eventually fading to full black
-//   leds[i].fadeToBlackBy( 64 );
-//   fadeToBlackBy(leds, NUM_LEDS_PER_DISK, 64);
-//
 
 #define BRIGHTMAX 40 // set to 250 for final version
 #define BAD_LED_92 1 // LED [92] is not working in test hardware
@@ -68,9 +63,9 @@
 #define NUM_SHADOWS 1  // number of shadow disks
 
 // LED count - number of LEDs in each ring in order of serial access
-byte  leds_per_ring[NUM_RINGS_PER_DISK]  = { 32, 24, 16, 12,  8,  1 };
-byte  leds_per_ringqrtr[NUM_RINGS_PER_DISK]  = { 8, 6, 4, 3,  2,  1 };
-byte  start_per_ring[NUM_RINGS_PER_DISK] = {  0, 32, 56, 72, 84, 92 };
+uint8_t  leds_per_ring[NUM_RINGS_PER_DISK]  = { 32, 24, 16, 12,  8,  1 };
+uint8_t  leds_per_ringqrtr[NUM_RINGS_PER_DISK]  = { 8, 6, 4, 3,  2,  1 };
+uint8_t  start_per_ring[NUM_RINGS_PER_DISK] = {  0, 32, 56, 72, 84, 92 };
 
 // We'll be using Digital Data Pin D3 to control the WS2812 LEDs
 // We skip D2 to leave a space between our data and our GND connection
@@ -100,8 +95,12 @@ byte  start_per_ring[NUM_RINGS_PER_DISK] = {  0, 32, 56, 72, 84, 92 };
 // #define DEBUG2_PRINT(param)   Serial.print((param));
 #define DEBUG2_PRINTLN(param) // nothing
 #define DEBUG2_PRINT(param)   // nothing
-#define DEBUG3_PRINTLN(param) Serial.println((param));
-#define DEBUG3_PRINT(param)   Serial.print((param));
+// #define DEBUG3_PRINTLN(param) Serial.println((param));
+// #define DEBUG3_PRINT(param)   Serial.print((param));
+#define DEBUG3_PRINTLN(param) // nothing
+#define DEBUG3_PRINT(param)   // nothing
+#define DEBUG4_PRINTLN(param) Serial.println((param));
+#define DEBUG4_PRINT(param)   Serial.print((param));
 #endif // DEBUG
 
 #define REAL_BUTTONS 0 // 1 = use buttons for input, 0 = use serial port
@@ -506,7 +505,7 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
   int8_t this_ptrn_token = -1; // temp storage for the pattern token being processed
   uint8_t do_specials = 1; // non-zero if do SPECIAL codes
   int16_t draw_target = TARGET_DSPLAY; // or TARGET_SHDW1
-  int8_t something_else_sticky = 0; // or 1 = sticky
+  int8_t draw_target_sticky = 0; // or 1 = sticky
   uint16_t tmp_idx = 0; // temporary index
   int16_t do_display_delay = 0;
   uint8_t skip_steps = 0;
@@ -552,17 +551,17 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
         continue;
       } // end if SUPRSPCL_ALLOW_SPCL
       else if (SUPRSPCL_DRWTRGT_SHDW1_NONSTICKY == this_ptrn_token) {
-        something_else_sticky = 0;
+        draw_target_sticky = 0;
         draw_target = TARGET_SHDW1;
         continue;
       } // end if SUPRSPCL_DRWTRGT_SHDW1_NONSTICKY
       else if (SUPRSPCL_DRWTRGT_SHDW1_STICKY == this_ptrn_token) {
-        something_else_sticky = 1;
+        draw_target_sticky = 1;
         draw_target = TARGET_SHDW1;
         continue;
       } // end if SUPRSPCL_DRWTRGT_SHDW1_STICKY
       else if (SUPRSPCL_DRWTRGT_LEDS_NONSTICKY == this_ptrn_token) {
-        something_else_sticky = 0;
+        draw_target_sticky = 0;
         draw_target = TARGET_DSPLAY;
         continue;
       } // end if SUPRSPCL_DRWTRGT_LEDS_NONSTICKY
@@ -652,7 +651,7 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
         } // end for all surround LED 
       } // end if letter LED pattern or surround LED pattern
 
-      if (0 == something_else_sticky) draw_target = TARGET_DSPLAY; // restore draw target for each pattern-token if not STICKY
+      if (0 == draw_target_sticky) draw_target = TARGET_DSPLAY; // restore draw target for each pattern-token if not STICKY
     } // end for all pattern-tokens in ptrn_token_array_ptr        
   } // end for all LEDs in letter pattern          
 
@@ -669,7 +668,7 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
     } // end if SUPRSPCL_SKIP_STEP2
     if (SUPRSPCL_DRWTRGT_SHDW1_NONSTICKY == this_ptrn_token) {
       DEBUG_PRINTLN(F("   ...processing SUPRSPCL_DRWTRGT_SHDW1_NONSTICKY"))
-      something_else_sticky = 0;
+      draw_target_sticky = 0;
       draw_target = TARGET_SHDW1;
       continue;
     } // end if SUPRSPCL_DRWTRGT_SHDW1_NONSTICKY
@@ -695,13 +694,13 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
     } // end if STEP2_FADEFCT_DIV_2
     else if (SUPRSPCL_DRWTRGT_SHDW1_STICKY == this_ptrn_token) {
       DEBUG_PRINTLN(F("   ...processing SUPRSPCL_DRWTRGT_SHDW1_STICKY"))
-      something_else_sticky = 1;
+      draw_target_sticky = 1;
       draw_target = TARGET_SHDW1;
       continue;
     } // end if SUPRSPCL_DRWTRGT_SHDW1_STICKY
     else if (SUPRSPCL_DRWTRGT_LEDS_NONSTICKY == this_ptrn_token) {
       DEBUG_PRINTLN(F("   ...processing SUPRSPCL_DRWTRGT_LEDS_NONSTICKY"))
-      something_else_sticky = 0;
+      draw_target_sticky = 0;
       draw_target = TARGET_DSPLAY;
       continue;
     } // end if SUPRSPCL_DRWTRGT_LEDS_NONSTICKY
@@ -848,26 +847,26 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
       for (uint16_t factor = fade_factor; factor < 256; factor += fade_factor) {
         DEBUG_PRINT(F(" ..... factor "))
         DEBUG_PRINTLN((int16_t) factor);
-        // ??? blend(&led_display[TARGET_DSPLAY*NUM_LEDS_PER_DISK+92], &led_display[TARGET_SHDW1*NUM_LEDS_PER_DISK+92], &led_display[TARGET_DSPLAY*NUM_LEDS_PER_DISK+92], NUM_LEDS_PER_DISK, factor);
+        // ??? blend(&led_display[TARGET_DSPLAY+92], &led_display[TARGET_SHDW1+92], &led_display[TARGET_DSPLAY+92], NUM_LEDS_PER_DISK, factor);
         for (theLED = 0; theLED < NUM_LEDS_PER_DISK; theLED++) {
-          led_display[TARGET_DSPLAY*NUM_LEDS_PER_DISK+theLED] = blend(led_display[TARGET_DSPLAY*NUM_LEDS_PER_DISK+theLED], led_display[TARGET_SHDW1*NUM_LEDS_PER_DISK+theLED], factor);
+          led_display[TARGET_DSPLAY+theLED] = blend(led_display[TARGET_DSPLAY+theLED], led_display[TARGET_SHDW1+theLED], factor);
         }
         #if BAD_LED_92
-        led_display[TARGET_DSPLAY*NUM_LEDS_PER_DISK+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
+        led_display[TARGET_DSPLAY+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
         #endif // BAD_LED_92
         if (doPtrnShowDwell(TARGET_DSPLAY,fade_dwell,__LINE__)) return(__LINE__);
       } // end for fade_factor
       for (theLED = 0; theLED < NUM_LEDS_PER_DISK; theLED++) {
-        led_display[TARGET_DSPLAY*NUM_LEDS_PER_DISK+theLED] = led_display[TARGET_SHDW1*NUM_LEDS_PER_DISK+theLED];
+        led_display[TARGET_DSPLAY+theLED] = led_display[TARGET_SHDW1+theLED];
       }
       #if BAD_LED_92
-      led_display[TARGET_DSPLAY*NUM_LEDS_PER_DISK+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
+      led_display[TARGET_DSPLAY+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
       #endif // BAD_LED_92
       if (doPtrnShowDwell(TARGET_DSPLAY,fade_dwell,__LINE__)) return(__LINE__);
     } // end if STEP2_FADEDISK2_SHDW1
 
     DEBUG_PRINTLN(F("  sticky processing then next token"))
-    if (0 == something_else_sticky) draw_target = TARGET_DSPLAY; // restore draw target for each pattern-token if not STICKY
+    if (0 == draw_target_sticky) draw_target = TARGET_DSPLAY; // restore draw target for each pattern-token if not STICKY
     DEBUG_PRINTLN(F("   ...loop to next token"))
   } // end for step-2 pattern-tokens
   return(__LINE__);
