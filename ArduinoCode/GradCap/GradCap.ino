@@ -296,6 +296,13 @@ const int8_t ptrnRingQrtrDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1
 const int8_t ptrnWideDrawShdw1Fade[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_DRWTRGT_SHDW1_STICKY, SPCL_DRAW_BKGD_CLR_BKGND, PER_LED_DRAW_BLNKING_LTR_ALL, SUPRSPCL_DRWTRGT_LEDS_NONSTICKY, STEP2_FADEDLY_ADD_100, STEP2_FADEFCT_DIV_2, STEP2_FADEDISK2_SHDW1, SUPRSPCL_END_OF_PTRNS };
 
 // pattern vars
+
+// Currently only effect is surround
+#define EFFECT_NUM_LED_SAV 10 // save up to ten "effect" LEDs
+#define EFFECT_NUM_PROGMEM_SAV 10 // save up to ten "effect" bytes in program memory
+static CRGB led_effect_save_LEDs[EFFECT_NUM_LED_SAV+1];  // place to save original values of effect LEDs. Currently only effect is surround
+static int8_t led_effect_varmem[EFFECT_NUM_PROGMEM_SAV]; // place to copy bytes of effect into (from PROGMEM). Currently only effect is surround
+
 static int8_t   pattern = 1;
 static int8_t   oldPattern = 2;
 static int8_t   nextPattern = 2;
@@ -307,13 +314,9 @@ static int8_t   this_effect_ptr_idx = -1;
 static int8_t   count_of_ltr_ptr = -1;
 static int8_t   count_of_this_effect_ptr = -1;
 static int8_t   ptrn_token_array_ptr_idx = -1;
-static int8_t * this_effect_ptr = (int8_t *) 0;
+static int8_t * this_effect_ptr = &led_effect_varmem[0];
 static int8_t   this_ring = 0; // from ring_6 (value 0, outer ring) to ring_1 (value 5,  inner ring (one LED)
 static int8_t   this_qrtr = 0; // from qrtr_1 (value 0) to qrtr_4 (value 3), count modulo in either direction
-
-#define EFFECT_POINTERS_OFFSET 32 // surround_pointers[0] corresponds to LED 32. Currently only effect is surround
-#define EFFECT_NUM_LED_SAV 8 // save up to eight "effect" LEDs
-CRGB led_effect_save[EFFECT_NUM_LED_SAV+1]; // place to save original values of effect LEDs. Currently only effect is surround
 
 #define NO_BUTTON_PRESS -1 // when no input from user
 #define NO_BUTTON_CHANGE -1 // when no CHANGE in input from user
@@ -474,7 +477,7 @@ void doPattern() {
 // static variables used:
 //
 //   ltr_ptr_idx    - index for ltr_ptr[]. [0] = neg count of LED indexes, [1..-[0]] =  are the LED indexes
-//   this_effect_ptr - points to the effects array, example: (int8_t *) surround_pointers[theLED-EFFECT_POINTERS_OFFSET]
+//   this_effect_ptr - points to the effects array, example: (int8_t *) surround_pointers[theLED]
 //   this_effect_ptr_idx    - index for this_effect_ptr[]. [0] = neg count of LED indexes, [1..-[0]] =  are the LED indexes
 //   count_of_ltr_ptr    - num of LED indexes in ltr_ptr
 //   count_of_this_effect_ptr    - num of LED indexes in this_effect_ptr
@@ -483,6 +486,7 @@ void doPattern() {
 // for readability I had to stand the control structure on its head.
 //      I just used loops for what the order of operations was through the entire pattern
 //      after each LED change I check to see if there was an input; if so return
+// could really use something like the Python "yield" statement...
 //  
 // this is the flow of LEDs through the pattern:
 //
@@ -527,16 +531,9 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
   DEBUG_PRINTLN(F("doPatternDraw step 1"))
   for (ltr_ptr_idx = 1; ltr_ptr_idx <= count_of_ltr_ptr; ltr_ptr_idx++) {
     if (skip_steps & DO_SKIP_STEP1) break;
-    // shapes go onto ring 1, cannot do surround
-    if (ltr_ptr[ltr_ptr_idx] >= EFFECT_POINTERS_OFFSET) {
-      this_effect_ptr = (int8_t *) surround_pointers[ltr_ptr[ltr_ptr_idx]-EFFECT_POINTERS_OFFSET];  // to convert from (const int8_t *); we promise not to write into it
-      count_of_this_effect_ptr = -(this_effect_ptr[0]); // length of surround LED string
-      saveSurroundEffectLEDs(ltr_ptr[ltr_ptr_idx], this_effect_ptr, draw_target, led_effect_save);
-    }
-    else {
-      this_effect_ptr = (int8_t *) 0; // barf if we try to use it
-      count_of_this_effect_ptr = 0;
-    }
+    // fill this_effect_ptr from PROGMEM and set count_of_this_effect_ptr
+    copyEffectFromPROGMEM(ltr_ptr[ltr_ptr_idx]); // currently only effect is surround
+    saveSurroundEffectLEDs(ltr_ptr[ltr_ptr_idx], this_effect_ptr, draw_target, led_effect_save_LEDs);
     DEBUG_PRINT(F("   step 1 ltr-LED: "))
     DEBUG_PRINTLN((int16_t) ltr_ptr[ltr_ptr_idx])
 
@@ -581,7 +578,7 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
           #if BAD_LED_92
           led_display[draw_target+92] = CRGB::Black; // this LED is not working in the test hardware
           #endif // BAD_LED_92
-          saveSurroundEffectLEDs(ltr_ptr[ltr_ptr_idx], this_effect_ptr, draw_target, led_effect_save);
+          saveSurroundEffectLEDs(ltr_ptr[ltr_ptr_idx], this_effect_ptr, draw_target, led_effect_save_LEDs);
           do_specials = 0;
           do_display_delay = 1;
           continue;
@@ -591,7 +588,7 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
           #if BAD_LED_92
           led_display[draw_target+92] = CRGB::Black; // this LED is not working in the test hardware
           #endif // BAD_LED_92
-          saveSurroundEffectLEDs(ltr_ptr[ltr_ptr_idx], this_effect_ptr, draw_target, led_effect_save);
+          saveSurroundEffectLEDs(ltr_ptr[ltr_ptr_idx], this_effect_ptr, draw_target, led_effect_save_LEDs);
           do_specials = 0;
           do_display_delay = 1;
           continue;
@@ -601,7 +598,7 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
           #if BAD_LED_92
           led_display[draw_target+92] = CRGB::Black; // this LED is not working in the test hardware (not really needed this case)
           #endif // BAD_LED_92
-          saveSurroundEffectLEDs(ltr_ptr[ltr_ptr_idx], this_effect_ptr, draw_target, led_effect_save);
+          saveSurroundEffectLEDs(ltr_ptr[ltr_ptr_idx], this_effect_ptr, draw_target, led_effect_save_LEDs);
           do_specials = 0;
           do_display_delay = 1;
           continue;
@@ -617,13 +614,15 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
           led_display[draw_target+theLED] = foreground;
           do_display_delay = 1;
         } else if (PER_LED_DRAW_BLNKING_SRND_ALL == this_ptrn_token) {
+          // protected by count_of_this_effect_ptr being zero if cannot do surround
           for (tmp_idx = 1; tmp_idx <= count_of_this_effect_ptr; tmp_idx++) {
             led_display[draw_target+this_effect_ptr[tmp_idx]] = blinking;
           } // end for all surround LEDs
           do_display_delay = 1;
         } else if (PER_LED_DRAW_PREV_SRND_ALL == this_ptrn_token) {
+          // protected by count_of_this_effect_ptr being zero if cannot do surround
           for (tmp_idx = 1; tmp_idx <= count_of_this_effect_ptr; tmp_idx++) {
-            led_display[draw_target+this_effect_ptr[tmp_idx]] = led_effect_save[tmp_idx];
+            led_display[draw_target+this_effect_ptr[tmp_idx]] = led_effect_save_LEDs[tmp_idx];
           } // end for all surround LEDs
           do_display_delay = 1;
         } else if (PER_LED_DRAW_BLNKING_LTR_ALL == this_ptrn_token) {
@@ -642,14 +641,15 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
         if (0 != do_display_delay) { if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__); }
       } // end step1 all at once pattern
       else if ((this_ptrn_token > 0)) { // one surround LED at a time pattern      
+        // protected by count_of_this_effect_ptr being zero if cannot do surround
         for (this_effect_ptr_idx = 1; this_effect_ptr_idx <= count_of_this_effect_ptr; this_effect_ptr_idx++) {    
-          theLED = this_effect_ptr[this_effect_ptr_idx];  
+          theLED = this_effect_ptr[this_effect_ptr_idx];
           if (PER_LED_DRAW_BLNKNG_SRND_CLKWS == this_ptrn_token) {  
             led_display[draw_target+theLED] = blinking;
             do_display_delay = 1;
           } 
           else if (PER_LED_DRAW_PREV_SRND_CLKWS == this_ptrn_token) {  
-            led_display[draw_target+theLED] = led_effect_save[this_effect_ptr_idx];
+            led_display[draw_target+theLED] = led_effect_save_LEDs[this_effect_ptr_idx];
             do_display_delay = 1;
           }
           else if (PER_LED_DRAW_BLNKNG_SRND_CTRCLKWS == this_ptrn_token) {  
@@ -657,7 +657,7 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
             do_display_delay = 1;
           }
           else if (PER_LED_DRAW_PREV_SRND_CTRCLKWS == this_ptrn_token) {  
-            led_display[draw_target+theLED] = led_effect_save[count_of_this_effect_ptr-this_effect_ptr_idx+1];
+            led_display[draw_target+theLED] = led_effect_save_LEDs[count_of_this_effect_ptr-this_effect_ptr_idx+1];
             do_display_delay = 1;
           } // end if one of the one surround LED at a time patterns
           nextPatternFromButtons(); // look for new button press even if 0 == do_display_delay
@@ -887,20 +887,65 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
   return(__LINE__);
 } // end doPatternDraw()
 
+// copyEffectFromPROGMEM() - straight copy from PROGMEM to local storage
+//    fills this_effect_ptr, count_of_this_effect_ptr and the array led_effect_varmem[]
+void copyEffectFromPROGMEM(uint8_t thisLED) {
+  /*
+  Serial.print(F("copyEffectFromPROGMEM thisLED="));
+  Serial.print((int16_t) thisLED);
+
+  {
+    int8_t myChar;
+    Serial.print(F(" &surround_pointers[thisLED]="));
+    Serial.print((uint32_t) surround_pointers[thisLED]);
+    Serial.print(F(" surround_pointers[thisLED8][0]="));
+    myChar =  pgm_read_byte_near(surround_pointers[thisLED]);
+    Serial.print((uint16_t) myChar);
+    Serial.print(F(" surround_pointers[thisLED][1]="));
+    myChar =  pgm_read_byte_near(surround_pointers[thisLED]+1);
+    Serial.println((uint16_t) myChar);
+
+    Serial.print(F(" srnd_78="));
+    Serial.print((uint32_t) &srnd_78[0]);
+    Serial.print(F(" srnd_78[0]="));
+    myChar =  pgm_read_byte_near(srnd_78);
+    Serial.print((uint16_t) myChar);
+    Serial.print(F(" srnd_78[1]="));
+    myChar =  pgm_read_byte_near(srnd_78+1);
+    Serial.println((uint16_t) myChar);
+
+    Serial.print(F(" &surround_pointers[78]="));
+    Serial.print((uint32_t) surround_pointers[78]);
+    Serial.print(F(" surround_pointers[78][0]="));
+    myChar =  pgm_read_byte_near(surround_pointers[78]);
+    Serial.print((uint16_t) myChar);
+    Serial.print(F(" surround_pointers[78][1]="));
+    myChar =  pgm_read_byte_near(surround_pointers[78]+1);
+    Serial.println((uint16_t) myChar);
+  }
+  */
+
+  // Serial.print(F(" srnd="));
+  this_effect_ptr = &led_effect_varmem[0];
+  led_effect_varmem[0] = pgm_read_byte_near(surround_pointers[thisLED]);
+  count_of_this_effect_ptr = -led_effect_varmem[0];
+  // Serial.print((int16_t) count_of_this_effect_ptr);
+  for (this_effect_ptr_idx = 1; this_effect_ptr_idx <= count_of_this_effect_ptr; this_effect_ptr_idx++) {
+    // Serial.print(F(" "));
+    led_effect_varmem[this_effect_ptr_idx] =  pgm_read_byte_near(surround_pointers[thisLED] + this_effect_ptr_idx);
+    // Serial.print((int16_t) led_effect_varmem[this_effect_ptr_idx]);
+  }
+  // Serial.println(F(" that is all..."));
+  // count_of_this_effect_ptr = led_effect_varmem[0] = 0; // FIXME - get this out of the picture
+} // end copyEffectFromPROGMEM()
+
 // saveSurroundEffectLEDs()
-//    NOTE: if shape goes onto ring 1 (less than EFFECT_POINTERS_OFFSET) then cannot do this
-void saveSurroundEffectLEDs(int8_t ltr_index, const int8_t * effect_LEDidx_array_ptr, int8_t draw_target, CRGB * save_here) {
-  if (ltr_index >= EFFECT_POINTERS_OFFSET) {
-    save_here[0] =   led_display[draw_target + ltr_index]; // save_here[0] is the LED in the middle, [1..end] are the LEDs in the surround effect
-    for (uint8_t i = 1; i <= -effect_LEDidx_array_ptr[0]; i++) {
-      save_here[i] = led_display[draw_target + effect_LEDidx_array_ptr[i]];
-    } // end save the original LED info for surround effect area
-  }
-  else { // cannot save surround for this LED
-    for (uint8_t i = 0; i <= EFFECT_NUM_LED_SAV; i++) {
-      save_here[i] = CRGB::Black;
-    } // end save the original LED info for surround effect area
-  }
+//    NOTE: now all LEDs have a surround effect, but it is in PROGMEM. It was copied into local storage at effect_LEDidx_array_ptr
+void saveSurroundEffectLEDs(int8_t ltr_index, const int8_t * effect_LEDidx_array_ptr, int16_t draw_target, CRGB * save_here) {
+  save_here[0] =   led_display[draw_target + ltr_index]; // save_here[0] is the LED in the middle, [1..end] are the LEDs in the surround effect
+  for (uint8_t i = 1; i <= -effect_LEDidx_array_ptr[0]; i++) {
+    save_here[i] = led_display[draw_target + effect_LEDidx_array_ptr[i]];
+  } // end save the original LED info for surround effect area
 } // end saveSurroundEffectLEDs()
 
 CRGB calcColor_step2DawClrMax(int8_t thePtrnToken, int8_t tokenSmallest, CRGB blinking, CRGB foreground, CRGB background) {
@@ -946,7 +991,7 @@ int16_t doDwell(int16_t dwell, uint8_t must_be_diff_pattern) {
   return(nextPattern != NO_BUTTON_CHANGE);
 } // end doDwell()
 
-// doPtrnShowDwell(int8_t draw_target, int16_t dwell) - break out if button press, then show, then dwell
+// doPtrnShowDwell() - break out if button press, then show, then dwell
 // Used inside doPatternDraw
 // Idea is to not do delays when drawing to target that is not visible
 // Two things that matter: value returned and timing
@@ -956,7 +1001,7 @@ int16_t doDwell(int16_t dwell, uint8_t must_be_diff_pattern) {
 //   timing:
 //     if draw_target is TARGET_DSPLAY (visible display LEDs), either does entire delay or delays until button press
 //     if draw_target is not TARGET_DSPLAY, returns immediately after checking for button press
-int16_t doPtrnShowDwell(int8_t draw_target, int16_t dwell, int16_t called_from) {
+int16_t doPtrnShowDwell(int16_t draw_target, int16_t dwell, int16_t called_from) {
   nextPatternFromButtons();
   DEBUG2_PRINT(F("doPtrnShowDwell called from: "))
   DEBUG2_PRINT((int16_t) called_from)
