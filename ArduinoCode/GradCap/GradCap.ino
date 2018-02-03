@@ -217,10 +217,18 @@ CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS_PER_DISK]; // 1st set is for display, 
 #define STEP2_SET_QRTR_ADD1            -89 // keeps going modulo
 #define STEP2_SET_QRTR_SUB1            -90 // keeps going modulo
 
+#define STEP2_DELAY_100                -91 // simply delay, step 2
+#define STEP2_DELAY_1000               -92 // simply delay, step 2
+#define STEP2_DELAY_10000              -93 // simply delay, step 2
+
 
 #define SPCL_DRAW_BKGD_CLR_BLACK          90 // SPECIAL: set all LEDs to black
-#define SPCL_DRAW_BKGD_CLR_FRGND           91 // SPECIAL: set all LEDs to foreground color
-#define SPCL_DRAW_BKGD_CLR_BKGND           92 // SPECIAL: set all LEDs to background color
+#define SPCL_DRAW_BKGD_CLR_FRGND          91 // SPECIAL: set all LEDs to foreground color
+#define SPCL_DRAW_BKGD_CLR_BKGND          92 // SPECIAL: set all LEDs to background color
+
+#define STEP1_DELAY_100                   93 // simply delay, step 1
+#define STEP1_DELAY_1000                  94 // simply delay, step 1
+#define STEP1_DELAY_10000                 95 // simply delay, step 1
 
 
 #define SUPRSPCL_SKIP_STEP2               110 // SUPER-SPECIAL: do not do any (more) step-2 processing for this call do doPatternDraw()
@@ -253,6 +261,7 @@ CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS_PER_DISK]; // 1st set is for display, 
 
 const int8_t ptrnOff[]      = { SUPRSPCL_STOP_WHEN_DONE, SPCL_DRAW_BKGD_CLR_BLACK, SUPRSPCL_SKIP_STEP2, SUPRSPCL_SKIP_STEP1, SUPRSPCL_END_OF_PTRNS };
 const int8_t ptrnJustDraw[] = { SPCL_DRAW_BKGD_CLR_BKGND, SUPRSPCL_SKIP_STEP2, PER_LED_DRAW_BLNKING, PER_LED_DRAW_FORE, SUPRSPCL_END_OF_PTRNS };
+const int8_t ptrnJustWideDraw[] = { SPCL_DRAW_BKGD_CLR_BKGND, SUPRSPCL_SKIP_STEP2, PER_LED_DRAW_BLNKING_SRND_ALL, PER_LED_DRAW_FORE_LTR_ALL, SUPRSPCL_END_OF_PTRNS };
 const int8_t ptrnWideDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SPCL_DRAW_BKGD_CLR_BKGND, SUPRSPCL_SKIP_STEP2, PER_LED_DRAW_BLNKING_SRND_ALL, PER_LED_DRAW_FORE_LTR_ALL, SUPRSPCL_END_OF_PTRNS };
 const int8_t ptrnDblClkws[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP2, SPCL_DRAW_BKGD_CLR_BKGND, PER_LED_DRAW_BLNKNG_SRND_CLKWS, PER_LED_DRAW_PREV_SRND_CLKWS, PER_LED_DRAW_BLNKING, PER_LED_DRAW_FORE, PER_LED_DRAW_BLNKNG_SRND_CLKWS, PER_LED_DRAW_PREV_SRND_CLKWS, PER_LED_DRAW_BLNKING, PER_LED_DRAW_FORE, SUPRSPCL_END_OF_PTRNS };
 // const int8_t ptrnRingDraw[] = { SUPRSPCL_END_OF_PTRNS };
@@ -278,8 +287,8 @@ const int8_t ptrnRingDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1,
    STEP2_FADEDLY_ADD_100, STEP2_FADEFCT_DIV_2,
    STEP2_FADEDISK2_CLR_BKGND, STEP2_FADEDISK2_CLR_FRGND, STEP2_FADEDISK2_CLR_BLNKNG, STEP2_FADEDISK2_CLR_BLACK, SUPRSPCL_END_OF_PTRNS };
 
-const int8_t ptrnDownTheDrain[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1, STEP2_DRAIN_DOWN_CLR_BLACK, SUPRSPCL_END_OF_PTRNS };
-const int8_t ptrnUpTheDrain[] =   { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1, STEP2_DRAIN_UP_CLR_BLACK,   SUPRSPCL_END_OF_PTRNS };
+const int8_t ptrnDownTheDrain[] = { SUPRSPCL_SKIP_STEP1, STEP2_DRAIN_DOWN_CLR_BLACK, SUPRSPCL_END_OF_PTRNS };
+const int8_t ptrnUpTheDrain[] =   { SUPRSPCL_SKIP_STEP1, STEP2_DRAIN_UP_CLR_BLACK,   SUPRSPCL_END_OF_PTRNS };
 
 const int8_t ptrnRingQrtrDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1, 
    STEP2_SET_RING_6, STEP2_SET_QRTR_1,
@@ -404,12 +413,10 @@ void doPattern() {
        // DEBUG2_RETURN(save_return, __LINE__)
        save_return = doPatternDraw(10, ltr_Y, ptrnDownTheDrain, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__)
-       /*
-       save_return = doPatternDraw(10, shape_star, ptrnJustDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(10, ltr_P, ptrnJustWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__);
        save_return = doPatternDraw(10, ltr_Y, ptrnUpTheDrain, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__);
-       */
        break;
     case 3: // 3 = draw wide
        // save_return = doPatternDraw(10, ltr_Y, ptrnWide, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
@@ -544,11 +551,24 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
       if (SUPRSPCL_SKIP_STEP1 == this_ptrn_token) {
         skip_steps |= DO_SKIP_STEP1;
         break;
-      }
-      if (SUPRSPCL_SKIP_STEP2 == this_ptrn_token) {
+      } // end if SUPRSPCL_SKIP_STEP1
+      else if (SUPRSPCL_SKIP_STEP2 == this_ptrn_token) {
         skip_steps |= DO_SKIP_STEP2;
-      }
+        continue;
+      } // end if SUPRSPCL_SKIP_STEP2
       do_display_delay = 0;
+      if (STEP1_DELAY_100 == this_ptrn_token) {
+        if (doDwell(100, 1)) break;
+        continue;
+      } // end if STEP1_DELAY_100
+      else if (STEP1_DELAY_1000 == this_ptrn_token) {
+        if (doDwell(1000, 1)) break;
+        continue;
+      } // end if STEP1_DELAY_1000
+      else if (STEP1_DELAY_10000 == this_ptrn_token) {
+        if (doDwell(10000, 1)) break;
+        continue;
+      } // end if STEP1_DELAY_10000
 
       // do the special cases
       if (SUPRSPCL_STOP_WHEN_DONE == this_ptrn_token) {
@@ -676,6 +696,18 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
     this_ptrn_token = ptrn_token_array_ptr[ptrn_token_array_ptr_idx];
     DEBUG_PRINT(F("   step 2 ptrn-token: "))
     DEBUG_PRINTLN((int16_t) this_ptrn_token)
+    if (STEP2_DELAY_100 == this_ptrn_token) {
+      if (doDwell(100, 1)) break;
+      continue;
+    }
+    else if (STEP2_DELAY_1000 == this_ptrn_token) {
+      if (doDwell(1000, 1)) break;
+      continue;
+    }
+    else if (STEP2_DELAY_10000 == this_ptrn_token) {
+      if (doDwell(10000, 1)) break;
+      continue;
+    }
     if (SUPRSPCL_SKIP_STEP2 == this_ptrn_token) {
       DEBUG_PRINTLN(F("   ...processing SUPRSPCL_SKIP_STEP2"))
       skip_steps |= DO_SKIP_STEP2;
