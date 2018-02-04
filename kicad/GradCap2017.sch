@@ -3,6 +3,7 @@ LIBS:power
 LIBS:device
 LIBS:switches
 LIBS:relays
+LIBS:motors
 LIBS:transistors
 LIBS:conn
 LIBS:linear
@@ -31,6 +32,7 @@ LIBS:atmel
 LIBS:contrib
 LIBS:valves
 LIBS:mdoLibrary
+LIBS:Arduino_Nano-cache
 LIBS:GradCap2017-cache
 EELAYER 25 0
 EELAYER END
@@ -71,45 +73,12 @@ $EndComp
 $Comp
 L LEDring Z?
 U 1 1 5A458774
-P 7750 3050
-F 0 "Z?" H 7750 3050 60  0000 C CNN
-F 1 "LEDring" H 7750 3200 60  0000 C CNN
-F 2 "" H 7750 3200 60  0001 C CNN
-F 3 "" H 7750 3200 60  0001 C CNN
-	1    7750 3050
-	1    0    0    -1  
-$EndComp
-$Comp
-L LEDring Z?
-U 1 1 5A458E53
-P 9600 3050
-F 0 "Z?" H 9600 3050 60  0000 C CNN
-F 1 "LEDring" H 9600 3200 60  0000 C CNN
-F 2 "" H 9600 3200 60  0001 C CNN
-F 3 "" H 9600 3200 60  0001 C CNN
-	1    9600 3050
-	1    0    0    -1  
-$EndComp
-$Comp
-L LEDring Z?
-U 1 1 5A458ECA
-P 6800 4850
-F 0 "Z?" H 6800 4850 60  0000 C CNN
-F 1 "LEDring" H 6800 5000 60  0000 C CNN
-F 2 "" H 6800 5000 60  0001 C CNN
-F 3 "" H 6800 5000 60  0001 C CNN
-	1    6800 4850
-	1    0    0    -1  
-$EndComp
-$Comp
-L LEDring Z?
-U 1 1 5A458F51
-P 8650 4850
-F 0 "Z?" H 8650 4850 60  0000 C CNN
-F 1 "LEDring" H 8650 5000 60  0000 C CNN
-F 2 "" H 8650 5000 60  0001 C CNN
-F 3 "" H 8650 5000 60  0001 C CNN
-	1    8650 4850
+P 9900 1100
+F 0 "Z?" H 9900 1100 60  0000 C CNN
+F 1 "LEDring" H 9900 1250 60  0000 C CNN
+F 2 "" H 9900 1250 60  0001 C CNN
+F 3 "" H 9900 1250 60  0001 C CNN
+	1    9900 1100
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -167,72 +136,6 @@ F 3 "" H 1250 5550 50  0001 C CNN
 	1    1250 5550
 	1    0    0    -1  
 $EndComp
-Connection ~ 3050 6400
-Wire Wire Line
-	1250 6000 1250 5550
-Wire Wire Line
-	1550 6000 1250 6000
-Wire Wire Line
-	1250 6400 1250 6950
-Wire Wire Line
-	1550 6400 1250 6400
-Wire Wire Line
-	2750 6400 9550 6400
-Wire Wire Line
-	9450 3750 9450 5550
-Connection ~ 6750 5750
-Wire Wire Line
-	6650 5750 6750 5750
-Wire Wire Line
-	6650 5550 6650 5750
-Connection ~ 6850 6000
-Wire Wire Line
-	6850 5550 6850 6000
-Wire Wire Line
-	9550 6400 9550 3750
-Wire Wire Line
-	7700 3750 7700 6400
-Wire Wire Line
-	8700 6000 8700 5550
-Wire Wire Line
-	8600 6400 8600 5550
-Wire Wire Line
-	6750 5550 6750 6400
-Connection ~ 6750 6400
-Wire Wire Line
-	7800 6000 7800 3750
-Wire Wire Line
-	9650 6000 9650 3750
-Wire Wire Line
-	2750 6000 9650 6000
-Wire Wire Line
-	7900 4000 7900 3750
-Wire Wire Line
-	8500 5550 6950 5550
-Wire Wire Line
-	9450 5550 8800 5550
-Wire Wire Line
-	9750 3900 9750 3750
-Wire Wire Line
-	7600 3750 7600 3900
-Wire Wire Line
-	3050 4600 3050 6400
-Wire Wire Line
-	2750 4600 3050 4600
-Wire Wire Line
-	1250 4200 1550 4200
-Wire Wire Line
-	1250 3850 1250 4200
-Wire Wire Line
-	1250 4600 1550 4600
-Wire Wire Line
-	1250 4950 1250 4600
-Wire Wire Line
-	7600 3900 9750 3900
-Connection ~ 7700 6400
-Connection ~ 8600 6400
-Connection ~ 8700 6000
-Connection ~ 7800 6000
 $Comp
 L Arduino A?
 U 1 1 5A480803
@@ -244,40 +147,15 @@ F 3 "" H 5950 2400 60  0000 C CNN
 	1    5950 2400
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	7000 4000 7900 4000
-Wire Wire Line
-	3200 4200 2750 4200
-Wire Wire Line
-	3200 950  3200 4200
-Connection ~ 3400 6400
-Wire Wire Line
-	3400 6400 3400 2000
-Wire Wire Line
-	3400 2000 5350 2000
-Wire Wire Line
-	5050 2200 4900 2200
-Wire Wire Line
-	4900 2200 4900 1300
-Wire Wire Line
-	4900 1300 7000 1300
-Wire Wire Line
-	7000 1300 7000 4000
-Wire Wire Line
-	3200 950  6800 950 
-Wire Wire Line
-	6800 950  6800 2000
-Wire Wire Line
-	6800 2000 6550 2000
 $Comp
 L SW_PUSH SW?
 U 1 1 5A4908F2
-P 3600 3100
-F 0 "SW?" H 3750 3210 50  0000 C CNN
-F 1 "SW_PUSH" H 3600 3020 50  0000 C CNN
-F 2 "" H 3600 3100 60  0000 C CNN
-F 3 "" H 3600 3100 60  0000 C CNN
-	1    3600 3100
+P 3600 4300
+F 0 "SW?" H 3750 4410 50  0000 C CNN
+F 1 "SW_PUSH" H 3600 4220 50  0000 C CNN
+F 2 "" H 3600 4300 60  0000 C CNN
+F 3 "" H 3600 4300 60  0000 C CNN
+	1    3600 4300
 	0    -1   -1   0   
 $EndComp
 $Comp
@@ -294,89 +172,47 @@ $EndComp
 $Comp
 L SW_PUSH SW?
 U 1 1 5A490A65
-P 3800 3700
-F 0 "SW?" H 3950 3810 50  0000 C CNN
-F 1 "SW_PUSH" H 3800 3620 50  0000 C CNN
-F 2 "" H 3800 3700 60  0000 C CNN
-F 3 "" H 3800 3700 60  0000 C CNN
-	1    3800 3700
+P 3800 5000
+F 0 "SW?" H 3950 5110 50  0000 C CNN
+F 1 "SW_PUSH" H 3800 4920 50  0000 C CNN
+F 2 "" H 3800 5000 60  0000 C CNN
+F 3 "" H 3800 5000 60  0000 C CNN
+	1    3800 5000
 	0    -1   -1   0   
 $EndComp
 $Comp
 L SW_PUSH SW?
 U 1 1 5A490D81
-P 4200 3100
-F 0 "SW?" H 4350 3210 50  0000 C CNN
-F 1 "SW_PUSH" H 4200 3020 50  0000 C CNN
-F 2 "" H 4200 3100 60  0000 C CNN
-F 3 "" H 4200 3100 60  0000 C CNN
-	1    4200 3100
+P 4200 5000
+F 0 "SW?" H 4350 5110 50  0000 C CNN
+F 1 "SW_PUSH" H 4200 4920 50  0000 C CNN
+F 2 "" H 4200 5000 60  0000 C CNN
+F 3 "" H 4200 5000 60  0000 C CNN
+	1    4200 5000
 	0    -1   -1   0   
 $EndComp
 $Comp
 L SW_PUSH SW?
 U 1 1 5A490DC1
-P 4400 3700
-F 0 "SW?" H 4550 3810 50  0000 C CNN
-F 1 "SW_PUSH" H 4400 3620 50  0000 C CNN
-F 2 "" H 4400 3700 60  0000 C CNN
-F 3 "" H 4400 3700 60  0000 C CNN
-	1    4400 3700
+P 4400 4300
+F 0 "SW?" H 4550 4410 50  0000 C CNN
+F 1 "SW_PUSH" H 4400 4220 50  0000 C CNN
+F 2 "" H 4400 4300 60  0000 C CNN
+F 3 "" H 4400 4300 60  0000 C CNN
+	1    4400 4300
 	0    -1   -1   0   
 $EndComp
 $Comp
 L SW_PUSH SW?
 U 1 1 5A490E07
-P 4600 4300
-F 0 "SW?" H 4750 4410 50  0000 C CNN
-F 1 "SW_PUSH" H 4600 4220 50  0000 C CNN
-F 2 "" H 4600 4300 60  0000 C CNN
-F 3 "" H 4600 4300 60  0000 C CNN
-	1    4600 4300
+P 4600 4950
+F 0 "SW?" H 4750 5060 50  0000 C CNN
+F 1 "SW_PUSH" H 4600 4870 50  0000 C CNN
+F 2 "" H 4600 4950 60  0000 C CNN
+F 3 "" H 4600 4950 60  0000 C CNN
+	1    4600 4950
 	0    -1   -1   0   
 $EndComp
-Wire Wire Line
-	5350 2300 3600 2300
-Wire Wire Line
-	3600 1400 3600 2800
-Wire Wire Line
-	5350 2400 3800 2400
-Wire Wire Line
-	3800 1400 3800 3400
-Wire Wire Line
-	5350 2500 4000 2500
-Wire Wire Line
-	4000 1400 4000 4000
-Wire Wire Line
-	5350 2600 4200 2600
-Wire Wire Line
-	4200 1400 4200 2800
-Wire Wire Line
-	5350 2700 4400 2700
-Wire Wire Line
-	4400 1400 4400 3400
-Wire Wire Line
-	5350 2800 4600 2800
-Wire Wire Line
-	4600 1400 4600 4000
-Wire Wire Line
-	3600 3400 3600 6400
-Connection ~ 3600 6400
-Wire Wire Line
-	3800 4000 3800 6400
-Connection ~ 3800 6400
-Wire Wire Line
-	4000 4600 4000 6400
-Connection ~ 4000 6400
-Wire Wire Line
-	4200 3400 4200 6400
-Connection ~ 4200 6400
-Wire Wire Line
-	4400 4000 4400 6400
-Connection ~ 4400 6400
-Wire Wire Line
-	4600 4600 4600 6400
-Connection ~ 4600 6400
 $Comp
 L R R?
 U 1 1 5A49671E
@@ -443,6 +279,118 @@ F 3 "" H 4600 1250 30  0000 C CNN
 	1    4600 1250
 	1    0    0    -1  
 $EndComp
+Text Notes 5600 1500 0    60   ~ 0
+Arduino 1 of 4
+$Comp
+L R R?
+U 1 1 5A767559
+P 7100 1250
+F 0 "R?" V 7180 1250 50  0000 C CNN
+F 1 "10K" V 7100 1250 50  0000 C CNN
+F 2 "" V 7030 1250 30  0000 C CNN
+F 3 "" H 7100 1250 30  0000 C CNN
+	1    7100 1250
+	1    0    0    -1  
+$EndComp
+$Comp
+L ARD_of_4 A?
+U 1 1 5A7681AD
+P 7800 3850
+F 0 "A?" H 7800 3850 60  0000 C CNN
+F 1 "ARD_of_4" H 7800 3950 60  0000 C CNN
+F 2 "" H 7800 3850 60  0001 C CNN
+F 3 "" H 7800 3850 60  0001 C CNN
+	1    7800 3850
+	1    0    0    -1  
+$EndComp
+Connection ~ 3050 6400
+Wire Wire Line
+	1250 6000 1250 5550
+Wire Wire Line
+	1550 6000 1250 6000
+Wire Wire Line
+	1250 6400 1250 6950
+Wire Wire Line
+	1550 6400 1250 6400
+Wire Wire Line
+	9850 6400 2750 6400
+Wire Wire Line
+	9850 1800 9850 6400
+Wire Wire Line
+	3050 4600 3050 6400
+Wire Wire Line
+	2750 4600 3050 4600
+Wire Wire Line
+	1250 4200 1550 4200
+Wire Wire Line
+	1250 3850 1250 4200
+Wire Wire Line
+	1250 4600 1550 4600
+Wire Wire Line
+	1250 4950 1250 4600
+Wire Wire Line
+	3200 4200 2750 4200
+Wire Wire Line
+	3200 950  3200 4200
+Connection ~ 3400 6400
+Wire Wire Line
+	3400 6400 3400 2000
+Wire Wire Line
+	3400 2000 5350 2000
+Wire Wire Line
+	5050 2200 4900 2200
+Wire Wire Line
+	4900 2200 4900 700 
+Wire Wire Line
+	4900 700  9300 700 
+Wire Wire Line
+	3200 950  7100 950 
+Wire Wire Line
+	6800 950  6800 2000
+Wire Wire Line
+	6800 2000 6550 2000
+Wire Wire Line
+	5350 2300 3600 2300
+Wire Wire Line
+	3600 1400 3600 4000
+Wire Wire Line
+	5350 2400 3800 2400
+Wire Wire Line
+	3800 1400 3800 4700
+Wire Wire Line
+	5350 2500 4000 2500
+Wire Wire Line
+	4000 1400 4000 4000
+Wire Wire Line
+	5350 2600 4200 2600
+Wire Wire Line
+	4200 1400 4200 4700
+Wire Wire Line
+	5350 2700 4400 2700
+Wire Wire Line
+	4400 1400 4400 4000
+Wire Wire Line
+	5350 2800 4600 2800
+Wire Wire Line
+	4600 1400 4600 4650
+Wire Wire Line
+	3600 4600 3600 6400
+Connection ~ 3600 6400
+Wire Wire Line
+	3800 5300 3800 6400
+Connection ~ 3800 6400
+Wire Wire Line
+	4000 4600 4000 6400
+Connection ~ 4000 6400
+Wire Wire Line
+	4200 5300 4200 6400
+Connection ~ 4200 6400
+Wire Wire Line
+	4400 4600 4400 6400
+Connection ~ 4400 6400
+Wire Wire Line
+	4600 6400 4600 5250
+Connection ~ 4600 6400
 Wire Wire Line
 	3600 1100 3600 950 
 Connection ~ 3600 950 
@@ -467,4 +415,55 @@ Connection ~ 4000 2500
 Connection ~ 4200 2600
 Connection ~ 4400 2700
 Connection ~ 4600 2800
+Wire Wire Line
+	2750 6000 9950 6000
+Wire Wire Line
+	9950 6000 9950 1800
+Wire Wire Line
+	9300 700  9300 1950
+Wire Wire Line
+	9300 1950 10050 1950
+Wire Wire Line
+	10050 1950 10050 1800
+Wire Wire Line
+	9750 1800 9750 1850
+Wire Wire Line
+	9750 1850 9850 1850
+Connection ~ 9850 1850
+Wire Wire Line
+	7100 950  7100 1100
+Connection ~ 6800 950 
+Wire Wire Line
+	3600 3650 7350 3650
+Connection ~ 4600 3650
+Connection ~ 4400 3650
+Connection ~ 4200 3650
+Connection ~ 4000 3650
+Connection ~ 3800 3650
+Connection ~ 3600 3650
+Wire Wire Line
+	7100 1400 7100 3650
+Connection ~ 7100 3650
+Wire Wire Line
+	5350 3100 5250 3100
+Wire Wire Line
+	5250 3100 5250 3300
+Wire Wire Line
+	5250 3300 8250 3300
+Connection ~ 7100 3300
+Wire Wire Line
+	7350 4050 7250 4050
+Wire Wire Line
+	7250 4050 7250 4450
+Wire Wire Line
+	7250 4450 8250 4450
+Wire Wire Line
+	8250 4450 8250 3300
+Wire Wire Line
+	5350 3000 5150 3000
+Wire Wire Line
+	5150 3000 5150 3450
+Wire Wire Line
+	5150 3450 7100 3450
+Connection ~ 7100 3450
 $EndSCHEMATC
