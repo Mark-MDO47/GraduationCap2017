@@ -63,9 +63,10 @@
 #define NUM_SHADOWS 1  // number of shadow disks
 
 // LED count - number of LEDs in each ring in order of serial access
-uint8_t  leds_per_ring[NUM_RINGS_PER_DISK]  = { 32, 24, 16, 12,  8,  1 };
-uint8_t  leds_per_ringqrtr[NUM_RINGS_PER_DISK]  = { 8, 6, 4, 3,  2,  1 };
-uint8_t  start_per_ring[NUM_RINGS_PER_DISK] = {  0, 32, 56, 72, 84, 92 };
+const uint8_t  leds_per_ring[NUM_RINGS_PER_DISK]  = { 32, 24, 16, 12,  8,  1 };
+const uint8_t  leds_per_ringqrtr[NUM_RINGS_PER_DISK]  = { 8, 6, 4, 3,  2,  1 };
+const uint8_t  start_per_ring[NUM_RINGS_PER_DISK] = {  0, 32, 56, 72, 84, 92 };
+const uint8_t  radar_adv_per_LED_per_ring[NUM_RINGS_PER_DISK] = { 0, 192, 128, 96, 64, 0 };
 
 // We'll be using Digital Data Pin D3 to control the WS2812 LEDs
 // We skip D2 to leave a space between our data and our GND connection
@@ -167,12 +168,13 @@ CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS_PER_DISK]; // 1st set is for display, 
 #define PER_LED_DRAW_BLNKING_LTR_ALL    (-5) // set all letter LEDs to blinking color
 #define PER_LED_DRAW_FORE_LTR_ALL       (-6) // set all letter LED to foreground color
 
-#define STEP2_DRAW_CLR_MAX           4 //
-#define STEP2_DRAW_CLR_BLNKNG        3 //
-#define STEP2_DRAW_CLR_BLACK         2 //
-#define STEP2_DRAW_CLR_FRGND         1 //
-#define STEP2_DRAW_CLR_BKGND         0 //
+#define TOKEN_DRAW_CLR_MAX           4 //
+#define TOKEN_DRAW_CLR_BLNKNG        3 //
+#define TOKEN_DRAW_CLR_BLACK         2 //
+#define TOKEN_DRAW_CLR_FRGND         1 //
+#define TOKEN_DRAW_CLR_BKGND         0 //
 
+#define STEP2_MAX_TOKENVAL           STEP2_DRAW_RING_LARGEST // first or maximum STEP2 token
 #define STEP2_DRAW_RING_LARGEST      STEP2_DRAW_RING_CLR_BLNKNG
 #define STEP2_DRAW_RING_CLR_BLNKNG     -60
 #define STEP2_DRAW_RING_CLR_BLACK      -61
@@ -220,6 +222,9 @@ CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS_PER_DISK]; // 1st set is for display, 
 #define STEP2_DELAY_100                -91 // simply delay, step 2
 #define STEP2_DELAY_1000               -92 // simply delay, step 2
 #define STEP2_DELAY_10000              -93 // simply delay, step 2
+
+#define STEP2_RADAR                    -94 // radar pattern, step 2
+#define STEP2_RADAR_CPY_SHDW1          -95 // Copy display to SHDW1 and do radar pattern, step 2
 
 
 #define SPCL_DRAW_BKGD_CLR_BLACK          90 // SPECIAL: set all LEDs to black
@@ -289,6 +294,8 @@ const int8_t ptrnRingDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1,
 
 const int8_t ptrnDownTheDrain[] = { SUPRSPCL_SKIP_STEP1, STEP2_DRAIN_DOWN_CLR_BLACK, SUPRSPCL_END_OF_PTRNS };
 const int8_t ptrnUpTheDrain[] =   { SUPRSPCL_SKIP_STEP1, STEP2_DRAIN_UP_CLR_BLACK,   SUPRSPCL_END_OF_PTRNS };
+
+const int8_t ptrnRadar[] = { SUPRSPCL_SKIP_STEP1, STEP2_RADAR, SUPRSPCL_END_OF_PTRNS };
 
 const int8_t ptrnRingQrtrDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1, 
    STEP2_SET_RING_6, STEP2_SET_QRTR_1,
@@ -401,7 +408,7 @@ void debug2_return(int16_t rtn_from, int16_t rtn_to) {
 //
 void doPattern() {
   static int16_t save_return = 0;
-  int16_t dwell = 1000;
+  static int16_t dwell = 1000;
   switch (pattern) {
     case 1: // 1 = OFF
        save_return = doPatternDraw(10, ltr_Y, ptrnOff, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
@@ -418,7 +425,7 @@ void doPattern() {
        save_return = doPatternDraw(10, ltr_Y, ptrnUpTheDrain, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__);
        break;
-    case 3: // 3 = draw wide
+    case 3: // 3 = draw rings
        // save_return = doPatternDraw(10, ltr_Y, ptrnWide, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        save_return = doPatternDraw(100, ltr_Y, ptrnRingDraw, CRGB::Red, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__)
@@ -459,7 +466,7 @@ void doPattern() {
        // DEBUG2_RETURN(save_return, __LINE__)
        break;
     case 6:
-       save_return = doPatternDraw(100, ltr_Y, ptrnRingQrtrDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(100, ltr_Y, ptrnRadar, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__)
        break;
   } // end switch on pattern
@@ -625,7 +632,7 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
       } // end if SPCL_DRAW_BKGD_CLR_BKGND
 
       // do the cases where it is either LED pattern or surround pattern
-      if ((this_ptrn_token < 0) && (this_ptrn_token > STEP2_DRAW_RING_CLR_BLNKNG)) { // all at once pattern
+      if ((this_ptrn_token < 0) && (this_ptrn_token > STEP2_MAX_TOKENVAL)) { // all at once pattern
         theLED = ltr_ptr[ltr_ptr_idx];
         if (PER_LED_DRAW_BLNKING == this_ptrn_token) {
           led_display[draw_target+theLED] = blinking;
@@ -865,6 +872,30 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
       #endif // BAD_LED_92
       if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__);
     } // end if STEP2_DRAW_RINGQRTR
+    else if (STEP2_RADAR == this_ptrn_token) {
+      uint16_t tmp_calc;
+      DEBUG_PRINTLN(F("   ...processing STEP2"))
+      DEBUG_PRINT(F(" this_ptrn_token: "))
+      DEBUG_PRINT((int16_t) this_ptrn_token)
+      DEBUG_PRINTLN(F(" ... Radar Loop"))
+      for (tmp_idx = 0; tmp_idx < leds_per_ring[0]; tmp_idx++) {
+        fill_solid(&led_display[draw_target], NUM_LEDS_PER_DISK, CRGB::Black);
+        led_display[TARGET_DSPLAY+tmp_idx] = CRGB::Red;
+        led_display[TARGET_DSPLAY+NUM_LEDS_PER_DISK-1] = CRGB::Red;
+        for (this_ring = 1; this_ring < NUM_RINGS_PER_DISK-1; this_ring++) {
+          tmp_calc = (uint16_t)radar_adv_per_LED_per_ring[this_ring] * tmp_idx; // max value 5952
+          theLED = tmp_calc / 256 + start_per_ring[this_ring]; // this is the lowest LED idx this ring
+          tmp_calc %= 256; // blend fraction for theLED+1 if non-zero
+          if (0 == tmp_calc) {
+            led_display[TARGET_DSPLAY+theLED] = CRGB::Red;
+          } else {
+            led_display[TARGET_DSPLAY+theLED]   = blend(CRGB::Black, CRGB::Red, 256-tmp_calc);
+            led_display[TARGET_DSPLAY+theLED+1] = blend(CRGB::Black, CRGB::Red, tmp_calc);
+          } // end RADAR blend the display LEDs
+        } // end RADAR for this_ring
+        if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__);
+      } // end RADAR for LED idx outer disk
+    } // end if STEP2_RADAR
     else if ((this_ptrn_token <= STEP2_FADEDISK2_CLR_LARGEST) && (this_ptrn_token >= STEP2_FADEDISK2_CLR_SMALLEST)) {
       DEBUG_PRINTLN(F("   ...processing STEP2_FADEDISK2_CLRxxx"))
       DEBUG_PRINT(F(" this_ptrn_token: "))
@@ -982,18 +1013,18 @@ void saveSurroundEffectLEDs(int8_t ltr_index, const int8_t * effect_LEDidx_array
 
 CRGB calcColor_step2DawClrMax(int8_t thePtrnToken, int8_t tokenSmallest, CRGB blinking, CRGB foreground, CRGB background) {
   CRGB theColor;
-  switch ((thePtrnToken - tokenSmallest) % STEP2_DRAW_CLR_MAX) {
-    case STEP2_DRAW_CLR_BLNKNG:
+  switch ((thePtrnToken - tokenSmallest) % TOKEN_DRAW_CLR_MAX) {
+    case TOKEN_DRAW_CLR_BLNKNG:
       theColor = blinking;
       break;
-    case STEP2_DRAW_CLR_BLACK:
+    case TOKEN_DRAW_CLR_BLACK:
     default:
       theColor = CRGB::Black ;
       break;
-    case STEP2_DRAW_CLR_FRGND:
+    case TOKEN_DRAW_CLR_FRGND:
       theColor = foreground;
       break;
-    case STEP2_DRAW_CLR_BKGND:
+    case TOKEN_DRAW_CLR_BKGND:
       theColor = background;
       break;
   }
