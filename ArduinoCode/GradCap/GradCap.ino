@@ -224,7 +224,10 @@ CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS_PER_DISK]; // 1st set is for display, 
 #define STEP2_DELAY_10000              -93 // simply delay, step 2
 
 #define STEP2_RADAR                    -94 // radar pattern, step 2
-#define STEP2_RADAR_CPY_SHDW1          -95 // Copy display to SHDW1 and do radar pattern, step 2
+#define STEP2_RADAR_FROM_SHDW1         -95 // radar pattern with trailing fading SHDW1, step 2
+
+#define STEP2_CPY_DSPLY_2_SHDW1        -96 // copy display to shadow 1, step 2
+#define STEP2_CPY_SHDW1_2_DSPLY        -97 // copy shadow 1 to display, step 2
 
 
 #define SPCL_DRAW_BKGD_CLR_BLACK          90 // SPECIAL: set all LEDs to black
@@ -296,6 +299,8 @@ const int8_t ptrnDownTheDrain[] = { SUPRSPCL_SKIP_STEP1, STEP2_DRAIN_DOWN_CLR_BL
 const int8_t ptrnUpTheDrain[] =   { SUPRSPCL_SKIP_STEP1, STEP2_DRAIN_UP_CLR_BLACK,   SUPRSPCL_END_OF_PTRNS };
 
 const int8_t ptrnRadar[] = { SUPRSPCL_SKIP_STEP1, STEP2_RADAR, SUPRSPCL_END_OF_PTRNS };
+const int8_t ptrnRadarFromShdw1[] = { SUPRSPCL_SKIP_STEP1, STEP2_RADAR_FROM_SHDW1, SUPRSPCL_END_OF_PTRNS };
+const int8_t ptrnCopyToShdw1[] = { SUPRSPCL_SKIP_STEP1, STEP2_CPY_DSPLY_2_SHDW1, SUPRSPCL_END_OF_PTRNS };
 
 const int8_t ptrnRingQrtrDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1, 
    STEP2_SET_RING_6, STEP2_SET_QRTR_1,
@@ -466,8 +471,15 @@ void doPattern() {
        // DEBUG2_RETURN(save_return, __LINE__)
        break;
     case 6:
-       save_return = doPatternDraw(100, ltr_Y, ptrnRadar, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(8, ltr_P, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__)
+       if (doDwell(dwell, 1)) break;
+       save_return = doPatternDraw(8, ltr_P, ptrnCopyToShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       // DEBUG2_RETURN(save_return, __LINE__)
+       while (0 == doDwell(1, 1)) {
+         save_return = doPatternDraw(100, ltr_Y, ptrnRadarFromShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+         // DEBUG2_RETURN(save_return, __LINE__)
+       } // end while
        break;
   } // end switch on pattern
   if (pattern != oldPattern) {
@@ -872,17 +884,35 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
       #endif // BAD_LED_92
       if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__);
     } // end if STEP2_DRAW_RINGQRTR
+    else if (STEP2_CPY_DSPLY_2_SHDW1 == this_ptrn_token) {
+      DEBUG_PRINTLN(F("   ...processing STEP2_CPY_DSPLY_2_SHDW1"))
+      DEBUG_PRINT(F(" this_ptrn_token: "))
+      DEBUG_PRINT((int16_t) this_ptrn_token)
+      for (theLED = 0; theLED < NUM_LEDS_PER_DISK; theLED++) {
+        led_display[TARGET_SHDW1+theLED] = led_display[TARGET_DSPLAY+theLED];
+      } // end copy loop
+    } // end STEP2_CPY_DSPLY_2_SHDW1
+    else if (STEP2_CPY_SHDW1_2_DSPLY == this_ptrn_token) {
+      DEBUG_PRINTLN(F("   ...processing STEP2_CPY_SHDW1_2_DSPLY"))
+      DEBUG_PRINT(F(" this_ptrn_token: "))
+      DEBUG_PRINT((int16_t) this_ptrn_token)
+      for (theLED = 0; theLED < NUM_LEDS_PER_DISK; theLED++) {
+        led_display[TARGET_DSPLAY+theLED] = led_display[TARGET_SHDW1+theLED];
+      } // end copy loop
+    } // end STEP2_CPY_SHDW1_2_DSPLY
     else if (STEP2_RADAR == this_ptrn_token) {
       uint16_t tmp_calc;
-      DEBUG_PRINTLN(F("   ...processing STEP2"))
+      DEBUG_PRINTLN(F("   ...processing STEP2_RADAR"))
       DEBUG_PRINT(F(" this_ptrn_token: "))
       DEBUG_PRINT((int16_t) this_ptrn_token)
       DEBUG_PRINTLN(F(" ... Radar Loop"))
       for (tmp_idx = 0; tmp_idx < leds_per_ring[0]; tmp_idx++) {
+        // tmp_idx is the LED index on the outer ring, from 0 to 31 inclusive
         fill_solid(&led_display[draw_target], NUM_LEDS_PER_DISK, CRGB::Black);
-        led_display[TARGET_DSPLAY+tmp_idx] = CRGB::Red;
-        led_display[TARGET_DSPLAY+NUM_LEDS_PER_DISK-1] = CRGB::Red;
+        led_display[TARGET_DSPLAY+NUM_LEDS_PER_DISK-1] = CRGB::Red; // center
+        led_display[TARGET_DSPLAY+tmp_idx] = CRGB::Red; // outer ring
         for (this_ring = 1; this_ring < NUM_RINGS_PER_DISK-1; this_ring++) {
+          // currently we do a blended value for inner rings based on fractional brightness
           tmp_calc = (uint16_t)radar_adv_per_LED_per_ring[this_ring] * tmp_idx; // max value 5952
           theLED = tmp_calc / 256 + start_per_ring[this_ring]; // this is the lowest LED idx this ring
           tmp_calc %= 256; // blend fraction for theLED+1 if non-zero
@@ -896,6 +926,31 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
         if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__);
       } // end RADAR for LED idx outer disk
     } // end if STEP2_RADAR
+    else if (STEP2_RADAR_FROM_SHDW1 == this_ptrn_token) {
+      uint16_t tmp_calc;
+      DEBUG_PRINTLN(F("   ...processing STEP2_RADAR_FROM_SHDW1"))
+      DEBUG_PRINT(F(" this_ptrn_token: "))
+      DEBUG_PRINT((int16_t) this_ptrn_token)
+      DEBUG_PRINTLN(F(" ... Copy to Shadow 1 "))
+      DEBUG_PRINTLN(F(" ... Radar Loop"))
+      for (tmp_idx = 0; tmp_idx < leds_per_ring[0]; tmp_idx++) {
+        // tmp_idx is the LED index on the outer ring, from 0 to 31 inclusive
+        fadeToBlackBy (&led_display[TARGET_DSPLAY], NUM_LEDS_PER_DISK, 128); // last param is fade by x/256
+        led_display[TARGET_DSPLAY+NUM_LEDS_PER_DISK-1] = CRGB::Red; // center
+        led_display[TARGET_DSPLAY+tmp_idx] = CRGB::Red; // outer ring
+        theLED = (tmp_idx + leds_per_ring[0] - 1) % leds_per_ring[0];  // backup one LED
+        led_display[TARGET_DSPLAY+theLED] = led_display[TARGET_SHDW1+theLED];
+        for (this_ring = 1; this_ring < NUM_RINGS_PER_DISK-1; this_ring++) {
+          // currently we do a trailing inner ring based on first LED that would have any fractional brightness
+          tmp_calc = (uint16_t)radar_adv_per_LED_per_ring[this_ring] * tmp_idx / 256; // not same as above - / 256
+          theLED = tmp_calc + start_per_ring[this_ring]; // this is the lowest LED idx this ring
+          led_display[TARGET_DSPLAY+theLED] = CRGB::Red;
+          tmp_calc = (tmp_calc + leds_per_ring[this_ring] - 1) % leds_per_ring[this_ring] + start_per_ring[this_ring]; // backup one LED
+          led_display[TARGET_DSPLAY+tmp_calc] = led_display[TARGET_SHDW1+tmp_calc];
+        } // end RADAR for this_ring
+        if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__);
+      } // end RADAR for LED idx outer disk
+    } // end STEP2_RADAR_FROM_SHDW1 for LED idx outer disk
     else if ((this_ptrn_token <= STEP2_FADEDISK2_CLR_LARGEST) && (this_ptrn_token >= STEP2_FADEDISK2_CLR_SMALLEST)) {
       DEBUG_PRINTLN(F("   ...processing STEP2_FADEDISK2_CLRxxx"))
       DEBUG_PRINT(F(" this_ptrn_token: "))
