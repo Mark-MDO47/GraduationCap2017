@@ -471,13 +471,14 @@ void doPattern() {
        // DEBUG2_RETURN(save_return, __LINE__)
        break;
     case 6:
-       save_return = doPatternDraw(8, shape_star, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       // DEBUG2_RETURN(save_return, __LINE__)
+       save_return = doPatternDraw(1, ltr_Y, ptrnJustDraw, CRGB::Gold, CRGB::Black, CRGB::Black, 0, 0, 0);
        if (doDwell(dwell, 1)) break;
-       save_return = doPatternDraw(1, ltr_P, ptrnCopyToShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       // DEBUG2_RETURN(save_return, __LINE__)
+       save_return = doPatternDraw(1, ltr_Y, ptrnCopyToShdw1, CRGB::Gold, CRGB::Black, CRGB::Black, 0, 0, 0);
+       if (doDwell(1, 1)) break;
        // DEBUG2_RETURN(save_return, __LINE__)
        while (0 == doDwell(1, 1)) {
-         save_return = doPatternDraw(100, ltr_Y, ptrnRadarFromShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+         save_return = doPatternDraw(100, ltr_Y, ptrnRadarFromShdw1, CRGB::Gold, CRGB::Black, CRGB::Black, 0, 0, 0);
          // DEBUG2_RETURN(save_return, __LINE__)
        } // end while
        break;
