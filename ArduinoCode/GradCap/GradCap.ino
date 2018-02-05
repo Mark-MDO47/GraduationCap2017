@@ -471,10 +471,10 @@ void doPattern() {
        // DEBUG2_RETURN(save_return, __LINE__)
        break;
     case 6:
-       save_return = doPatternDraw(8, ltr_P, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(8, shape_star, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__)
        if (doDwell(dwell, 1)) break;
-       save_return = doPatternDraw(8, ltr_P, ptrnCopyToShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(1, ltr_P, ptrnCopyToShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__)
        while (0 == doDwell(1, 1)) {
          save_return = doPatternDraw(100, ltr_Y, ptrnRadarFromShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
@@ -946,7 +946,8 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
           theLED = tmp_calc + start_per_ring[this_ring]; // this is the lowest LED idx this ring
           led_display[TARGET_DSPLAY+theLED] = CRGB::Red;
           tmp_calc = (tmp_calc + leds_per_ring[this_ring] - 1) % leds_per_ring[this_ring] + start_per_ring[this_ring]; // backup one LED
-          led_display[TARGET_DSPLAY+tmp_calc] = led_display[TARGET_SHDW1+tmp_calc];
+          // inner rings move slower so we start them at a lower light level
+          led_display[TARGET_DSPLAY+tmp_calc] = blend(CRGB::Black, led_display[TARGET_SHDW1+tmp_calc], leds_per_ring[this_ring]*7); // 32 leds * 8 would be 256 but our largest is 24 so no need for uint16_t
         } // end RADAR for this_ring
         if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__);
       } // end RADAR for LED idx outer disk
