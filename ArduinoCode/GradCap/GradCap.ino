@@ -43,6 +43,7 @@
 // connections:
 //    Data Pin 3 is used for serial communications with the LEDs
 //    Data Pins 4-9 are used for pushbuttons 1-6 to choose pattern. Pattern 1 is OFF
+//    Data Pins 11-12 are used for synchronizing with the other Arduinos. 11 is "IAMSYNC"; 12 is ALLSYNC input
 // 
 // Recommendations -  ;^)
 //    Before connecting the WS2812 to a power source, connect a big capacitor from power to ground.
@@ -77,12 +78,15 @@ const uint8_t  radar_adv_per_LED_per_ring[NUM_RINGS_PER_DISK] = { 0, 192, 128, 9
 
 // pushbutton inputs are D4 to D9
 // README - the initialization code assumes these are contiguous and in order
-#define PSHBTN1 4
-#define PSHBTN2 5
-#define PSHBTN3 6
-#define PSHBTN4 7
-#define PSHBTN5 8
-#define PSHBTN6 9
+#define PSHBTN1 4 // input
+#define PSHBTN2 5 // input
+#define PSHBTN3 6 // input
+#define PSHBTN4 7 // input
+#define PSHBTN5 8 // input
+#define PSHBTN6 9 // input
+
+#define IAMSYNC 11 // output
+#define ALLSYNC 12 // input
 
 #define SERIALPORT 1 // use serial port
 #define DEBUG 1 // 1 = debug thru serial port, 0 = no debug
@@ -110,6 +114,17 @@ const uint8_t  radar_adv_per_LED_per_ring[NUM_RINGS_PER_DISK] = { 0, 192, 128, 9
 #if 0 == REAL_BUTTONS
 #define SERIALPORT 1 // use serial port
 #endif // REAL_BUTTONS
+
+// iamNotSync() - sets our sync output to FALSE. note: #define
+// iamSync()    - sets our sync output to TRUE. note: #define
+// val = areWeAllSync() - returns nonzero if we are all sync
+// val = iamSyncAreWeAllSync - sets our sync output TRUE and returns nonzero if we are all sync
+// 
+// setMySync(val) - sets sync to TRUE if val is nonzero, else sets sync to FALSE
+//
+#define iamSync()    setMySync(1)
+#define iamNotSync() setMySync(1)
+
 #if DEBUG
 int16_t tmp_DEBUG = 0;
 int16_t tmp_DEBUG2 = 0;
@@ -362,6 +377,12 @@ void setup() {
   for (int16_t thePin = PSHBTN1; thePin <= PSHBTN6; thePin ++) {
     pinMode(thePin, INPUT_PULLUP);
   } // end initialize pushbutton input pins
+  // now the ALLSYNC input
+  pinMode(ALLSYNC, INPUT_PULLUP);
+
+  // now initialize the IAMSYNC output pin
+  pinMode(IAMSYNC, INPUT_PULLUP);
+  
 
 #if (DEBUG+SERIALPORT)
   // README if debugging we want serial port
@@ -398,13 +419,6 @@ void loop() {
 } // end loop()
 
 // ******************************** UTILITIES ********************************
-
-void debug2_return(int16_t rtn_from, int16_t rtn_to) {
-  DEBUG2_PRINT(F("returned from doPatternDraw:"))
-  DEBUG2_PRINT(rtn_from)
-  DEBUG2_PRINT(F(" to line:"))
-  DEBUG2_PRINTLN(rtn_to)
-}
 
 // doPattern()
 //   first level organization of patterns for show, checking for button presses
@@ -471,16 +485,17 @@ void doPattern() {
        // DEBUG2_RETURN(save_return, __LINE__)
        break;
     case 6:
-       save_return = doPatternDraw(1, ltr_Y, ptrnJustDraw, CRGB::Gold, CRGB::Black, CRGB::Black, 0, 0, 0);
+       save_return = doPatternDraw(1, ltr_O, ptrnJustDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        if (doDwell(dwell, 1)) break;
        // DEBUG2_RETURN(save_return, __LINE__)
-       save_return = doPatternDraw(1, ltr_Y, ptrnCopyToShdw1, CRGB::Gold, CRGB::Black, CRGB::Black, 0, 0, 0);
+       save_return = doPatternDraw(1, ltr_O, ptrnCopyToShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        if (doDwell(1, 1)) break;
        // DEBUG2_RETURN(save_return, __LINE__)
-       while (0 == doDwell(1, 1)) {
-         save_return = doPatternDraw(100, ltr_Y, ptrnRadarFromShdw1, CRGB::Gold, CRGB::Black, CRGB::Black, 0, 0, 0);
+       for (uint8_t tmp = 0; (tmp < 4) && (0 == doDwell(1, 1)); tmp++) {
+         save_return = doPatternDraw(100, ltr_O, ptrnRadarFromShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
          // DEBUG2_RETURN(save_return, __LINE__)
-       } // end while
+       } // end loop
+       if (doDwell(dwell*5, 1)) break;
        break;
   } // end switch on pattern
   if (pattern != oldPattern) {
@@ -1213,4 +1228,37 @@ int16_t nextPatternFromButtons() {
   }
   return (nextPattern);
 } // end nextPatternFromButtons()
+
+
+// setMySync(val) - sets sync to TRUE if val is nonzero, else sets sync to FALSE
+void setMySync(uint8_t yes) {
+  if (0 == yes) {
+    digitalWrite(IAMSYNC, LOW); // sync = FALSE
+  } else {
+    digitalWrite(IAMSYNC, HIGH); // sync = TRUE
+  }
+} // end setMySync()
+
+// val = areWeAllSync() - returns nonzero if we are all sync
+int8_t areWeAllSync() {
+  int8_t val = digitalRead(ALLSYNC);
+  if (LOW == val) return(0);
+  else            return(1);
+} // end areWeAllSync()
+
+// val = iamSyncAreWeAllSync - sets our sync output TRUE and returns nonzero if we are all sync
+int8_t iamSyncAreWeAllSync() {
+  iamSync(); // set us as synchronized
+  return(areWeAllSync()); // return 1 if we are now all synchronized
+} // end iamSyncAreWeAllSync()
+
+// debug2_return(line_from, line_to) - used for debugging
+void debug2_return(int16_t rtn_from, int16_t rtn_to) {
+  DEBUG2_PRINT(F("returned from doPatternDraw:"))
+  DEBUG2_PRINT(rtn_from)
+  DEBUG2_PRINT(F(" to line:"))
+  DEBUG2_PRINTLN(rtn_to)
+}
+
+
 
