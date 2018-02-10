@@ -43,7 +43,7 @@
 // connections:
 //    Data Pin 3 is used for serial communications with the LEDs
 //    Data Pins 4-9 are used for pushbuttons 1-6 to choose pattern. Pattern 1 is OFF
-//    Data Pins 11-12 are used for synchronizing with the other Arduinos. 11 is "IAMSYNC"; 12 is ALLSYNC input
+//    Data Pins 11-12 are used for synchronizing with the other Arduinos. 11 is "IAMSYNC"; 12 is "ALLSYNC" input
 // 
 // Recommendations -  ;^)
 //    Before connecting the WS2812 to a power source, connect a big capacitor from power to ground.
@@ -176,6 +176,10 @@ CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS_PER_DISK]; // 1st set is for display, 
 #define PER_LED_DRAW_PREV_SRND_CLKWS       2 //
 #define PER_LED_DRAW_BLNKNG_SRND_CTRCLKWS  3 //
 #define PER_LED_DRAW_PREV_SRND_CTRCLKWS    4 // walk thru surround setting LEDs to previous color
+
+#define STEP1_I_AM_SYNC_WAIT_ALL_SYNC      10 // step1: set IAMSYNC TRUE and wait for ALLSYNC
+#define STEP1_I_AM_NOT_SYNC                11 // step1: set IAMSYNC FALSE
+
 #define PER_LED_DRAW_BLNKING_SRND_ALL   (-1) // set all surround LEDs to blinking color
 #define PER_LED_DRAW_PREV_SRND_ALL      (-2) // set all surround LEDs to previous color
 #define PER_LED_DRAW_BLNKING            (-3) // set letter LED to blinking color
@@ -188,6 +192,9 @@ CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS_PER_DISK]; // 1st set is for display, 
 #define TOKEN_DRAW_CLR_BLACK         2 //
 #define TOKEN_DRAW_CLR_FRGND         1 //
 #define TOKEN_DRAW_CLR_BKGND         0 //
+
+#define STEP2_I_AM_SYNC_WAIT_ALL_SYNC  -50 // step2: set IAMSYNC TRUE and wait for ALLSYNC
+#define STEP2_I_AM_NOT_SYNC            -51 // step2: set IAMSYNC FALSE
 
 #define STEP2_MAX_TOKENVAL           STEP2_DRAW_RING_LARGEST // first or maximum STEP2 token
 #define STEP2_DRAW_RING_LARGEST      STEP2_DRAW_RING_CLR_BLNKNG
@@ -567,7 +574,7 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
   if ((nextPattern != NO_BUTTON_PRESS) && (nextPattern != pattern)) return(__LINE__); // pressing our button again does not stop us
 
   if ((oldPattern == pattern) && (SUPRSPCL_STOP_WHEN_DONE == ptrn_token_array_ptr[0])) return(__LINE__);
-  
+
   count_of_ltr_ptr = -(ltr_ptr[0]); // length of letter LEDstring
 
   DEBUG_PRINTLN(F("doPatternDraw step 1"))
@@ -591,6 +598,18 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
         skip_steps |= DO_SKIP_STEP2;
         continue;
       } // end if SUPRSPCL_SKIP_STEP2
+      else if (STEP1_I_AM_NOT_SYNC == this_ptrn_token) {
+        iamNotSync();
+        continue;
+      } // end if STEP1_I_AM_NOT_SYNC
+      else if (STEP1_I_AM_SYNC_WAIT_ALL_SYNC == this_ptrn_token) {
+        // we wait here until all Ardinos in sync OR new pattern is requested
+        while (0 == iamSyncAreWeAllSync()) {
+          if (doDwell(20, 1)) return(__LINE__);
+        }
+        continue;
+      } // end if STEP1_I_AM_SYNC_WAIT_ALL_SYNC
+
       do_display_delay = 0;
       if (STEP1_DELAY_100 == this_ptrn_token) {
         if (doDwell(100, 1)) break;
@@ -743,33 +762,44 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
       if (doDwell(10000, 1)) break;
       continue;
     }
-    if (SUPRSPCL_SKIP_STEP2 == this_ptrn_token) {
+    else if (SUPRSPCL_SKIP_STEP2 == this_ptrn_token) {
       DEBUG_PRINTLN(F("   ...processing SUPRSPCL_SKIP_STEP2"))
       skip_steps |= DO_SKIP_STEP2;
       break;
     } // end if SUPRSPCL_SKIP_STEP2
-    if (SUPRSPCL_DRWTRGT_SHDW1_NONSTICKY == this_ptrn_token) {
+    else if (STEP2_I_AM_NOT_SYNC == this_ptrn_token) {
+      iamNotSync();
+      continue;
+    } // end if STEP2_I_AM_NOT_SYNC
+    else if (STEP2_I_AM_SYNC_WAIT_ALL_SYNC == this_ptrn_token) {
+      // we wait here until all Ardinos in sync OR new pattern is requested
+      while (0 == iamSyncAreWeAllSync()) {
+        if (doDwell(20, 1)) return(__LINE__);
+      }
+      continue;
+    } // end if STEP2_I_AM_SYNC_WAIT_ALL_SYNC
+    else if (SUPRSPCL_DRWTRGT_SHDW1_NONSTICKY == this_ptrn_token) {
       DEBUG_PRINTLN(F("   ...processing SUPRSPCL_DRWTRGT_SHDW1_NONSTICKY"))
       draw_target_sticky = 0;
       draw_target = TARGET_SHDW1;
       continue;
     } // end if SUPRSPCL_DRWTRGT_SHDW1_NONSTICKY
-    if (STEP2_FADEDLY_ADD_100 == this_ptrn_token) {
+    else if (STEP2_FADEDLY_ADD_100 == this_ptrn_token) {
       DEBUG_PRINTLN(F("   ...processing STEP2_FADEDLY_ADD_100"))
       if ((uint8_t) (fade_dwell + 50) > fade_dwell) fade_dwell += 100;
       continue;
     } // end if STEP2_FADEDLY_ADD_100
-    if (STEP2_FADEDLY_SUB_100 == this_ptrn_token) {
+    else if (STEP2_FADEDLY_SUB_100 == this_ptrn_token) {
       DEBUG_PRINTLN(F("   ...processing STEP2_FADEDLY_SUB_100"))
       if ((uint8_t) (fade_dwell - 50) < fade_dwell) fade_dwell -= 100;
       continue;
     } // end if STEP2_FADEDLY_SUB_100
-    if (STEP2_FADEFCT_MLT_2 == this_ptrn_token) {
+    else if (STEP2_FADEFCT_MLT_2 == this_ptrn_token) {
       DEBUG_PRINTLN(F("   ...processing STEP2_FADEFCT_MLT_2"))
       if ((uint8_t) (fade_factor * 2) > fade_dwell) fade_factor *= 2;
       continue;
     } // end if STEP2_FADEFCT_MLT_2
-    if (STEP2_FADEFCT_DIV_2 == this_ptrn_token) {
+    else if (STEP2_FADEFCT_DIV_2 == this_ptrn_token) {
       DEBUG_PRINTLN(F("   ...processing STEP2_FADEFCT_DIV_2"))
       if ((uint8_t) (fade_factor / 2) < fade_dwell) fade_factor /= 2;
       continue;
