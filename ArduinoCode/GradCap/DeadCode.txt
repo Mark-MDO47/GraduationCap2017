@@ -1,0 +1,27 @@
+    else if (STEP2_RADAR == this_ptrn_token) {
+      uint16_t tmp_calc;
+      DEBUG_PRINTLN(F("   ...processing STEP2_RADAR"))
+      DEBUG_PRINT(F(" this_ptrn_token: "))
+      DEBUG_PRINT((int16_t) this_ptrn_token)
+      DEBUG_PRINTLN(F(" ... Radar Loop"))
+      for (tmp_idx = 0; tmp_idx < leds_per_ring[0]; tmp_idx++) {
+        // tmp_idx is the LED index on the outer ring, from 0 to 31 inclusive
+        fill_solid(&led_display[draw_target], NUM_LEDS_PER_DISK, CRGB::Black);
+        led_display[TARGET_DSPLAY+NUM_LEDS_PER_DISK-1] = CRGB::Red; // center
+        led_display[TARGET_DSPLAY+tmp_idx] = CRGB::Red; // outer ring
+        for (this_ring = 1; this_ring < NUM_RINGS_PER_DISK-1; this_ring++) {
+          // currently we do a blended value for inner rings based on fractional brightness
+          tmp_calc = (uint16_t)radar_adv_per_LED_per_ring[this_ring] * tmp_idx; // max value 5952
+          theLED = tmp_calc / 256 + start_per_ring[this_ring]; // this is the lowest LED idx this ring
+          tmp_calc %= 256; // blend fraction for theLED+1 if non-zero
+          if (0 == tmp_calc) {
+            led_display[TARGET_DSPLAY+theLED] = CRGB::Red;
+          } else {
+            led_display[TARGET_DSPLAY+theLED]   = blend(CRGB::Black, CRGB::Red, 256-tmp_calc);
+            led_display[TARGET_DSPLAY+theLED+1] = blend(CRGB::Black, CRGB::Red, tmp_calc);
+          } // end RADAR blend the display LEDs
+        } // end RADAR for this_ring
+        if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__);
+      } // end RADAR for LED idx outer disk
+    } // end if STEP2_RADAR
+

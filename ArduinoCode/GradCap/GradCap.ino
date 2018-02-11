@@ -92,6 +92,8 @@ const uint8_t  radar_adv_per_LED_per_ring[NUM_RINGS_PER_DISK] = { 0, 192, 128, 9
 #define DEBUG 1 // 1 = debug thru serial port, 0 = no debug
 #define DEBUG2 0 // 1 = debug thru serial port, 0 = no debug
 #if DEBUG
+#define DEBUG_ERRORS_PRINT(param)   Serial.print((param));
+#define DEBUG_ERRORS_PRINTLN(param) Serial.println((param));
 // #define DEBUG_PRINTLN(param) Serial.println((param));
 // #define DEBUG_PRINT(param)   Serial.print((param));
 #define DEBUG_PRINTLN(param) // nothing
@@ -245,11 +247,12 @@ CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS_PER_DISK]; // 1st set is for display, 
 #define STEP2_DELAY_1000               -92 // simply delay, step 2
 #define STEP2_DELAY_10000              -93 // simply delay, step 2
 
-#define STEP2_RADAR                    -94 // radar pattern, step 2
+// #define STEP2_RADAR                    -94 // radar pattern, step 2
 #define STEP2_RADAR_FROM_SHDW1         -95 // radar pattern with trailing fading SHDW1, step 2
+#define STEP2_RADAR_FROM_SHDW1_FRGND   -96 // radar pattern with trailing fading SHDW1, preserve FRGND, step 2
 
-#define STEP2_CPY_DSPLY_2_SHDW1        -96 // copy display to shadow 1, step 2
-#define STEP2_CPY_SHDW1_2_DSPLY        -97 // copy shadow 1 to display, step 2
+#define STEP2_CPY_DSPLY_2_SHDW1        -97 // copy display to shadow 1, step 2
+#define STEP2_CPY_SHDW1_2_DSPLY        -98 // copy shadow 1 to display, step 2
 
 
 #define SPCL_DRAW_BKGD_CLR_BLACK          90 // SPECIAL: set all LEDs to black
@@ -320,7 +323,6 @@ const int8_t ptrnRingDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1,
 const int8_t ptrnDownTheDrain[] = { SUPRSPCL_SKIP_STEP1, STEP2_DRAIN_DOWN_CLR_BLACK, SUPRSPCL_END_OF_PTRNS };
 const int8_t ptrnUpTheDrain[] =   { SUPRSPCL_SKIP_STEP1, STEP2_DRAIN_UP_CLR_BLACK,   SUPRSPCL_END_OF_PTRNS };
 
-const int8_t ptrnRadar[] = { SUPRSPCL_SKIP_STEP1, STEP2_RADAR, SUPRSPCL_END_OF_PTRNS };
 const int8_t ptrnRadarFromShdw1[] = { SUPRSPCL_SKIP_STEP1, STEP2_RADAR_FROM_SHDW1, SUPRSPCL_END_OF_PTRNS };
 const int8_t ptrnCopyToShdw1[] = { SUPRSPCL_SKIP_STEP1, STEP2_CPY_DSPLY_2_SHDW1, SUPRSPCL_END_OF_PTRNS };
 
@@ -360,6 +362,10 @@ static int8_t   ptrn_token_array_ptr_idx = -1;
 static int8_t * this_effect_ptr = &led_effect_varmem[0];
 static int8_t   this_ring = 0; // from ring_6 (value 0, outer ring) to ring_1 (value 5,  inner ring (one LED)
 static int8_t   this_qrtr = 0; // from qrtr_1 (value 0) to qrtr_4 (value 3), count modulo in either direction
+static uint32_t radar_preserve_cells[3] = {0, 0, 0}; // bitmask where preserve LEDs are for STEP2_RADAR_FROM_SHDW1_FRGND
+static uint32_t bitmsk32; // used to pick out the bit in radar_preserve_cells
+static uint8_t  idx_bitmsk32; // index to which array member for radar_preserve_cells
+
 
 #define NO_BUTTON_PRESS -1 // when no input from user
 #define NO_BUTTON_CHANGE -1 // when no CHANGE in input from user
@@ -558,17 +564,33 @@ void doPattern() {
 #define DO_SKIP_STEP1 1
 #define DO_SKIP_STEP2 2
 int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * ptrn_token_array_ptr, CRGB foreground, CRGB background, CRGB blinking, uint32_t parm1, uint32_t parm2, uint32_t parm3) {
-  int16_t theLED = -1; // temp storage for the LED that is being written
-  int8_t this_ptrn_token = -1; // temp storage for the pattern token being processed
-  uint8_t do_specials = 1; // non-zero if do SPECIAL codes
-  int16_t draw_target = TARGET_DSPLAY; // or TARGET_SHDW1
-  int8_t draw_target_sticky = 0; // or 1 = sticky
-  uint16_t tmp_idx = 0; // temporary index
-  int16_t do_display_delay = 0;
-  uint8_t skip_steps = 0;
-  uint8_t fade_factor = 32; // default means each fade removes 32/256 = 0.125 = 1/8
-  uint16_t fade_dwell = 100; // default dwell during fade
-  CRGB myColor;
+  // OK I give up - make everything static so we know better how we are doing on memory.
+  //    I know, I know - the programming gods will take their revenge
+  static int16_t  theLED = -1; // index storage for the LED that is being written
+  static int8_t   this_ptrn_token = -1; // storage for the pattern token being processed
+  static uint8_t  do_specials = 1; // non-zero if do SPECIAL codes
+  static int16_t  draw_target = TARGET_DSPLAY; // or TARGET_SHDW1
+  static int8_t   draw_target_sticky = 0; // or 1 = sticky
+  static uint16_t tmp_idx = 0; // temporary index
+  static int16_t  do_display_delay = 0; // STEP1 flag that we should doPtrnShowDwell (generally means we changed TARGET_DSPLAY)
+  static uint8_t  skip_steps = 0; // bitmask storage for DO_SKIP_STEP1 and/or DO_SKIP_STEP2
+  static uint8_t  fade_factor = 32; // default means each fade removes 32/256 = 0.125 = 1/8
+  static uint16_t fade_dwell = 100; // default dwell during fade
+  static CRGB     myColor = CRGB::Black; // storage for the color choice we made
+
+  // initialize variables
+  theLED = -1; // index storage for the LED that is being written
+  this_ptrn_token = -1; // storage for the pattern token being processed
+  do_specials = 1; // non-zero if do SPECIAL codes
+  draw_target = TARGET_DSPLAY; // or TARGET_SHDW1
+  draw_target_sticky = 0; // or 1 = sticky
+  do_display_delay = 0; // STEP1 flag that we should doPtrnShowDwell (generally means we changed TARGET_DSPLAY)
+  skip_steps = 0; // bitmask storage for DO_SKIP_STEP1 and/or DO_SKIP_STEP2
+  fade_factor = 32; // default means each fade removes 32/256 = 0.125 = 1/8
+  fade_dwell = 100; // default dwell during fade
+  myColor = CRGB::Black; // storage for the color choice we made
+
+  tmp_idx = 0; // temporary index
 
   nextPatternFromButtons(); // look for new button press even if 0 == do_display_delay
   if ((nextPattern != NO_BUTTON_PRESS) && (nextPattern != pattern)) return(__LINE__); // pressing our button again does not stop us
@@ -946,42 +968,36 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
         led_display[TARGET_DSPLAY+theLED] = led_display[TARGET_SHDW1+theLED];
       } // end copy loop
     } // end STEP2_CPY_SHDW1_2_DSPLY
-    else if (STEP2_RADAR == this_ptrn_token) {
+    else if ((STEP2_RADAR_FROM_SHDW1 == this_ptrn_token) || (STEP2_RADAR_FROM_SHDW1_FRGND == this_ptrn_token)) {
       uint16_t tmp_calc;
-      DEBUG_PRINTLN(F("   ...processing STEP2_RADAR"))
-      DEBUG_PRINT(F(" this_ptrn_token: "))
+      DEBUG_PRINTLN(F("   ...processing STEP2_RADAR_FROM_SHDW1 and friends; this_ptrn_token: "))
       DEBUG_PRINT((int16_t) this_ptrn_token)
+      if (STEP2_RADAR_FROM_SHDW1_FRGND == this_ptrn_token) {
+        DEBUG_PRINTLN(F(" ... Preserve Exploration Loop"))
+        // set a bit for each cell we will "preserve" or fade slower
+        radar_preserve_cells[0] = radar_preserve_cells[1] = radar_preserve_cells[2] = 0;
+        bitmsk32 = 1; // used to pick bit within radar_preserve_cells
+        idx_bitmsk32 = 0; // location in radar_preserve_cells
+        for (theLED = 0; theLED < NUM_LEDS_PER_DISK; theLED++){
+          if (led_display[TARGET_SHDW1+theLED] == foreground) { radar_preserve_cells[idx_bitmsk32] |= bitmsk32; }
+          bitmsk32 <<= 1;
+          if (0 == bitmsk32) { idx_bitmsk32 += 1; }
+          if (idx_bitmsk32 > 2) { // should never get here
+            DEBUG_ERRORS_PRINTLN(F("   OVERFLOW ERROR IN STEP2_RADAR_FROM_SHDW1_FRGND loop to make bitmask for preserve cells"))
+            return(__LINE__);
+          } // end if something went horribly wrong
+        } // end loop to make bitmask for preserve cells
+      } // end if need to make bitmask for preserve cells
       DEBUG_PRINTLN(F(" ... Radar Loop"))
       for (tmp_idx = 0; tmp_idx < leds_per_ring[0]; tmp_idx++) {
         // tmp_idx is the LED index on the outer ring, from 0 to 31 inclusive
-        fill_solid(&led_display[draw_target], NUM_LEDS_PER_DISK, CRGB::Black);
-        led_display[TARGET_DSPLAY+NUM_LEDS_PER_DISK-1] = CRGB::Red; // center
-        led_display[TARGET_DSPLAY+tmp_idx] = CRGB::Red; // outer ring
-        for (this_ring = 1; this_ring < NUM_RINGS_PER_DISK-1; this_ring++) {
-          // currently we do a blended value for inner rings based on fractional brightness
-          tmp_calc = (uint16_t)radar_adv_per_LED_per_ring[this_ring] * tmp_idx; // max value 5952
-          theLED = tmp_calc / 256 + start_per_ring[this_ring]; // this is the lowest LED idx this ring
-          tmp_calc %= 256; // blend fraction for theLED+1 if non-zero
-          if (0 == tmp_calc) {
-            led_display[TARGET_DSPLAY+theLED] = CRGB::Red;
-          } else {
-            led_display[TARGET_DSPLAY+theLED]   = blend(CRGB::Black, CRGB::Red, 256-tmp_calc);
-            led_display[TARGET_DSPLAY+theLED+1] = blend(CRGB::Black, CRGB::Red, tmp_calc);
-          } // end RADAR blend the display LEDs
-        } // end RADAR for this_ring
-        if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__);
-      } // end RADAR for LED idx outer disk
-    } // end if STEP2_RADAR
-    else if (STEP2_RADAR_FROM_SHDW1 == this_ptrn_token) {
-      uint16_t tmp_calc;
-      DEBUG_PRINTLN(F("   ...processing STEP2_RADAR_FROM_SHDW1"))
-      DEBUG_PRINT(F(" this_ptrn_token: "))
-      DEBUG_PRINT((int16_t) this_ptrn_token)
-      DEBUG_PRINTLN(F(" ... Copy to Shadow 1 "))
-      DEBUG_PRINTLN(F(" ... Radar Loop"))
-      for (tmp_idx = 0; tmp_idx < leds_per_ring[0]; tmp_idx++) {
-        // tmp_idx is the LED index on the outer ring, from 0 to 31 inclusive
-        fadeToBlackBy (&led_display[TARGET_DSPLAY], NUM_LEDS_PER_DISK, 128); // last param is fade by x/256
+        //  STEP2_RADAR_FROM_SHDW1_FRGND preserves foreground color; STEP2_RADAR_FROM_SHDW1 does not
+        if (STEP2_RADAR_FROM_SHDW1 == this_ptrn_token) {
+          fadeToBlackBy (&led_display[TARGET_DSPLAY], NUM_LEDS_PER_DISK, 128); // last param is fade by x/256
+        } // end if STEP2_RADAR_FROM_SHDW1
+        else { // STEP2_RADAR_FROM_SHDW1_FRGND
+          
+        } // end if STEP2_RADAR_FROM_SHDW1_FRGND
         led_display[TARGET_DSPLAY+NUM_LEDS_PER_DISK-1] = CRGB::Red; // center
         led_display[TARGET_DSPLAY+tmp_idx] = CRGB::Red; // outer ring
         theLED = (tmp_idx + leds_per_ring[0] - 1) % leds_per_ring[0];  // backup one LED
