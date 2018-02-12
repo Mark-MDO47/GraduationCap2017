@@ -166,7 +166,8 @@ CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS_PER_DISK]; // 1st set is for display, 
 //   STEP2_DRAIN_DOWN_* and STEP2_DRAIN_UP_* cycle existing patterns
 //   STEP2_FADEDISK2_* fades the entire disk of display LEDs to either SHADOW1 or a color
 //     STEP2_FADEDLY_* and  STEP2_FADEFCT_* affect delay and fade factor parameters
-//   
+//   STEP2_RADAR_FROM_SHDW1 and STEP2_RADAR_FROM_SHDW1_FRGND do a "radar" pattern revealing SHDW1
+//
 //
 // between STEP2_LARGEST and STEP2_SMALLEST are the ones that should be done after all the letter LED patterns (step 2 above)
 //   for letter|shape LED patterns:
@@ -247,7 +248,7 @@ CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS_PER_DISK]; // 1st set is for display, 
 #define STEP2_DELAY_1000               -92 // simply delay, step 2
 #define STEP2_DELAY_10000              -93 // simply delay, step 2
 
-// #define STEP2_RADAR                    -94 // radar pattern, step 2
+// #define STEP2_RADAR                    -94 // radar pattern, step 2 - attempt to shade to true "line" of radar
 #define STEP2_RADAR_FROM_SHDW1         -95 // radar pattern with trailing fading SHDW1, step 2
 #define STEP2_RADAR_FROM_SHDW1_FRGND   -96 // radar pattern with trailing fading SHDW1, preserve FRGND, step 2
 
@@ -323,7 +324,8 @@ const int8_t ptrnRingDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1,
 const int8_t ptrnDownTheDrain[] = { SUPRSPCL_SKIP_STEP1, STEP2_DRAIN_DOWN_CLR_BLACK, SUPRSPCL_END_OF_PTRNS };
 const int8_t ptrnUpTheDrain[] =   { SUPRSPCL_SKIP_STEP1, STEP2_DRAIN_UP_CLR_BLACK,   SUPRSPCL_END_OF_PTRNS };
 
-const int8_t ptrnRadarFromShdw1[] = { SUPRSPCL_SKIP_STEP1, STEP2_RADAR_FROM_SHDW1, SUPRSPCL_END_OF_PTRNS };
+// const int8_t ptrnRadarFromShdw1[] = { SUPRSPCL_SKIP_STEP1, STEP2_RADAR_FROM_SHDW1, SUPRSPCL_END_OF_PTRNS };
+const int8_t ptrnRadarFrgndFromShdw1[] = { SUPRSPCL_SKIP_STEP1, STEP2_RADAR_FROM_SHDW1_FRGND, SUPRSPCL_END_OF_PTRNS };
 const int8_t ptrnCopyToShdw1[] = { SUPRSPCL_SKIP_STEP1, STEP2_CPY_DSPLY_2_SHDW1, SUPRSPCL_END_OF_PTRNS };
 
 const int8_t ptrnRingQrtrDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1, 
@@ -498,14 +500,14 @@ void doPattern() {
        // DEBUG2_RETURN(save_return, __LINE__)
        break;
     case 6:
-       save_return = doPatternDraw(1, ltr_O, ptrnJustDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(1, ltr_P, ptrnJustWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        if (doDwell(dwell, 1)) break;
        // DEBUG2_RETURN(save_return, __LINE__)
-       save_return = doPatternDraw(1, ltr_O, ptrnCopyToShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(1, ltr_P, ptrnCopyToShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        if (doDwell(1, 1)) break;
        // DEBUG2_RETURN(save_return, __LINE__)
        for (uint8_t tmp = 0; (tmp < 4) && (0 == doDwell(1, 1)); tmp++) {
-         save_return = doPatternDraw(100, ltr_O, ptrnRadarFromShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+         save_return = doPatternDraw(100, ltr_P, ptrnRadarFrgndFromShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
          // DEBUG2_RETURN(save_return, __LINE__)
        } // end loop
        if (doDwell(dwell*5, 1)) break;
@@ -981,22 +983,41 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
         for (theLED = 0; theLED < NUM_LEDS_PER_DISK; theLED++){
           if (led_display[TARGET_SHDW1+theLED] == foreground) { radar_preserve_cells[idx_bitmsk32] |= bitmsk32; }
           bitmsk32 <<= 1;
-          if (0 == bitmsk32) { idx_bitmsk32 += 1; }
-          if (idx_bitmsk32 > 2) { // should never get here
-            DEBUG_ERRORS_PRINTLN(F("   OVERFLOW ERROR IN STEP2_RADAR_FROM_SHDW1_FRGND loop to make bitmask for preserve cells"))
-            return(__LINE__);
-          } // end if something went horribly wrong
+          if (0 == bitmsk32) {
+            idx_bitmsk32 += 1;
+            bitmsk32 = 1;
+            if (idx_bitmsk32 > 2) { // should never get here
+              DEBUG_ERRORS_PRINTLN(F("   OVERFLOW ERROR IN STEP2_RADAR_FROM_SHDW1_FRGND loop to make bitmask for preserve cells"))
+              return(__LINE__);
+            } // end if something went horribly wrong
+          } // end if need to cross bitmsk32 boundary
+          // if ((0 == theLED) || ((29 <= theLED) && (34 > theLED))) { DEBUG_ERRORS_PRINT(F("   bitmsk32 info post increment. theLED=")) DEBUG_ERRORS_PRINT((uint16_t) theLED) DEBUG_ERRORS_PRINT(F(" idx_bitmsk32=")) DEBUG_ERRORS_PRINT((uint16_t) idx_bitmsk32) DEBUG_ERRORS_PRINT(F(" bitmsk32=")) DEBUG_ERRORS_PRINTLN((uint32_t) bitmsk32) } // end if debugging bitmask
         } // end loop to make bitmask for preserve cells
+        // DEBUG_ERRORS_PRINT(F("   bitmsk32[0]=")) DEBUG_ERRORS_PRINT((uint32_t) radar_preserve_cells[0]) DEBUG_ERRORS_PRINT(F("  bitmsk32[1]=")) DEBUG_ERRORS_PRINT((uint32_t) radar_preserve_cells[1]) DEBUG_ERRORS_PRINT(F("  bitmsk32[2]=")) DEBUG_ERRORS_PRINTLN((uint32_t) radar_preserve_cells[2])
       } // end if need to make bitmask for preserve cells
       DEBUG_PRINTLN(F(" ... Radar Loop"))
       for (tmp_idx = 0; tmp_idx < leds_per_ring[0]; tmp_idx++) {
         // tmp_idx is the LED index on the outer ring, from 0 to 31 inclusive
         //  STEP2_RADAR_FROM_SHDW1_FRGND preserves foreground color; STEP2_RADAR_FROM_SHDW1 does not
         if (STEP2_RADAR_FROM_SHDW1 == this_ptrn_token) {
-          fadeToBlackBy (&led_display[TARGET_DSPLAY], NUM_LEDS_PER_DISK, 128); // last param is fade by x/256
+          fadeToBlackBy(&led_display[TARGET_DSPLAY], NUM_LEDS_PER_DISK, 128); // last param is fade by x/256
         } // end if STEP2_RADAR_FROM_SHDW1
         else { // STEP2_RADAR_FROM_SHDW1_FRGND
-          
+          bitmsk32 = 1; // used to pick bit within radar_preserve_cells
+          idx_bitmsk32 = 0; // location in radar_preserve_cells
+          for (theLED = 0; theLED < NUM_LEDS_PER_DISK; theLED++){
+            if (0 != (radar_preserve_cells[idx_bitmsk32] & bitmsk32)) { led_display[TARGET_DSPLAY+theLED].fadeToBlackBy(8); } // DEBUG_ERRORS_PRINT(F("  prsrvLED=")) DEBUG_ERRORS_PRINT((uint16_t) theLED) DEBUG_ERRORS_PRINT(F(" idx_bitmsk32=")) DEBUG_ERRORS_PRINT((uint16_t) idx_bitmsk32) DEBUG_ERRORS_PRINT(F(" bitmsk32=")) DEBUG_ERRORS_PRINT((uint32_t) bitmsk32)}
+            else                                                    { led_display[TARGET_DSPLAY+theLED].fadeToBlackBy(128); }
+            bitmsk32 <<= 1;
+            if (0 == bitmsk32) {
+              idx_bitmsk32 += 1;
+              bitmsk32 = 1;
+              if (idx_bitmsk32 > 2) { // should never get here
+                DEBUG_ERRORS_PRINTLN(F("   OVERFLOW ERROR IN STEP2_RADAR_FROM_SHDW1_FRGND loop to use preserve cells"))
+                return(__LINE__);
+              } // end if something went horribly wrong
+            } // end if need to cross bitmsk32 boundary
+          } // end loop to make bitmask for preserve cells
         } // end if STEP2_RADAR_FROM_SHDW1_FRGND
         led_display[TARGET_DSPLAY+NUM_LEDS_PER_DISK-1] = CRGB::Red; // center
         led_display[TARGET_DSPLAY+tmp_idx] = CRGB::Red; // outer ring
