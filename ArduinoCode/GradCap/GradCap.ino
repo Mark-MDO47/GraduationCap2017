@@ -975,7 +975,7 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
       DEBUG_PRINTLN(F("   ...processing STEP2_RADAR_FROM_SHDW1 and friends; this_ptrn_token: "))
       DEBUG_PRINT((int16_t) this_ptrn_token)
       if (STEP2_RADAR_FROM_SHDW1_FRGND == this_ptrn_token) {
-        DEBUG_PRINTLN(F(" ... Preserve Exploration Loop"))
+        DEBUG_PRINTLN(F(" ... X-Ray Exploration Loop"))
         // set a bit for each cell we will "X-Ray" or fade slower
         radar_xray_bitmask[0] = radar_xray_bitmask[1] = radar_xray_bitmask[2] = 0;
         bitmsk32 = 1; // used to pick bit within radar_xray_bitmask
