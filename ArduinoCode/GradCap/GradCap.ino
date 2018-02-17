@@ -250,7 +250,7 @@ CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS_PER_DISK]; // 1st set is for display, 
 
 // #define STEP2_RADAR                    -94 // radar pattern, step 2 - attempt to shade to true "line" of radar
 #define STEP2_RADAR_FROM_SHDW1         -95 // radar pattern with trailing fading SHDW1, step 2
-#define STEP2_RADAR_FROM_SHDW1_FRGND   -96 // radar pattern with trailing fading SHDW1, preserve FRGND, step 2
+#define STEP2_RADAR_FROM_SHDW1_FRGND   -96 // radar pattern with trailing fading SHDW1, xray FRGND, step 2
 
 #define STEP2_CPY_DSPLY_2_SHDW1        -97 // copy display to shadow 1, step 2
 #define STEP2_CPY_SHDW1_2_DSPLY        -98 // copy shadow 1 to display, step 2
@@ -364,9 +364,9 @@ static int8_t   ptrn_token_array_ptr_idx = -1;
 static int8_t * this_effect_ptr = &led_effect_varmem[0];
 static int8_t   this_ring = 0; // from ring_6 (value 0, outer ring) to ring_1 (value 5,  inner ring (one LED)
 static int8_t   this_qrtr = 0; // from qrtr_1 (value 0) to qrtr_4 (value 3), count modulo in either direction
-static uint32_t radar_preserve_cells[3] = {0, 0, 0}; // bitmask where preserve LEDs are for STEP2_RADAR_FROM_SHDW1_FRGND
-static uint32_t bitmsk32; // used to pick out the bit in radar_preserve_cells
-static uint8_t  idx_bitmsk32; // index to which array member for radar_preserve_cells
+static uint32_t radar_xray_bitmask[3] = {0, 0, 0}; // bitmask where X-Ray LEDs are for STEP2_RADAR_FROM_SHDW1_FRGND
+static uint32_t bitmsk32; // used to pick out the bit in radar_xray_bitmask
+static uint8_t  idx_bitmsk32; // index to which array member for radar_xray_bitmask
 
 
 #define NO_BUTTON_PRESS -1 // when no input from user
@@ -976,48 +976,48 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
       DEBUG_PRINT((int16_t) this_ptrn_token)
       if (STEP2_RADAR_FROM_SHDW1_FRGND == this_ptrn_token) {
         DEBUG_PRINTLN(F(" ... Preserve Exploration Loop"))
-        // set a bit for each cell we will "preserve" or fade slower
-        radar_preserve_cells[0] = radar_preserve_cells[1] = radar_preserve_cells[2] = 0;
-        bitmsk32 = 1; // used to pick bit within radar_preserve_cells
-        idx_bitmsk32 = 0; // location in radar_preserve_cells
+        // set a bit for each cell we will "X-Ray" or fade slower
+        radar_xray_bitmask[0] = radar_xray_bitmask[1] = radar_xray_bitmask[2] = 0;
+        bitmsk32 = 1; // used to pick bit within radar_xray_bitmask
+        idx_bitmsk32 = 0; // location in radar_xray_bitmask
         for (theLED = 0; theLED < NUM_LEDS_PER_DISK; theLED++){
-          if (led_display[TARGET_SHDW1+theLED] == foreground) { radar_preserve_cells[idx_bitmsk32] |= bitmsk32; }
+          if (led_display[TARGET_SHDW1+theLED] == foreground) { radar_xray_bitmask[idx_bitmsk32] |= bitmsk32; }
           bitmsk32 <<= 1;
           if (0 == bitmsk32) {
             idx_bitmsk32 += 1;
             bitmsk32 = 1;
             if (idx_bitmsk32 > 2) { // should never get here
-              DEBUG_ERRORS_PRINTLN(F("   OVERFLOW ERROR IN STEP2_RADAR_FROM_SHDW1_FRGND loop to make bitmask for preserve cells"))
+              DEBUG_ERRORS_PRINTLN(F("   OVERFLOW ERROR IN STEP2_RADAR_FROM_SHDW1_FRGND loop to make bitmask for X-Ray cells"))
               return(__LINE__);
             } // end if something went horribly wrong
           } // end if need to cross bitmsk32 boundary
           // if ((0 == theLED) || ((29 <= theLED) && (34 > theLED))) { DEBUG_ERRORS_PRINT(F("   bitmsk32 info post increment. theLED=")) DEBUG_ERRORS_PRINT((uint16_t) theLED) DEBUG_ERRORS_PRINT(F(" idx_bitmsk32=")) DEBUG_ERRORS_PRINT((uint16_t) idx_bitmsk32) DEBUG_ERRORS_PRINT(F(" bitmsk32=")) DEBUG_ERRORS_PRINTLN((uint32_t) bitmsk32) } // end if debugging bitmask
-        } // end loop to make bitmask for preserve cells
-        // DEBUG_ERRORS_PRINT(F("   bitmsk32[0]=")) DEBUG_ERRORS_PRINT((uint32_t) radar_preserve_cells[0]) DEBUG_ERRORS_PRINT(F("  bitmsk32[1]=")) DEBUG_ERRORS_PRINT((uint32_t) radar_preserve_cells[1]) DEBUG_ERRORS_PRINT(F("  bitmsk32[2]=")) DEBUG_ERRORS_PRINTLN((uint32_t) radar_preserve_cells[2])
-      } // end if need to make bitmask for preserve cells
+        } // end loop to make bitmask for X-Ray cells
+        // DEBUG_ERRORS_PRINT(F("   bitmsk32[0]=")) DEBUG_ERRORS_PRINT((uint32_t) radar_xray_bitmask[0]) DEBUG_ERRORS_PRINT(F("  bitmsk32[1]=")) DEBUG_ERRORS_PRINT((uint32_t) radar_xray_bitmask[1]) DEBUG_ERRORS_PRINT(F("  bitmsk32[2]=")) DEBUG_ERRORS_PRINTLN((uint32_t) radar_xray_bitmask[2])
+      } // end if need to make bitmask for X-Ray cells
       DEBUG_PRINTLN(F(" ... Radar Loop"))
       for (tmp_idx = 0; tmp_idx < leds_per_ring[0]; tmp_idx++) {
         // tmp_idx is the LED index on the outer ring, from 0 to 31 inclusive
-        //  STEP2_RADAR_FROM_SHDW1_FRGND preserves foreground color; STEP2_RADAR_FROM_SHDW1 does not
+        //  STEP2_RADAR_FROM_SHDW1_FRGND X-Ray foreground color; STEP2_RADAR_FROM_SHDW1 does not
         if (STEP2_RADAR_FROM_SHDW1 == this_ptrn_token) {
           fadeToBlackBy(&led_display[TARGET_DSPLAY], NUM_LEDS_PER_DISK, 128); // last param is fade by x/256
         } // end if STEP2_RADAR_FROM_SHDW1
         else { // STEP2_RADAR_FROM_SHDW1_FRGND
-          bitmsk32 = 1; // used to pick bit within radar_preserve_cells
-          idx_bitmsk32 = 0; // location in radar_preserve_cells
+          bitmsk32 = 1; // used to pick bit within radar_xray_bitmask
+          idx_bitmsk32 = 0; // location in radar_xray_bitmask
           for (theLED = 0; theLED < NUM_LEDS_PER_DISK; theLED++){
-            if (0 != (radar_preserve_cells[idx_bitmsk32] & bitmsk32)) { led_display[TARGET_DSPLAY+theLED].fadeToBlackBy(8); } // DEBUG_ERRORS_PRINT(F("  prsrvLED=")) DEBUG_ERRORS_PRINT((uint16_t) theLED) DEBUG_ERRORS_PRINT(F(" idx_bitmsk32=")) DEBUG_ERRORS_PRINT((uint16_t) idx_bitmsk32) DEBUG_ERRORS_PRINT(F(" bitmsk32=")) DEBUG_ERRORS_PRINT((uint32_t) bitmsk32)}
+            if (0 != (radar_xray_bitmask[idx_bitmsk32] & bitmsk32)) { led_display[TARGET_DSPLAY+theLED].fadeToBlackBy(8); } // DEBUG_ERRORS_PRINT(F("  prsrvLED=")) DEBUG_ERRORS_PRINT((uint16_t) theLED) DEBUG_ERRORS_PRINT(F(" idx_bitmsk32=")) DEBUG_ERRORS_PRINT((uint16_t) idx_bitmsk32) DEBUG_ERRORS_PRINT(F(" bitmsk32=")) DEBUG_ERRORS_PRINT((uint32_t) bitmsk32)}
             else                                                    { led_display[TARGET_DSPLAY+theLED].fadeToBlackBy(128); }
             bitmsk32 <<= 1;
             if (0 == bitmsk32) {
               idx_bitmsk32 += 1;
               bitmsk32 = 1;
               if (idx_bitmsk32 > 2) { // should never get here
-                DEBUG_ERRORS_PRINTLN(F("   OVERFLOW ERROR IN STEP2_RADAR_FROM_SHDW1_FRGND loop to use preserve cells"))
+                DEBUG_ERRORS_PRINTLN(F("   OVERFLOW ERROR IN STEP2_RADAR_FROM_SHDW1_FRGND loop to use X-Ray cells"))
                 return(__LINE__);
               } // end if something went horribly wrong
             } // end if need to cross bitmsk32 boundary
-          } // end loop to make bitmask for preserve cells
+          } // end loop to make bitmask for X-Ray cells
         } // end if STEP2_RADAR_FROM_SHDW1_FRGND
         led_display[TARGET_DSPLAY+NUM_LEDS_PER_DISK-1] = CRGB::Red; // center
         led_display[TARGET_DSPLAY+tmp_idx] = CRGB::Red; // outer ring
