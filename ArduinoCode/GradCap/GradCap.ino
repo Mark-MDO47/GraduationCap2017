@@ -1025,11 +1025,13 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
         led_display[TARGET_DSPLAY+theLED] = led_display[TARGET_SHDW1+theLED];
         for (this_ring = 1; this_ring < NUM_RINGS_PER_DISK-1; this_ring++) {
           // currently we do a trailing inner ring based on first LED that would have any fractional brightness
+          // first draw the red line of the radar sweep
           tmp_calc = (uint16_t)radar_adv_per_LED_per_ring[this_ring] * tmp_idx / 256; // not same as above - / 256
           theLED = tmp_calc + start_per_ring[this_ring]; // this is the lowest LED idx this ring
           led_display[TARGET_DSPLAY+theLED] = CRGB::Red;
+          // now draw just behind it (where previous red line was) with contents of shadow1
+          // inner rings move slower so we start them at a lower light level using blend
           tmp_calc = (tmp_calc + leds_per_ring[this_ring] - 1) % leds_per_ring[this_ring] + start_per_ring[this_ring]; // backup one LED
-          // inner rings move slower so we start them at a lower light level
           led_display[TARGET_DSPLAY+tmp_calc] = blend(CRGB::Black, led_display[TARGET_SHDW1+tmp_calc], leds_per_ring[this_ring]*7); // 32 leds * 8 would be 256 but our largest is 24 so no need for uint16_t
         } // end RADAR for this_ring
         if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__);
