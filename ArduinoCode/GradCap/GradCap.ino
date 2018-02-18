@@ -1039,8 +1039,8 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
         // tmp_idx is the LED index on the outer ring, from 0 to 31 inclusive
         //  STEP2_RADAR_XRAY_SHDW1 X-Ray foreground color; STEP2_RADAR_FROM_SHDW1 does not
         // First we fade previously drawn LEDs.
-        //   If STEP2_RADAR_FROM_SHDW1, they all fade uniformly because we cleared radar_xray_bitmask
-        //   If STEP2_RADAR_XRAY_SHDW1, the X-ray LEDs fade slower than the others
+        //   If STEP2_RADAR_FROM_SHDW1: they all fade uniformly because we cleared radar_xray_bitmask
+        //   If STEP2_RADAR_XRAY_SHDW1: the X-ray LEDs fade slower than the others
         bitmsk32 = 1; // used to pick bit within radar_xray_bitmask
         idx_bitmsk32 = 0; // location in radar_xray_bitmask
         for (theLED = 0; theLED < NUM_LEDS_PER_DISK; theLED++){
