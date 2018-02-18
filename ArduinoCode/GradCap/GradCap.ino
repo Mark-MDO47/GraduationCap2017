@@ -298,6 +298,9 @@ CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS_PER_DISK]; // 1st set is for display, 
 #define TARGET_SHDW1               ((uint16_t) NUM_LEDS_PER_DISK) // target or DRAW is SHADOW1 LEDs
 // #define TARGET_SHDW2               ((uint16_t) NUM_LEDS_PER_DISK*2) // target or DRAW is SHADOW2 LEDs --- NOT ENOUGH ROOM
 
+// some radar functions that are useful in other areas
+#define RADAR_LED_CORRESPONDING_MIDDLE_RING(OUTER_LED, THIS_RING) ((uint16_t)radar_adv_per_LED_per_ring[THIS_RING]) * OUTER_LED / 256 + start_per_ring[THIS_RING]
+
 const int8_t ptrnOff[]      = { SUPRSPCL_STOP_WHEN_DONE, SPCL_DRAW_BKGD_CLR_BLACK, SUPRSPCL_SKIP_STEP2, SUPRSPCL_SKIP_STEP1, SUPRSPCL_END_OF_PTRNS };
 const int8_t ptrnJustDraw[] = { SPCL_DRAW_BKGD_CLR_BKGND, SUPRSPCL_SKIP_STEP2, PER_LED_DRAW_BLNKING, PER_LED_DRAW_FORE, SUPRSPCL_END_OF_PTRNS };
 const int8_t ptrnJustWideDraw[] = { SPCL_DRAW_BKGD_CLR_BKGND, SUPRSPCL_SKIP_STEP2, PER_LED_DRAW_BLNKING_SRND_ALL, PER_LED_DRAW_FORE_LTR_ALL, SUPRSPCL_END_OF_PTRNS };
@@ -1035,30 +1038,28 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
       for (tmp_idx = 0; tmp_idx < leds_per_ring[0]; tmp_idx++) {
         // tmp_idx is the LED index on the outer ring, from 0 to 31 inclusive
         //  STEP2_RADAR_XRAY_SHDW1 X-Ray foreground color; STEP2_RADAR_FROM_SHDW1 does not
-        if (STEP2_RADAR_FROM_SHDW1 == this_ptrn_token) {
-          fadeToBlackBy(&led_display[TARGET_DSPLAY], NUM_LEDS_PER_DISK, 128); // last param is fade by x/256
-        } // end if STEP2_RADAR_FROM_SHDW1
-        else { // STEP2_RADAR_XRAY_SHDW1
-          bitmsk32 = 1; // used to pick bit within radar_xray_bitmask
-          idx_bitmsk32 = 0; // location in radar_xray_bitmask
-          for (theLED = 0; theLED < NUM_LEDS_PER_DISK; theLED++){
-            if (0 != (radar_xray_bitmask[idx_bitmsk32] & bitmsk32)) { led_display[TARGET_DSPLAY+theLED].fadeToBlackBy(8); } // DEBUG_ERRORS_PRINT(F("  prsrvLED=")) DEBUG_ERRORS_PRINT((uint16_t) theLED) DEBUG_ERRORS_PRINT(F(" idx_bitmsk32=")) DEBUG_ERRORS_PRINT((uint16_t) idx_bitmsk32) DEBUG_ERRORS_PRINT(F(" bitmsk32=")) DEBUG_ERRORS_PRINT((uint32_t) bitmsk32)}
-            else                                                    { led_display[TARGET_DSPLAY+theLED].fadeToBlackBy(128); }
-            bitmsk32 <<= 1;
-            if (0 == bitmsk32) {
-              idx_bitmsk32 += 1;
-              bitmsk32 = 1;
-              if (idx_bitmsk32 > 2) { // should never get here
-                DEBUG_ERRORS_PRINTLN(F("   OVERFLOW ERROR IN STEP2_RADAR_XRAY_SHDW1 loop to use X-Ray cells"))
-                return(__LINE__);
-              } // end if something went horribly wrong
-            } // end if need to cross bitmsk32 boundary
-          } // end loop to make bitmask for X-Ray cells
-        } // end if STEP2_RADAR_XRAY_SHDW1
-        led_display[TARGET_DSPLAY+NUM_LEDS_PER_DISK-1] = CRGB::Red; // center
+        // First we fade previously drawn LEDs.
+        //   If STEP2_RADAR_FROM_SHDW1, they all fade uniformly because we cleared radar_xray_bitmask
+        //   If STEP2_RADAR_XRAY_SHDW1, the X-ray LEDs fade slower than the others
+        bitmsk32 = 1; // used to pick bit within radar_xray_bitmask
+        idx_bitmsk32 = 0; // location in radar_xray_bitmask
+        for (theLED = 0; theLED < NUM_LEDS_PER_DISK; theLED++){
+          if (0 != (radar_xray_bitmask[idx_bitmsk32] & bitmsk32)) { led_display[TARGET_DSPLAY+theLED].fadeToBlackBy(32); }
+          else                                                    { led_display[TARGET_DSPLAY+theLED].fadeToBlackBy(128); }
+          bitmsk32 <<= 1;
+          if (0 == bitmsk32) {
+            idx_bitmsk32 += 1;
+            bitmsk32 = 1;
+          } // end if need to cross bitmsk32 boundary
+        } // end loop to fade all previously drawn LEDs
+        // Next we draw the red line using the outer LED as a guide.
+        //   For each ring (except center) we put a version of what was in SHDW1 previous to the red line we just drew.
+        //   Outer and center rings are the simplest cases; do them first
+        led_display[TARGET_DSPLAY+NUM_LEDS_PER_DISK-1] = CRGB::Red; // center special case - no "previous" LED
         led_display[TARGET_DSPLAY+tmp_idx] = CRGB::Red; // outer ring
-        theLED = (tmp_idx + leds_per_ring[0] - 1) % leds_per_ring[0];  // backup one LED
-        led_display[TARGET_DSPLAY+theLED] = led_display[TARGET_SHDW1+theLED];
+        theLED = (tmp_idx + leds_per_ring[0] - 1) % leds_per_ring[0];  // outer ring previous LED
+        led_display[TARGET_DSPLAY+theLED] = led_display[TARGET_SHDW1+theLED]; // outer ring copy from SHDW1
+        // Red line for Outer and Center are drawn; now handle middle rings
         for (this_ring = 1; this_ring < NUM_RINGS_PER_DISK-1; this_ring++) {
           // currently we do a trailing inner ring based on first LED that would have any fractional brightness
           // first draw the red line of the radar sweep
@@ -1072,7 +1073,7 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
         } // end RADAR for this_ring
         if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__);
       } // end RADAR for LED idx outer disk
-    } // end STEP2_RADAR_FROM_SHDW1 for LED idx outer disk
+    } // end STEP2_RADAR_FROM_SHDW1 or STEP2_RADAR_XRAY_SHDW1 for LED idx outer disk
     else if ((this_ptrn_token <= STEP2_FADEDISK2_CLR_LARGEST) && (this_ptrn_token >= STEP2_FADEDISK2_CLR_SMALLEST)) {
       DEBUG_PRINTLN(F("   ...processing STEP2_FADEDISK2_CLRxxx"))
       DEBUG_PRINT(F(" this_ptrn_token: "))
