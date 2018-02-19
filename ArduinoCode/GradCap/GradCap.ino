@@ -64,8 +64,8 @@
 #define NUM_SHADOWS 1  // number of shadow disks
 
 // LED count - number of LEDs in each ring in order of serial access
-const uint8_t  leds_per_ring[NUM_RINGS_PER_DISK]  = { 32, 24, 16, 12,  8,  1 };
-const uint8_t  leds_per_ringqrtr[NUM_RINGS_PER_DISK]  = { 8, 6, 4, 3,  2,  1 };
+const uint8_t  leds_per_ring[NUM_RINGS_PER_DISK]  = { 32, 24, 16, 12, 8, 1 };
+const uint8_t  leds_per_ringqrtr[NUM_RINGS_PER_DISK]  = { 8, 6, 4, 3, 2, 1 };
 const uint8_t  start_per_ring[NUM_RINGS_PER_DISK] = {  0, 32, 56, 72, 84, 92 };
 const uint8_t  radar_adv_per_LED_per_ring[NUM_RINGS_PER_DISK] = { 0, 192, 128, 96, 64, 0 };
 
@@ -153,7 +153,7 @@ CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS_PER_DISK]; // 1st set is for display, 
 //   SUPRSPCL_DRWTRGT_* sets the draw_target to shadow1 or display LEDs.
 //       This can be non-sticky (applies only to next pattern token) or sticky
 //
-// STEP2 items do not use the "letter|shape" directly
+// STEP2 items do not USUALLY use the "letter|shape" directly (but STEP2_RADAR_XRAYMSK_OR_SHAPE does)
 // the "DRAW" series makes sense to do either on shadow or on display LEDs
 //   STEP2_DRAW_RING_* draws a ring
 //      STEP2_SET_RING_* sets which ring: ring_6 is outer ring and ring_1 is inner ring with just one LED
@@ -260,6 +260,8 @@ CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS_PER_DISK]; // 1st set is for display, 
 #define STEP2_CPY_DSPLY_2_SHDW1        -100 // copy display to shadow 1, step 2
 #define STEP2_CPY_SHDW1_2_DSPLY        -101 // copy shadow 1 to display, step 2
 
+#define STEP2_HAUNTED_FROM_SHDW1       -102 // Haunted effect from SHDW1
+
 
 #define SPCL_DRAW_BKGD_CLR_BLACK          90 // SPECIAL: set all LEDs to black
 #define SPCL_DRAW_BKGD_CLR_FRGND          91 // SPECIAL: set all LEDs to foreground color
@@ -331,6 +333,7 @@ const int8_t ptrnRingDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1,
 
 const int8_t ptrnDownTheDrain[] = { SUPRSPCL_SKIP_STEP1, STEP2_DRAIN_DOWN_CLR_BLACK, SUPRSPCL_END_OF_PTRNS };
 const int8_t ptrnUpTheDrain[] =   { SUPRSPCL_SKIP_STEP1, STEP2_DRAIN_UP_CLR_BLACK,   SUPRSPCL_END_OF_PTRNS };
+const int8_t ptrnHaunted[] =      { SUPRSPCL_SKIP_STEP1, STEP2_CPY_DSPLY_2_SHDW1, STEP2_HAUNTED_FROM_SHDW1, SUPRSPCL_END_OF_PTRNS };
 
 // const int8_t ptrnRadarFromShdw1[] = { SUPRSPCL_SKIP_STEP1, STEP2_RADAR_XRAYMSK_CLEAR, STEP2_RADAR_XRAYMSK_OR_SHDW1_FRGND, STEP2_RADAR_FROM_SHDW1, SUPRSPCL_END_OF_PTRNS };
 // const int8_t ptrnRadarFrgndFromShdw1[] = { SUPRSPCL_SKIP_STEP1, STEP2_RADAR_XRAYMSK_CLEAR, STEP2_RADAR_XRAYMSK_OR_SHDW1_FRGND, STEP2_RADAR_XRAY_SHDW1, SUPRSPCL_END_OF_PTRNS };
@@ -371,12 +374,11 @@ static int8_t   count_of_ltr_ptr = -1;
 static int8_t   count_of_this_effect_ptr = -1;
 static int8_t   ptrn_token_array_ptr_idx = -1;
 static int8_t * this_effect_ptr = &led_effect_varmem[0];
-static int8_t   this_ring = 0; // from ring_6 (value 0, outer ring) to ring_1 (value 5,  inner ring (one LED)
+static int8_t   this_ring = 0; // from ring_6 (value 0, outer ring) to ring_1 (value 5, inner ring (one LED)
 static int8_t   this_qrtr = 0; // from qrtr_1 (value 0) to qrtr_4 (value 3), count modulo in either direction
 static uint32_t radar_xray_bitmask[3] = {0, 0, 0}; // bitmask where X-Ray LEDs are for STEP2_RADAR_XRAY_SHDW1
 static uint32_t bitmsk32; // used to pick out the bit in radar_xray_bitmask
 static uint8_t  idx_bitmsk32; // index to which array member for radar_xray_bitmask
-
 
 #define NO_BUTTON_PRESS -1 // when no input from user
 #define NO_BUTTON_CHANGE -1 // when no CHANGE in input from user
@@ -466,6 +468,10 @@ void doPattern() {
        save_return = doPatternDraw(10, ltr_P, ptrnJustWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__);
        save_return = doPatternDraw(10, ltr_Y, ptrnUpTheDrain, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       // DEBUG2_RETURN(save_return, __LINE__);
+       save_return = doPatternDraw(10, ltr_Y, ptrnJustWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       // DEBUG2_RETURN(save_return, __LINE__);
+       save_return = doPatternDraw(10, ltr_Y, ptrnHaunted, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__);
        break;
     case 3: // 3 = draw rings
@@ -979,6 +985,42 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
         led_display[TARGET_DSPLAY+theLED] = led_display[TARGET_SHDW1+theLED];
       } // end copy loop
     } // end STEP2_CPY_SHDW1_2_DSPLY
+    else if (STEP2_HAUNTED_FROM_SHDW1 == this_ptrn_token) {
+      static CRGB tmp_color;
+      DEBUG_PRINTLN(F(" ... HAUNTED animation"))
+      for (tmp_idx = 0; tmp_idx < 40; tmp_idx++) {
+        switch (random8()/64) {
+          case 0:
+            tmp_color = foreground;
+            break;
+          case 1:
+            tmp_color = background;
+            break;
+          case 2:
+            tmp_color = blinking;
+            break;
+          case 3:
+            tmp_color = CRGB::Black;
+          default:
+            break;
+        } // end random choice of color
+        fill_solid(&led_display[draw_target], NUM_LEDS_PER_DISK, CRGB::Black);
+        for (theLED = 0; theLED < NUM_LEDS_PER_DISK; theLED++){
+          if (led_display[TARGET_SHDW1+theLED] == tmp_color) { led_display[TARGET_DSPLAY+theLED] = tmp_color; }
+        } // end fill display with haunted color
+        if (doPtrnShowDwell(draw_target,random8(),__LINE__)) return(__LINE__);
+        fill_solid(&led_display[draw_target], NUM_LEDS_PER_DISK, CRGB::Black);
+        if (doPtrnShowDwell(draw_target,random8(),__LINE__)) return(__LINE__);
+        if (random8() < 128) { // sometimes do double-blink
+          for (theLED = 0; theLED < NUM_LEDS_PER_DISK; theLED++){
+            if (led_display[TARGET_SHDW1+theLED] == tmp_color) { led_display[TARGET_DSPLAY+theLED] = tmp_color; }
+          } // end fill display with haunted color
+          if (doPtrnShowDwell(draw_target,random8()/4,__LINE__)) return(__LINE__); // fast blink for double-blink
+          fill_solid(&led_display[draw_target], NUM_LEDS_PER_DISK, CRGB::Black);
+          if (doPtrnShowDwell(draw_target,random8(),__LINE__)) return(__LINE__);
+        }
+      } // end loop doing the haunt
+    } // end STEP2_HAUNTED_FROM_SHDW1
     else if (STEP2_RADAR_XRAYMSK_CLEAR == this_ptrn_token) {
       radar_xray_bitmask[0] = radar_xray_bitmask[1] = radar_xray_bitmask[2] = 0;
     } // end STEP2_RADAR_XRAYMSK_CLEAR
@@ -1036,7 +1078,7 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
       } // end if need to clear bitmask for X-Ray cells
       DEBUG_PRINTLN(F(" ... Radar Loop"))
       for (tmp_idx = 0; tmp_idx < leds_per_ring[0]; tmp_idx++) {
-        // tmp_idx is the LED index on the outer ring, from 0 to 31 inclusive
+        // tmp_idx is the LED index on the outer ring; from 0 to 31 inclusive
         //  STEP2_RADAR_XRAY_SHDW1 X-Ray foreground color; STEP2_RADAR_FROM_SHDW1 does not
         // First we fade previously drawn LEDs.
         //   If STEP2_RADAR_FROM_SHDW1: they all fade uniformly because we cleared radar_xray_bitmask
