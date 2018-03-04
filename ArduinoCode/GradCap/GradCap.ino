@@ -154,6 +154,8 @@ CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS_PER_DISK]; // 1st set is for display, 
 //   SUPRSPCL_SKIP_STEP1 or SUPRSPCL_SKIP_STEP2 can be used to speed up processing If there are no more step1 or step2 tokens in the pattern
 //   SUPRSPCL_DRWTRGT_* sets the draw_target to shadow1 or display LEDs.
 //       This can be non-sticky (applies only to next pattern token) or sticky
+//          in other words, if non-sticky then next pattern-tocken reverts to draw on DSPLY
+//                          if sticky then next pattern-tocken continues to draw where this says until another SUPRSPCL_DRWTRGT_*
 //
 // STEP2 items do not USUALLY use the "letter|shape" directly (but STEP2_RADAR_XRAYMSK_OR_SHAPE does)
 // the "DRAW" series makes sense to do either on shadow or on display LEDs
