@@ -14,7 +14,8 @@
 // uses Mokungit 93 Leds WS2812B WS2812 5050 RGB LED Ring Lamp Light with Integrated Drivers
 //    https://smile.amazon.com/gp/product/B01EUAKLT0/ref=oh_aui_detailpage_o01_s00?ie=UTF8&psc=1
 //
-// Here is a (somewhat) spec on the 2812b LEDs https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf
+// Here is a (somewhat) spec on the 2812b LEDs: https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf
+// Here is a Worldsemi WS2812B document for download: http://www.world-semi.com/solution/list-4-1.html#108
 //
 // Kudos to Daniel Garcia and Mark Kriegsman for the FANTASTIC Arduino FastLED library and examples!!!
 //    https://github.com/FastLED/FastLED
@@ -40,6 +41,7 @@
 // connections:
 //    Data Pin 3 is used for serial communications with the LEDs
 //    Data Pins 4-9 are used for pushbuttons 1-6 to choose pattern. Pattern 1 is OFF
+//    Data Pins 11-12 are used for synchronizing with the other Arduinos. 11 is "IAMSYNC"; 12 is "ALLSYNC" input
 // 
 // Recommendations -  ;^)
 //    Before connecting the WS2812 to a power source, connect a big capacitor from power to ground.
@@ -47,6 +49,7 @@
 //      Electrolytic Decoupling Capacitors 
 //    Placing a small-ish resistor between your Arduino's data output and the WS2812's data input will help protect the data pin. A resistor between 220 and 470 O should do nicely. Try to place the resistor as close to the WS2812 as possible.
 //    Keep Wires Short!
+//    https://github.com/FastLED/FastLED/wiki/Wiring-leds
 //
 //
 // letters and shapes
