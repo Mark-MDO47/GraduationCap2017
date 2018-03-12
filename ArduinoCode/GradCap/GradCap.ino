@@ -94,9 +94,10 @@ const uint8_t  radar_adv_per_LED_per_ring[NUM_RINGS_PER_DISK] = { 0, 192, 128, 9
 
 #define DEBUG 1 // 1 = debug thru serial port, 0 = no debug
 #define DEBUG2 0 // 1 = debug thru serial port, 0 = no debug
-// #define DEBUG_LED_DISPLAY 1
+
+#define DEBUG_LED_DISPLAY 1
 #ifdef DEBUG_LED_DISPLAY
-#define LED_DISPLAY(PARMS)
+#define LED_DISPLAY(PARMS) debug_led_display(PARMS,"PARMS",__LINE__);
 #else // not DEBUG_LED_DISPLAY
 #define LED_DISPLAY(PARMS)
 #endif // not DEBUG_LED_DISPLAY
@@ -468,6 +469,20 @@ void loop() {
 // ******************************** UTILITIES ********************************
 
 
+#ifdef DEBUG_LED_DISPLAY
+void debug_led_display(int32_t index,char * str_index, int line_num){
+  if ((index < 0) || (index >= NUM_LEDS_PER_DISK*(1+NUM_SHADOWS))) {
+    Serial.print(F("debug_led_display line="));
+    Serial.print(line_num);
+    Serial.print(F(" index="));
+    Serial.print(str_index);
+    Serial.print(F(" out-of-range value="));
+    Serial.println(index);
+    delay(2000); // for debugging & show
+  }
+} // end debug_led_display()
+#endif DEBUG_LED_DISPLAY
+
 // checkDataGuard()
 void checkDataGuard() {
   if ((0x55555555 != data_guard_before) || (0x55555555 != data_guard_after)) {
@@ -513,9 +528,9 @@ void doPattern() {
        // DEBUG2_RETURN(save_return, __LINE__);
        save_return = doPatternDraw(10, ltr_P, ptrnUpTheDrainIn, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__);
-       save_return = doPatternDraw(10, ltr_Y, ptrnJustWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       // save_return = doPatternDraw(10, ltr_Y, ptrnJustWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__);
-       save_return = doPatternDraw(10, ltr_Y, ptrnHaunted, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       // save_return = doPatternDraw(10, ltr_Y, ptrnHaunted, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__);
        break;
     case 3: // 3 = draw rings
