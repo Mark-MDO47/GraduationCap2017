@@ -51,7 +51,7 @@ prjcap_mount_overlap = 4;
 prjcap_mount_armwidth = 4;
 prjcap_mount_armwidth_div2 = prjcap_mount_armwidth/2; // this gets used a lot
 
-// prjcap_stick(x) - makes a rounded stick of lenght x millimeters on the x axis
+// prjcap_stick(x) - makes a rounded stick of length x millimeters on the x axis
 module prjcap_stick(x) {
    roundCornersCube(x,prjcap_mount_armwidth,prjcap_mount_armwidth_div2, prjcap_mount_armwidth_div2);
 }  // end prjcap_stick
