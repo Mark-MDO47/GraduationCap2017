@@ -47,6 +47,22 @@ prjhng_hook_inner_radius = 12; // hook
 prjhang_thickness_frame = 3;
 prjhang_thickness_cutout = 4;
 
+prjhang_btn_deep = prjhang_thickness_frame;
+prjhang_btn_square = 6;
+prjhang_btn_landing_long = 6.5;
+prjhang_btn_landing_short = 4.5;
+prjhang_btn_outer_long = 7.75; // includes bending of legs
+
+module prjhngr_btn() {
+    union() {
+        cube([prjhang_btn_square,prjhang_btn_square,prjhang_btn_deep], true);
+        translate([prjhang_btn_landing_long/2,prjhang_btn_landing_short/2,-prjhang_btn_deep]) cylinder(h=2*prjhang_btn_deep,d1=1,d2=1);
+        translate([-prjhang_btn_landing_long/2,prjhang_btn_landing_short/2,-prjhang_btn_deep]) cylinder(h=2*prjhang_btn_deep,d1=1,d2=1);
+        translate([prjhang_btn_landing_long/2,-prjhang_btn_landing_short/2,-prjhang_btn_deep]) cylinder(h=2*prjhang_btn_deep,d1=1,d2=1);
+        translate([-prjhang_btn_landing_long/2,-prjhang_btn_landing_short/2,-prjhang_btn_deep]) cylinder(h=2*prjhang_btn_deep,d1=1,d2=1);
+    }
+}  // end prjhngr_btn()
+
 module prjhngr_hook_roundoff() {
     difference() {
         roundCornersCube(prjhng_hook_length,prjhng_hook_width/2,prjhang_thickness_cutout, prjhng_hook_width/2);
@@ -72,6 +88,13 @@ module prjhngr_frame() {
             rotate(a=[180,0,0]) translate([+(prjhngr_elect/2-prjhng_hook_length/2+2*prjhng_hook_inner_radius), -(prjhngr_side/2+prjhng_hook_inner_radius),0]) prjhngr_hook();
         } // end main union()
     } // end main difference()
-}  // end prjhngr_oneframe
+}  // end prjhngr_frame()
 
-prjhngr_frame();
+module prjhngr() {
+    difference() {
+        prjhngr_frame();
+        translate([0,0,1]) prjhngr_btn();
+    }
+}  // end prjhngr()
+
+prjhngr();
