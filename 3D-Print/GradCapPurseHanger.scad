@@ -53,6 +53,9 @@ prjhang_btn_landing_long = 6.5;
 prjhang_btn_landing_short = 4.5;
 prjhang_btn_outer_long = 7.75; // includes bending of legs
 
+// ellipse: x^2/1^2 + y^2/2^2 = 1
+// intersect: 
+
 module prjhngr_btn() {
     union() {
         cube([prjhang_btn_square,prjhang_btn_square,prjhang_btn_deep], true);
