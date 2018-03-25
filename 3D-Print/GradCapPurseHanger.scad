@@ -100,4 +100,12 @@ module prjhngr() {
     }
 }  // end prjhngr()
 
-prjhngr();
+module prjtest() {
+    difference() {
+        roundCornersCube(20,20,3, 2);
+        translate([0,0,1]) prjhngr_btn();
+    }
+}
+
+// prjhngr();
+prjtest();
