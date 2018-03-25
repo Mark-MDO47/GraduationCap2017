@@ -528,9 +528,9 @@ void doPattern() {
        // DEBUG2_RETURN(save_return, __LINE__);
        save_return = doPatternDraw(10, ltr_P, ptrnUpTheDrainIn, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__);
-       // save_return = doPatternDraw(10, ltr_Y, ptrnJustWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(10, ltr_Y, ptrnJustWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__);
-       // save_return = doPatternDraw(10, ltr_Y, ptrnHaunted, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(10, ltr_Y, ptrnHaunted, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__);
        break;
     case 3: // 3 = draw rings
