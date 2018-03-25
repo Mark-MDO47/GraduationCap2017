@@ -64,28 +64,29 @@ module prjcap_stick(x) {
 // prjcap_oneframe() - makes a frame for one LED disk centered at 0,0,prjcap_mount_height
 //    the WIDE dimension spans the Y axis, the NARROW dimension spans the X axis
 module prjcap_oneframe() {
-   translate([0,0,-prjcap_mount_height-prjcap_mount_armwidth_div2/2]) union() {
-
-      // here for the main structure - an "X" in a box
-      translate([0,-prjcap_leddisk_wid/2,prjcap_mount_height]) prjcap_stick(prjcap_leddisk_nrw+prjcap_mount_overlap);
-      translate([0,+prjcap_leddisk_wid/2,prjcap_mount_height]) prjcap_stick(prjcap_leddisk_nrw+prjcap_mount_overlap);
-      translate([+prjcap_leddisk_nrw/2,0,prjcap_mount_height]) rotate([0,0,90])prjcap_stick(prjcap_leddisk_wid+prjcap_mount_overlap);
-      translate([-prjcap_leddisk_nrw/2,0,prjcap_mount_height]) rotate([0,0,90])prjcap_stick(prjcap_leddisk_wid+prjcap_mount_overlap);
-      translate([0,0,prjcap_mount_height])rotate([0,0,+prjcap_leddisk_diag_angle])prjcap_stick(prjcap_leddisk_diag);
-      translate([0,0,prjcap_mount_height])rotate([0,0,-prjcap_leddisk_diag_angle])prjcap_stick(prjcap_leddisk_diag);
-
-      // now for the four mounting cylindars
-      translate([+prjcap_leddisk_nrw/2,+prjcap_leddisk_wid/2,prjcap_mount_height_plus/2]) roundCornersCube(prjcap_mount_overlap,prjcap_mount_overlap,prjcap_mount_height_plus, prjcap_mount_armwidth_div2);
-      translate([+prjcap_leddisk_nrw/2,-prjcap_leddisk_wid/2,prjcap_mount_height_plus/2]) roundCornersCube(prjcap_mount_overlap,prjcap_mount_overlap,prjcap_mount_height_plus, prjcap_mount_armwidth_div2);
-      translate([-prjcap_leddisk_nrw/2,+prjcap_leddisk_wid/2,prjcap_mount_height_plus/2]) roundCornersCube(prjcap_mount_overlap,prjcap_mount_overlap,prjcap_mount_height_plus, prjcap_mount_armwidth_div2);
-      translate([-prjcap_leddisk_nrw/2,-prjcap_leddisk_wid/2,prjcap_mount_height_plus/2]) roundCornersCube(prjcap_mount_overlap,prjcap_mount_overlap,prjcap_mount_height_plus, prjcap_mount_armwidth_div2);
-       
-      // now for the pins to go through the LED Disk holes
-      translate([+prjcap_leddisk_nrw/2,+prjcap_leddisk_wid/2,prjcap_mount_height_plus]) roundCornersCube(prjcap_leddisk_hol,prjcap_leddisk_hol,prjcap_mount_height_plus, prjcap_leddisk_hol/2);
-      translate([+prjcap_leddisk_nrw/2,-prjcap_leddisk_wid/2,prjcap_mount_height_plus]) roundCornersCube(prjcap_leddisk_hol,prjcap_leddisk_hol,prjcap_mount_height_plus, prjcap_leddisk_hol/2);
-      translate([-prjcap_leddisk_nrw/2,+prjcap_leddisk_wid/2,prjcap_mount_height_plus]) roundCornersCube(prjcap_leddisk_hol,prjcap_leddisk_hol,prjcap_mount_height_plus, prjcap_leddisk_hol/2);
-      translate([-prjcap_leddisk_nrw/2,-prjcap_leddisk_wid/2,prjcap_mount_height_plus]) roundCornersCube(prjcap_leddisk_hol,prjcap_leddisk_hol,prjcap_mount_height_plus, prjcap_leddisk_hol/2);
-   }
+    translate([0,0,-prjcap_mount_height-prjcap_mount_armwidth_div2/2]) {
+        difference() {
+            union() { // for structure
+                // here for the main structure - an "X" in a box
+                translate([0,-prjcap_leddisk_wid/2,prjcap_mount_height]) prjcap_stick(prjcap_leddisk_nrw+prjcap_mount_overlap);
+                translate([0,+prjcap_leddisk_wid/2,prjcap_mount_height]) prjcap_stick(prjcap_leddisk_nrw+prjcap_mount_overlap);
+                translate([+prjcap_leddisk_nrw/2,0,prjcap_mount_height]) rotate([0,0,90])prjcap_stick(prjcap_leddisk_wid+prjcap_mount_overlap);
+                translate([-prjcap_leddisk_nrw/2,0,prjcap_mount_height]) rotate([0,0,90])prjcap_stick(prjcap_leddisk_wid+prjcap_mount_overlap);
+                translate([0,0,prjcap_mount_height])rotate([0,0,+prjcap_leddisk_diag_angle])prjcap_stick(prjcap_leddisk_diag);
+                translate([0,0,prjcap_mount_height])rotate([0,0,-prjcap_leddisk_diag_angle])prjcap_stick(prjcap_leddisk_diag);
+                // now for the four mounting cylindars
+                translate([+prjcap_leddisk_nrw/2,+prjcap_leddisk_wid/2,prjcap_mount_height_plus/2]) roundCornersCube(prjcap_mount_overlap,prjcap_mount_overlap,prjcap_mount_height_plus, prjcap_mount_armwidth_div2);
+                translate([+prjcap_leddisk_nrw/2,-prjcap_leddisk_wid/2,prjcap_mount_height_plus/2]) roundCornersCube(prjcap_mount_overlap,prjcap_mount_overlap,prjcap_mount_height_plus, prjcap_mount_armwidth_div2);
+                translate([-prjcap_leddisk_nrw/2,+prjcap_leddisk_wid/2,prjcap_mount_height_plus/2]) roundCornersCube(prjcap_mount_overlap,prjcap_mount_overlap,prjcap_mount_height_plus, prjcap_mount_armwidth_div2);
+                translate([-prjcap_leddisk_nrw/2,-prjcap_leddisk_wid/2,prjcap_mount_height_plus/2]) roundCornersCube(prjcap_mount_overlap,prjcap_mount_overlap,prjcap_mount_height_plus, prjcap_mount_armwidth_div2);
+            }   // end union() for structure
+                // now for the holes for pins to go through the LED Disk holes
+            translate([+prjcap_leddisk_nrw/2,+prjcap_leddisk_wid/2,prjcap_mount_height_plus]) roundCornersCube(prjcap_leddisk_hol,prjcap_leddisk_hol,prjcap_mount_height_plus, prjcap_leddisk_hol/2);
+            translate([+prjcap_leddisk_nrw/2,-prjcap_leddisk_wid/2,prjcap_mount_height_plus]) roundCornersCube(prjcap_leddisk_hol,prjcap_leddisk_hol,prjcap_mount_height_plus, prjcap_leddisk_hol/2);
+            translate([-prjcap_leddisk_nrw/2,+prjcap_leddisk_wid/2,prjcap_mount_height_plus]) roundCornersCube(prjcap_leddisk_hol,prjcap_leddisk_hol,prjcap_mount_height_plus, prjcap_leddisk_hol/2);
+            translate([-prjcap_leddisk_nrw/2,-prjcap_leddisk_wid/2,prjcap_mount_height_plus]) roundCornersCube(prjcap_leddisk_hol,prjcap_leddisk_hol,prjcap_mount_height_plus, prjcap_leddisk_hol/2);
+        }   // end difference() 
+    }   // end translate()
 }  // end prjcap_oneframe
 
 rotate(a=[180,0,0]) prjcap_oneframe();
