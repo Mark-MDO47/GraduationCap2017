@@ -59,10 +59,10 @@ prjhang_btn_outer_long = 7.75; // includes bending of legs
 module prjhngr_btn() {
     union() {
         cube([prjhang_btn_square,prjhang_btn_square,prjhang_btn_deep], true);
-        translate([prjhang_btn_landing_long/2,prjhang_btn_landing_short/2,-prjhang_btn_deep]) cylinder(h=2*prjhang_btn_deep,d1=1,d2=1);
-        translate([-prjhang_btn_landing_long/2,prjhang_btn_landing_short/2,-prjhang_btn_deep]) cylinder(h=2*prjhang_btn_deep,d1=1,d2=1);
-        translate([prjhang_btn_landing_long/2,-prjhang_btn_landing_short/2,-prjhang_btn_deep]) cylinder(h=2*prjhang_btn_deep,d1=1,d2=1);
-        translate([-prjhang_btn_landing_long/2,-prjhang_btn_landing_short/2,-prjhang_btn_deep]) cylinder(h=2*prjhang_btn_deep,d1=1,d2=1);
+        translate([prjhang_btn_landing_long/2,prjhang_btn_landing_short/2,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
+        translate([-prjhang_btn_landing_long/2,prjhang_btn_landing_short/2,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
+        translate([prjhang_btn_landing_long/2,-prjhang_btn_landing_short/2,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
+        translate([-prjhang_btn_landing_long/2,-prjhang_btn_landing_short/2,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
     }
 }  // end prjhngr_btn()
 
@@ -87,8 +87,10 @@ module prjhngr_frame() {
             // the main wide piece
             roundCornersCube(prjhngr_elect,prjhngr_side,3, 10);
             // the two hooks
-            translate([+(prjhngr_elect/2-prjhng_hook_length/2+2*prjhng_hook_inner_radius), -(prjhngr_side/2+prjhng_hook_inner_radius),0]) prjhngr_hook();
-            rotate(a=[180,0,0]) translate([+(prjhngr_elect/2-prjhng_hook_length/2+2*prjhng_hook_inner_radius), -(prjhngr_side/2+prjhng_hook_inner_radius),0]) prjhngr_hook();
+            /* union() {
+                translate([+(prjhngr_elect/2-prjhng_hook_length/2+2*prjhng_hook_inner_radius), -(prjhngr_side/2+prjhng_hook_inner_radius),0]) prjhngr_hook();
+                rotate(a=[180,0,0]) translate([+(prjhngr_elect/2-prjhng_hook_length/2+2*prjhng_hook_inner_radius), -(prjhngr_side/2+prjhng_hook_inner_radius),0]) prjhngr_hook();
+            } // end union of two hooks */
         } // end main union()
     } // end main difference()
 }  // end prjhngr_frame()
@@ -107,5 +109,5 @@ module prjtest() {
     }
 }
 
-// prjhngr();
-prjtest();
+prjhngr();
+// prjtest();
