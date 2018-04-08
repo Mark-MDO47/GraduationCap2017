@@ -29,7 +29,6 @@ use<roundCornersCube.scad> // http://www.thingiverse.com/thing:8812
 //    electronics, buttons, and connectors to the cables going to
 //    the cap itself.
 //
-
 // Isabel purse:  340 mm from strap-strap centerlines
 //                straps <= 20 mm thick
 //                about 420 mm horizontal
@@ -44,6 +43,9 @@ prjhng_hook_width = 48; // hook stick width
 prjhng_hook_length = 90; // hook stick length
 prjhng_hook_inner_radius = 12; // hook
 
+prjhng_hole_inner_radius = 12;
+prjhng_hole_outer_radius = 20;
+
 prjhang_thickness_frame = 3;
 prjhang_thickness_cutout = 4;
 
@@ -55,16 +57,6 @@ prjhang_btn_outer_long = 7.75; // includes bending of legs
 
 // ellipse: x^2/1^2 + y^2/2^2 = 1
 // intersect: 
-
-module prjhngr_btn() {
-    union() {
-        cube([prjhang_btn_square,prjhang_btn_square,prjhang_btn_deep], true);
-        translate([prjhang_btn_landing_long/2,prjhang_btn_landing_short/2,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
-        translate([-prjhang_btn_landing_long/2,prjhang_btn_landing_short/2,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
-        translate([prjhang_btn_landing_long/2,-prjhang_btn_landing_short/2,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
-        translate([-prjhang_btn_landing_long/2,-prjhang_btn_landing_short/2,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
-    }
-}  // end prjhngr_btn()
 
 module prjhngr_hook_roundoff() {
     difference() {
@@ -81,24 +73,54 @@ module prjhngr_hook() {
     } // end difference() hook
 } // end prjhngr_hook()
 
+module prjhngr_hole() {
+    cylinder(r=prjhng_hole_inner_radius,h=2+prjhang_thickness_frame,center=true,$fn=16);
+} // end prjhngr_hole()
+
+module prjhngr_connector() {
+    // this chooses between prjhngr_hook and prjhngr_hole
+    // the two hooks
+    /* union() {
+        translate([+(prjhngr_elect/2-prjhng_hook_length/2+2*prjhng_hook_inner_radius), -(prjhngr_side/2+prjhng_hook_inner_radius),0]) prjhngr_hook();
+        rotate(a=[180,0,0]) translate([+(prjhngr_elect/2-prjhng_hook_length/2+2*prjhng_hook_inner_radius), -(prjhngr_side/2+prjhng_hook_inner_radius),0]) prjhngr_hook();
+    } // end union of two hooks */
+
+    // the two holes
+    union() {
+        translate([+(prjhngr_elect/2-prjhng_hole_outer_radius), -(prjhngr_side/2-prjhng_hole_outer_radius),0]) prjhngr_hole();
+        translate([+(prjhngr_elect/2-prjhng_hole_outer_radius), +(prjhngr_side/2-prjhng_hole_outer_radius),0]) prjhngr_hole();
+    }
+} // end prjhngr_connector()
+
+module prjhngr_btn() {
+    union() {
+        cube([prjhang_btn_square,prjhang_btn_square,prjhang_btn_deep], true);
+        translate([prjhang_btn_landing_long/2,prjhang_btn_landing_short/2,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
+        translate([-prjhang_btn_landing_long/2,prjhang_btn_landing_short/2,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
+        translate([prjhang_btn_landing_long/2,-prjhang_btn_landing_short/2,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
+        translate([-prjhang_btn_landing_long/2,-prjhang_btn_landing_short/2,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
+    }
+}  // end prjhngr_btn()
+
 module prjhngr_frame() {
     difference() {
         union() {
             // the main wide piece
             roundCornersCube(prjhngr_elect,prjhngr_side,3, 10);
-            // the two hooks
-            /* union() {
-                translate([+(prjhngr_elect/2-prjhng_hook_length/2+2*prjhng_hook_inner_radius), -(prjhngr_side/2+prjhng_hook_inner_radius),0]) prjhngr_hook();
-                rotate(a=[180,0,0]) translate([+(prjhngr_elect/2-prjhng_hook_length/2+2*prjhng_hook_inner_radius), -(prjhngr_side/2+prjhng_hook_inner_radius),0]) prjhngr_hook();
-            } // end union of two hooks */
         } // end main union()
+        prjhngr_connector();
     } // end main difference()
 }  // end prjhngr_frame()
 
 module prjhngr() {
     difference() {
         prjhngr_frame();
-        translate([0,0,1]) prjhngr_btn();
+        translate([+0.4*(prjhngr_elect/2-prjhng_hole_outer_radius),-0.8*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
+        translate([+0.4*(prjhngr_elect/2-prjhng_hole_outer_radius),+0.8*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
+        translate([+0*(prjhngr_elect/2-prjhng_hole_outer_radius),-0.5*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
+        translate([+0*(prjhngr_elect/2-prjhng_hole_outer_radius),+0.5*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
+        translate([-0.4*(prjhngr_elect/2-prjhng_hole_outer_radius),-0.2*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
+        translate([-0.4*(prjhngr_elect/2-prjhng_hole_outer_radius),+0.2*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
     }
 }  // end prjhngr()
 
