@@ -33,15 +33,17 @@ use<keystone_mdo.scad> // based on https://www.thingiverse.com/thing:6647
 //    electronics, buttons, and connectors to the cables going to
 //    the cap itself.
 //
-// Isabel purse:  340 mm from strap-strap centerlines
+// Isabel purse:  340 mm from strap-strap centerlines - 13.4 inches
 //                straps <= 20 mm thick
 //                about 420 mm horizontal
 //                about 360 mm vertical
-// Trishie purse: 219 mm from strap-strap
+// Trishie purse: 219 mm from strap-strap  - 8.6 inches
 //                straps attached with metal D-ring
 //                10 mm inner diameter D-ring
+//
+// note: longest dimension on my table is 7 inches. 6.5 inches is about 165 millimeter
 
-prjhngr_side  = 340; // from purse-strap to purse-strap
+prjhngr_side  = 165; // from purse-strap to purse-strap
 prjhngr_elect = 150; // width needed for electronics
 prjhng_hook_width = 48; // hook stick width
 prjhng_hook_length = 90; // hook stick length
@@ -59,9 +61,11 @@ prjhang_btn_landing_long = 6.5;
 prjhang_btn_landing_short = 4.5;
 prjhang_btn_outer_long = 7.75; // includes bending of legs
 
-// ellipse: x^2/1^2 + y^2/2^2 = 1
-// intersect: 
+// From the front edge of the RJ45 (plus-X direction) to the back of the keystone itself is about 32 millimeters
+// keystone jack holder is 10 mm wide
+//    Placing wire holes 40 mm back
 
+/* Following are historical approaches; not practical since purse is so wide
 module prjhngr_hook_roundoff() {
     difference() {
         roundCornersCube(prjhng_hook_length,prjhng_hook_width/2,prjhang_thickness_cutout, prjhng_hook_width/2);
@@ -76,18 +80,19 @@ module prjhngr_hook() {
         translate([-prjhng_hook_inner_radius,-prjhng_hook_inner_radius*3/2,0]) prjhngr_hook_roundoff();
     } // end difference() hook
 } // end prjhngr_hook()
-
+*/  // end historical approaches
 module prjhngr_hole() {
     cylinder(r=prjhng_hole_inner_radius,h=2+prjhang_thickness_frame,center=true,$fn=16);
 } // end prjhngr_hole()
 
 module prjhngr_hanger() {
     // this chooses between prjhngr_hook and prjhngr_hole
-    // the two hooks
+    // the two hooks - historical approach
     /* union() {
         translate([+(prjhngr_elect/2-prjhng_hook_length/2+2*prjhng_hook_inner_radius), -(prjhngr_side/2+prjhng_hook_inner_radius),0]) prjhngr_hook();
         rotate(a=[180,0,0]) translate([+(prjhngr_elect/2-prjhng_hook_length/2+2*prjhng_hook_inner_radius), -(prjhngr_side/2+prjhng_hook_inner_radius),0]) prjhngr_hook();
-    } // end union of two hooks */
+    } // end union of two hooks
+    */ // end of historical approach
 
     // the two holes
     union() {
@@ -107,12 +112,12 @@ module prjhngr_btn() {
 }  // end prjhngr_btn()
 
 module prjhngr_btn_ptrn() {
-    translate([+0*(prjhngr_elect/2-prjhng_hole_outer_radius),-0.8*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
-    translate([+0*(prjhngr_elect/2-prjhng_hole_outer_radius),+0.8*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
-    translate([-0.4*(prjhngr_elect/2-prjhng_hole_outer_radius),-0.5*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
-    translate([-0.4*(prjhngr_elect/2-prjhng_hole_outer_radius),+0.5*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
-    translate([-0.8*(prjhngr_elect/2-prjhng_hole_outer_radius),-0.2*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
-    translate([-0.8*(prjhngr_elect/2-prjhng_hole_outer_radius),+0.2*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
+    translate([+0*(prjhngr_elect/2-prjhng_hole_outer_radius),-1*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
+    translate([+0*(prjhngr_elect/2-prjhng_hole_outer_radius),+1*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
+    translate([-0.4*(prjhngr_elect/2-prjhng_hole_outer_radius),-0.9*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
+    translate([-0.4*(prjhngr_elect/2-prjhng_hole_outer_radius),+0.9*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
+    translate([-0.8*(prjhngr_elect/2-prjhng_hole_outer_radius),-0.8*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
+    translate([-0.8*(prjhngr_elect/2-prjhng_hole_outer_radius),+0.8*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
 } // end prjhngr_btn_ptrn()
 
 module prjhngr_frame() {
