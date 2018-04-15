@@ -65,35 +65,11 @@ prjhang_btn_outer_long = 7.75; // includes bending of legs
 // keystone jack holder is 10 mm wide
 //    Placing wire holes 40 mm back
 
-/* Following are historical approaches; not practical since purse is so wide
-module prjhngr_hook_roundoff() {
-    difference() {
-        roundCornersCube(prjhng_hook_length,prjhng_hook_width/2,prjhang_thickness_cutout, prjhng_hook_width/2);
-        translate([prjhng_hook_length/2-prjhng_hook_inner_radius/2,0,0]) roundCornersCube(prjhng_hook_length, prjhng_hook_inner_radius,prjhang_thickness_cutout+1, prjhng_hook_inner_radius/2);
-        translate([prjhng_hook_length/2,0,0]) cube([prjhng_hook_length-1,prjhng_hook_width/2+1,prjhang_thickness_cutout+3], true);
-    } // end difference() hook
-}
-module prjhngr_hook() {
-    difference() {
-        roundCornersCube(prjhng_hook_length,prjhng_hook_width,prjhang_thickness_frame, prjhng_hook_width/2);
-        translate([-prjhng_hook_inner_radius,0,0]) roundCornersCube(prjhng_hook_length, prjhng_hook_inner_radius*2,prjhang_thickness_cutout, prjhng_hook_inner_radius);
-        translate([-prjhng_hook_inner_radius,-prjhng_hook_inner_radius*3/2,0]) prjhngr_hook_roundoff();
-    } // end difference() hook
-} // end prjhngr_hook()
-*/  // end historical approaches
 module prjhngr_hole() {
     cylinder(r=prjhng_hole_inner_radius,h=2+prjhang_thickness_frame,center=true,$fn=16);
 } // end prjhngr_hole()
 
 module prjhngr_hanger() {
-    // this chooses between prjhngr_hook and prjhngr_hole
-    // the two hooks - historical approach
-    /* union() {
-        translate([+(prjhngr_elect/2-prjhng_hook_length/2+2*prjhng_hook_inner_radius), -(prjhngr_side/2+prjhng_hook_inner_radius),0]) prjhngr_hook();
-        rotate(a=[180,0,0]) translate([+(prjhngr_elect/2-prjhng_hook_length/2+2*prjhng_hook_inner_radius), -(prjhngr_side/2+prjhng_hook_inner_radius),0]) prjhngr_hook();
-    } // end union of two hooks
-    */ // end of historical approach
-
     // the two holes
     union() {
         translate([+(prjhngr_elect/2-prjhng_hole_outer_radius), -(prjhngr_side/2-prjhng_hole_outer_radius),0]) prjhngr_hole();
