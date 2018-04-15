@@ -11,6 +11,10 @@
 
 // VERY handy routine from WarrantyVoider, published May 26, 2011
 use<roundCornersCube.scad> // http://www.thingiverse.com/thing:8812
+
+// based on keystone for RJ45 from jsadusk, published Feb 22, 2011
+use<keystone_mdo.scad> // based on https://www.thingiverse.com/thing:6647
+
 /*
     -----------------------------------------------------------
                  Round Corners Cube (Extruded)
@@ -77,7 +81,7 @@ module prjhngr_hole() {
     cylinder(r=prjhng_hole_inner_radius,h=2+prjhang_thickness_frame,center=true,$fn=16);
 } // end prjhngr_hole()
 
-module prjhngr_connector() {
+module prjhngr_hanger() {
     // this chooses between prjhngr_hook and prjhngr_hole
     // the two hooks
     /* union() {
@@ -90,7 +94,7 @@ module prjhngr_connector() {
         translate([+(prjhngr_elect/2-prjhng_hole_outer_radius), -(prjhngr_side/2-prjhng_hole_outer_radius),0]) prjhngr_hole();
         translate([+(prjhngr_elect/2-prjhng_hole_outer_radius), +(prjhngr_side/2-prjhng_hole_outer_radius),0]) prjhngr_hole();
     }
-} // end prjhngr_connector()
+} // end prjhngr_hanger()
 
 module prjhngr_btn() {
     union() {
@@ -102,34 +106,33 @@ module prjhngr_btn() {
     }
 }  // end prjhngr_btn()
 
+module prjhngr_btn_ptrn() {
+    translate([+0*(prjhngr_elect/2-prjhng_hole_outer_radius),-0.8*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
+    translate([+0*(prjhngr_elect/2-prjhng_hole_outer_radius),+0.8*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
+    translate([-0.4*(prjhngr_elect/2-prjhng_hole_outer_radius),-0.5*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
+    translate([-0.4*(prjhngr_elect/2-prjhng_hole_outer_radius),+0.5*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
+    translate([-0.8*(prjhngr_elect/2-prjhng_hole_outer_radius),-0.2*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
+    translate([-0.8*(prjhngr_elect/2-prjhng_hole_outer_radius),+0.2*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
+} // end prjhngr_btn_ptrn()
+
 module prjhngr_frame() {
     difference() {
         union() {
             // the main wide piece
             roundCornersCube(prjhngr_elect,prjhngr_side,3, 10);
         } // end main union()
-        prjhngr_connector();
+        prjhngr_hanger();
     } // end main difference()
 }  // end prjhngr_frame()
 
 module prjhngr() {
-    difference() {
-        prjhngr_frame();
-        translate([+0.4*(prjhngr_elect/2-prjhng_hole_outer_radius),-0.8*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
-        translate([+0.4*(prjhngr_elect/2-prjhng_hole_outer_radius),+0.8*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
-        translate([+0*(prjhngr_elect/2-prjhng_hole_outer_radius),-0.5*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
-        translate([+0*(prjhngr_elect/2-prjhng_hole_outer_radius),+0.5*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
-        translate([-0.4*(prjhngr_elect/2-prjhng_hole_outer_radius),-0.2*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
-        translate([-0.4*(prjhngr_elect/2-prjhng_hole_outer_radius),+0.2*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
-    }
+    union() {
+        difference() {
+            prjhngr_frame();
+            prjhngr_btn_ptrn();
+        } // end difference()
+        translate([.75*prjhngr_elect/2,0,prjhang_thickness_frame/2-0.5]) keystone_mdo();
+    }  // end union()
 }  // end prjhngr()
 
-module prjtest() {
-    difference() {
-        roundCornersCube(20,20,3, 2);
-        translate([0,0,1]) prjhngr_btn();
-    }
-}
-
 prjhngr();
-// prjtest();
