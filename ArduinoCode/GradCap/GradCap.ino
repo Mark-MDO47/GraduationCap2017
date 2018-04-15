@@ -56,7 +56,7 @@
 //
 
 #define BRIGHTMAX 40 // set to 250 for final version
-#define BAD_LED_92 1 // LED [92] is not working in test hardware
+#define BAD_LED_92 0 // LED [92] is not working in test hardware
 
 // I am using 93-LED rings - four of them.
 #define NUM_DISKS 1 // definitely not enough room for multiple disks in one Arduino
@@ -97,7 +97,7 @@ const uint8_t  radar_adv_per_LED_per_ring[NUM_RINGS_PER_DISK] = { 0, 192, 128, 9
 
 #define DEBUG_LED_DISPLAY 1
 #ifdef DEBUG_LED_DISPLAY
-#define LED_DISPLAY(PARMS) debug_led_display(PARMS,"PARMS",__LINE__);
+#define LED_DISPLAY(PARMS) debug_led_display((PARMS),"PARMS",__LINE__);
 #else // not DEBUG_LED_DISPLAY
 #define LED_DISPLAY(PARMS)
 #endif // not DEBUG_LED_DISPLAY
