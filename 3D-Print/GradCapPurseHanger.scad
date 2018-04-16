@@ -63,10 +63,14 @@ prjhang_btn_outer_long = 7.75; // includes bending of legs
 
 // From the front edge of the RJ45 (plus-X direction) to the back of the keystone itself is about 32 millimeters
 // keystone jack holder is 10 mm wide
-//    Placing wire holes 40 mm back
+//    Placing wire holes 40 mm back from front edge or 35 mm back from center
+prjhngr_keystone_frac_elect = 0.8;
+prjhngr_keystone_backoff = 35;
+prjhngr_keystone_data_wire_sep = 4;
+
 
 module prjhngr_hole() {
-    cylinder(r=prjhng_hole_inner_radius,h=2+prjhang_thickness_frame,center=true,$fn=16);
+    cylinder(r=prjhng_hole_inner_radius,h=2+prjhang_thickness_frame,center=true,$fn=649);
 } // end prjhngr_hole()
 
 module prjhngr_hanger() {
@@ -106,13 +110,25 @@ module prjhngr_frame() {
     } // end main difference()
 }  // end prjhngr_frame()
 
+module prjhngr_datawire_ptrn() {
+        translate([prjhngr_keystone_frac_elect*prjhngr_elect/2-prjhngr_keystone_backoff,-0.5*prjhngr_keystone_data_wire_sep,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
+        translate([prjhngr_keystone_frac_elect*prjhngr_elect/2-prjhngr_keystone_backoff,+0.5*prjhngr_keystone_data_wire_sep,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
+        translate([prjhngr_keystone_frac_elect*prjhngr_elect/2-prjhngr_keystone_backoff,-1.5*prjhngr_keystone_data_wire_sep,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
+        translate([prjhngr_keystone_frac_elect*prjhngr_elect/2-prjhngr_keystone_backoff,+1.5*prjhngr_keystone_data_wire_sep,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
+        translate([prjhngr_keystone_frac_elect*prjhngr_elect/2-prjhngr_keystone_backoff,-2.5*prjhngr_keystone_data_wire_sep,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
+        translate([prjhngr_keystone_frac_elect*prjhngr_elect/2-prjhngr_keystone_backoff,+2.5*prjhngr_keystone_data_wire_sep,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
+        translate([prjhngr_keystone_frac_elect*prjhngr_elect/2-prjhngr_keystone_backoff,-3.5*prjhngr_keystone_data_wire_sep,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
+        translate([prjhngr_keystone_frac_elect*prjhngr_elect/2-prjhngr_keystone_backoff,+3.5*prjhngr_keystone_data_wire_sep,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
+}  // end prjhngr_datawire_ptrn()
+
 module prjhngr() {
     union() {
         difference() {
             prjhngr_frame();
             prjhngr_btn_ptrn();
+            prjhngr_datawire_ptrn();
         } // end difference()
-        translate([.75*prjhngr_elect/2,0,prjhang_thickness_frame/2-0.5]) keystone_mdo();
+        translate([prjhngr_keystone_frac_elect*prjhngr_elect/2,0,prjhang_thickness_frame/2-0.5]) keystone_mdo();
     }  // end union()
 }  // end prjhngr()
 
