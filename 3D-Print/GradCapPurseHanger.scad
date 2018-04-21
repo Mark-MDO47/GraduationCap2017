@@ -33,13 +33,15 @@ use<keystone_mdo.scad> // based on https://www.thingiverse.com/thing:6647
 //    electronics, buttons, and connectors to the cables going to
 //    the cap itself.
 //
-// Isabel purse:  340 mm from strap-strap centerlines - 13.4 inches
-//                straps <= 20 mm thick
-//                about 420 mm horizontal
-//                about 360 mm vertical
+// Isabel purse:  145 mm from strap-strap centerlines - 
+//                straps <= 8 mm thick
+//                about 190 mm horizontal
+//                about 135 mm vertical
 // Trishie purse: 219 mm from strap-strap  - 8.6 inches
 //                straps attached with metal D-ring
 //                10 mm inner diameter D-ring
+//                about 225 mm horizontal
+//                about 110 mm vertical
 //
 // note: longest dimension on my table is 7 inches. 6.5 inches is about 165 millimeter
 
