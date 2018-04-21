@@ -64,7 +64,7 @@ prjhang_btn_outer_long = 7.75; // includes bending of legs
 // From the front edge of the RJ45 (plus-X direction) to the back of the keystone itself is about 32 millimeters
 // keystone jack holder is 10 mm wide
 //    Placing wire holes 40 mm back from front edge or 35 mm back from center
-prjhngr_keystone_frac_elect = 0.8;
+prjhngr_keystone_frac_elect = 0.9;
 prjhngr_keystone_backoff = 35;
 prjhngr_keystone_data_wire_sep = 4;
 
