@@ -33,11 +33,11 @@ use<keystone_mdo.scad> // based on https://www.thingiverse.com/thing:6647
 //    electronics, buttons, and connectors to the cables going to
 //    the cap itself.
 //
-// Isabel purse:  145 mm from strap-strap centerlines - 
+// I purse:  145 mm from strap-strap centerlines - 
 //                straps <= 8 mm thick
 //                about 190 mm horizontal
 //                about 135 mm vertical
-// Trishie purse: 219 mm from strap-strap  - 8.6 inches
+// T purse: 219 mm from strap-strap  - 8.6 inches
 //                straps attached with metal D-ring
 //                10 mm inner diameter D-ring
 //                about 225 mm horizontal
