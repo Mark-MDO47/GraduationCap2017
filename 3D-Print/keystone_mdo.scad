@@ -51,7 +51,6 @@ module clip_catch() {
 
 module keystone() {
     union() {
-    
         difference() {
           difference() {
             // translate([kstn_outer_length/2,kstn_outer_width/2,kstn_wall_height/2]) roundCornersCube(kstn_outer_length, kstn_outer_width, kstn_wall_height,2);
@@ -94,7 +93,12 @@ module keystone_mdo() {
         translate([-kstn_wall_thickness,0,kstn_jack_length+kstn_wall_thickness/2+0.05]) rotate([0,0,90]) MdoRoundItOnXaxis(kstn_outer_length+2, kstn_wall_height+1, kstn_wall_height+2);
         translate([-kstn_wall_thickness,kstn_outer_length/3,0+kstn_wall_thickness/2+0.05]) rotate([0,90,90]) MdoRoundItOnXaxis(kstn_outer_length+20, kstn_wall_height+1, kstn_wall_height+2);
         translate([-kstn_wall_thickness,-kstn_outer_length/3,0+kstn_wall_thickness/2+0.05]) rotate([0,-90,90]) MdoRoundItOnXaxis(kstn_outer_length+20, kstn_wall_height+1, kstn_wall_height+2);
+        translate([-kstn_wall_thickness,-(kstn_outer_length/2+1.5),kstn_jack_length+kstn_wall_thickness+4.5]) rotate([0,90,90]) cylinder(r=kstn_wall_height/4,h=kstn_outer_length+2+2,$fn=128);
+        translate([-kstn_wall_thickness,-(kstn_outer_length/2+1.5),-0.5]) rotate([0,0,90]) cylinder(r=kstn_wall_height/4,h=kstn_outer_length+2+2,$fn=128);
+        translate([-kstn_wall_thickness,+(kstn_outer_length/2+1.5),-0.5]) rotate([0,0,90]) cylinder(r=kstn_wall_height/4,h=kstn_outer_length+2+2,$fn=128);
     }  // end difference()
 }  // end keystone_mdo()
 
-// keystone_mdo(); // for testing
+echo("cylinder r is ",kstn_wall_height/4);
+echo("cylinder separation each side is ",(kstn_outer_length/2+1.5));
+keystone_mdo(); // for testing
