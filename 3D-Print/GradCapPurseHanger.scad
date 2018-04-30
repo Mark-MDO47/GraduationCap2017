@@ -46,7 +46,7 @@ use<keystone_mdo.scad> // based on https://www.thingiverse.com/thing:6647
 // note: longest dimension on my table is 7 inches. 6.5 inches is about 165 millimeter
 
 prjhngr_side  = 165; // from purse-strap to purse-strap
-prjhngr_elect = 150; // width needed for electronics
+prjhngr_elect = 130; // width needed for electronics
 prjhng_hook_width = 48; // hook stick width
 prjhng_hook_length = 90; // hook stick length
 prjhng_hook_inner_radius = 12; // hook
@@ -124,13 +124,15 @@ module prjhngr_datawire_ptrn() {
 }  // end prjhngr_datawire_ptrn()
 
 module prjhngr() {
-    union() {
+    rotate ([0,0,-90]) union() {
+        //translate([prjhngr_keystone_frac_elect*prjhngr_elect/2,0,prjhang_thickness_frame/2-0.5]) keystone_mdo();
         difference() {
             prjhngr_frame();
             prjhngr_btn_ptrn();
             prjhngr_datawire_ptrn();
+            translate([prjhngr_keystone_frac_elect*prjhngr_elect/2-5,-18.25,-prjhang_thickness_frame]) cylinder(r=10/4,h=3*prjhang_thickness_frame,$fn=128);
+            translate([prjhngr_keystone_frac_elect*prjhngr_elect/2-5,+18.25,-prjhang_thickness_frame]) cylinder(r=10/4,h=3*prjhang_thickness_frame,$fn=128);
         } // end difference()
-        translate([prjhngr_keystone_frac_elect*prjhngr_elect/2,0,prjhang_thickness_frame/2-0.5]) keystone_mdo();
     }  // end union()
 }  // end prjhngr()
 
