@@ -12,9 +12,6 @@
 // VERY handy routine from WarrantyVoider, published May 26, 2011
 use<roundCornersCube.scad> // http://www.thingiverse.com/thing:8812
 
-// based on keystone for RJ45 from jsadusk, published Feb 22, 2011
-use<keystone_mdo.scad> // based on https://www.thingiverse.com/thing:6647
-
 /*
     -----------------------------------------------------------
                  Round Corners Cube (Extruded)
@@ -45,6 +42,12 @@ use<keystone_mdo.scad> // based on https://www.thingiverse.com/thing:6647
 //
 // note: longest dimension on my table is 7 inches. 6.5 inches is about 165 millimeter
 
+dsply_arduino = true;
+color_arduino = "aqua";
+
+dsply_ubec = true;
+color_ubec = "red";
+
 prjhngr_side  = 165; // from purse-strap to purse-strap
 prjhngr_elect = 130; // width needed for electronics
 prjhng_hook_width = 48; // hook stick width
@@ -54,25 +57,82 @@ prjhng_hook_inner_radius = 12; // hook
 prjhng_hole_inner_radius = 12;
 prjhng_hole_outer_radius = 20;
 
-prjhang_thickness_frame = 3;
-prjhang_thickness_cutout = 4;
+prjhng_thickness_frame = 3;
+prjhng_thickness_cutout = 4;
 
-prjhang_btn_deep = prjhang_thickness_frame;
-prjhang_btn_square = 6;
-prjhang_btn_landing_long = 6.5;
-prjhang_btn_landing_short = 4.5;
-prjhang_btn_outer_long = 7.75; // includes bending of legs
+prjhng_btn_deep = prjhng_thickness_frame;
+prjhng_btn_square = 6;
+prjhng_btn_landing_long = 6.5;
+prjhng_btn_landing_short = 4.5;
+prjhng_btn_outer_long = 7.75; // includes bending of legs
+// button location
+prjhng_btn_fromside = (prjhngr_side/2-prjhng_hole_outer_radius);
+prjhng_btn_fromhole = (prjhngr_elect/2-prjhng_hole_outer_radius);
 
-// From the front edge of the RJ45 (plus-X direction) to the back of the keystone itself is about 32 millimeters
-// keystone jack holder is 10 mm wide
-//    Placing wire holes 40 mm back from front edge or 35 mm back from center
-prjhngr_keystone_frac_elect = 0.9;
-prjhngr_keystone_backoff = 35;
-prjhngr_keystone_data_wire_sep = 4;
 
+prjhngr_ardu_long   = 45;
+prjhngr_ardu_short  = 17.6;
+prjhngr_ardu_height = 4;
+// arduino location
+prjhngr_ardu_fromhole = -0.8*prjhngr_ardu_short;
+prjhngr_ardu_fromhole_ary = [+1.0*prjhngr_ardu_fromhole, +1.5*prjhngr_ardu_fromhole, +1.5*prjhngr_ardu_fromhole, +1.0*prjhngr_ardu_fromhole];
+prjhngr_ardu_fromside_ary = [-0.8*prjhng_btn_fromside, -0.4*prjhng_btn_fromside, +0.4*prjhng_btn_fromside, +0.8*prjhng_btn_fromside];
+
+prjhngr_ubec_long   = 45.5;
+prjhngr_ubec_short  = 18;
+prjhngr_ubec_height = 4;
+// arduino location
+prjhngr_ubec_fromhole = -1.6*prjhngr_ubec_short;
+
+
+prjhngr_ziptie_rad = 3;
+
+module prjhngr_ziptiehole() {
+    translate([0,0,+2*prjhng_thickness_cutout]) cylinder(r=prjhngr_ziptie_rad,h=8*prjhng_thickness_cutout,center=true,$fn=16);
+}  // end prjhngr_ziptiehole()
+
+module prjhngr_ardu_holes() {
+    translate([0,+prjhngr_ubec_short/2,0]) prjhngr_ziptiehole();
+    translate([0,-prjhngr_ubec_short/2,0]) prjhngr_ziptiehole();
+}   // end prjhngr_ardu_holes()
+
+module prjhngr_ardu_holes_ptrn() {
+    translate([prjhngr_ardu_fromhole_ary[0],prjhngr_ardu_fromside_ary[0],0]) prjhngr_ardu_holes();
+    translate([prjhngr_ardu_fromhole_ary[1],prjhngr_ardu_fromside_ary[1],0]) prjhngr_ardu_holes();
+    translate([prjhngr_ardu_fromhole_ary[2],prjhngr_ardu_fromside_ary[2],0]) prjhngr_ardu_holes();
+    translate([prjhngr_ardu_fromhole_ary[3],prjhngr_ardu_fromside_ary[3],0]) prjhngr_ardu_holes();
+}   // end prjhngr_ardu_holes_ptrn()
+
+module prjhngr_ardu_model() {
+    if (dsply_arduino) translate([0,0,prjhngr_ardu_height/2+prjhng_thickness_frame]) color(color_arduino) cube([prjhngr_ardu_long, prjhngr_ardu_short, prjhngr_ardu_height], center=true);
+}  // end prjhngr_ardu_model() {
+
+module prjhngr_ardu_ptrn() {
+    translate([prjhngr_ardu_fromhole_ary[0],prjhngr_ardu_fromside_ary[0],0]) prjhngr_ardu_model();
+    translate([prjhngr_ardu_fromhole_ary[1],prjhngr_ardu_fromside_ary[1],0]) prjhngr_ardu_model();
+    translate([prjhngr_ardu_fromhole_ary[2],prjhngr_ardu_fromside_ary[2],0]) prjhngr_ardu_model();
+    translate([prjhngr_ardu_fromhole_ary[3],prjhngr_ardu_fromside_ary[3],0]) prjhngr_ardu_model();
+}  // end prjhngr_ardu_ptrn()
+
+module prjhngr_ubec_holes() {
+    translate([0,+prjhngr_ubec_short/2,0]) prjhngr_ziptiehole();
+    translate([0,-prjhngr_ubec_short/2,0]) prjhngr_ziptiehole();
+}   // end prjhngr_ardu_holes()
+
+module prjhngr_ubec_holes_ptrn() {
+    translate([prjhngr_ubec_fromhole,0,0]) prjhngr_ubec_holes();
+}   // end prjhngr_ubec_holes_ptrn()
+
+module prjhngr_ubec_model() {
+    if (dsply_ubec) translate([0,0,prjhngr_ubec_height/2+prjhng_thickness_frame]) color(color_ubec) cube([prjhngr_ubec_long, prjhngr_ubec_short, prjhngr_ubec_height], center=true);
+}  // end prjhngr_ubec_model() {
+
+module prjhngr_ubec_ptrn() {
+    translate([prjhngr_ubec_fromhole,0,0]) prjhngr_ubec_model();
+}  // end prjhngr_ubec_ptrn()
 
 module prjhngr_hole() {
-    cylinder(r=prjhng_hole_inner_radius,h=2+prjhang_thickness_frame,center=true,$fn=649);
+    cylinder(r=prjhng_hole_inner_radius,h=2+prjhng_thickness_frame,center=true,$fn=649);
 } // end prjhngr_hole()
 
 module prjhngr_hanger() {
@@ -85,21 +145,21 @@ module prjhngr_hanger() {
 
 module prjhngr_btn() {
     union() {
-        cube([prjhang_btn_square,prjhang_btn_square,prjhang_btn_deep], true);
-        translate([prjhang_btn_landing_long/2,prjhang_btn_landing_short/2,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
-        translate([-prjhang_btn_landing_long/2,prjhang_btn_landing_short/2,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
-        translate([prjhang_btn_landing_long/2,-prjhang_btn_landing_short/2,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
-        translate([-prjhang_btn_landing_long/2,-prjhang_btn_landing_short/2,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
+        cube([prjhng_btn_square,prjhng_btn_square,prjhng_btn_deep], true);
+        translate([prjhng_btn_landing_long/2,prjhng_btn_landing_short/2,-prjhng_btn_deep]) cylinder(r=1,h=4*prjhng_btn_deep,center=true,$fn=16);
+        translate([-prjhng_btn_landing_long/2,prjhng_btn_landing_short/2,-prjhng_btn_deep]) cylinder(r=1,h=4*prjhng_btn_deep,center=true,$fn=16);
+        translate([prjhng_btn_landing_long/2,-prjhng_btn_landing_short/2,-prjhng_btn_deep]) cylinder(r=1,h=4*prjhng_btn_deep,center=true,$fn=16);
+        translate([-prjhng_btn_landing_long/2,-prjhng_btn_landing_short/2,-prjhng_btn_deep]) cylinder(r=1,h=4*prjhng_btn_deep,center=true,$fn=16);
     }
 }  // end prjhngr_btn()
 
 module prjhngr_btn_ptrn() {
-    translate([-0.7*(prjhngr_elect/2-prjhng_hole_outer_radius),-1*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
-    translate([-0.7*(prjhngr_elect/2-prjhng_hole_outer_radius),+1*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
-    translate([-1.1*(prjhngr_elect/2-prjhng_hole_outer_radius),-1*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
-    translate([-1.1*(prjhngr_elect/2-prjhng_hole_outer_radius),+1*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
-    translate([-1.1*(prjhngr_elect/2-prjhng_hole_outer_radius),-0.7*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
-    translate([-1.1*(prjhngr_elect/2-prjhng_hole_outer_radius),+0.7*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
+    translate([-0.7*prjhng_btn_fromhole,-1.1*prjhng_btn_fromside,1]) prjhngr_btn();
+    translate([-0.7*prjhng_btn_fromhole,+1.1*prjhng_btn_fromside,1]) prjhngr_btn();
+    translate([-1.1*prjhng_btn_fromhole,-1.1*prjhng_btn_fromside,1]) prjhngr_btn();
+    translate([-1.1*prjhng_btn_fromhole,+1.1*prjhng_btn_fromside,1]) prjhngr_btn();
+    translate([-1.1*prjhng_btn_fromhole,-0.8*prjhng_btn_fromside,1]) prjhngr_btn();
+    translate([-1.1*prjhng_btn_fromhole,+0.8*prjhng_btn_fromside,1]) prjhngr_btn();
 } // end prjhngr_btn_ptrn()
 
 module prjhngr_frame() {
@@ -112,23 +172,14 @@ module prjhngr_frame() {
     } // end main difference()
 }  // end prjhngr_frame()
 
-module prjhngr_datawire_ptrn() {
-        translate([prjhngr_keystone_frac_elect*prjhngr_elect/2-prjhngr_keystone_backoff,-0.5*prjhngr_keystone_data_wire_sep,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
-        translate([prjhngr_keystone_frac_elect*prjhngr_elect/2-prjhngr_keystone_backoff,+0.5*prjhngr_keystone_data_wire_sep,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
-        translate([prjhngr_keystone_frac_elect*prjhngr_elect/2-prjhngr_keystone_backoff,-1.5*prjhngr_keystone_data_wire_sep,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
-        translate([prjhngr_keystone_frac_elect*prjhngr_elect/2-prjhngr_keystone_backoff,+1.5*prjhngr_keystone_data_wire_sep,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
-        translate([prjhngr_keystone_frac_elect*prjhngr_elect/2-prjhngr_keystone_backoff,-2.5*prjhngr_keystone_data_wire_sep,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
-        translate([prjhngr_keystone_frac_elect*prjhngr_elect/2-prjhngr_keystone_backoff,+2.5*prjhngr_keystone_data_wire_sep,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
-        translate([prjhngr_keystone_frac_elect*prjhngr_elect/2-prjhngr_keystone_backoff,-3.5*prjhngr_keystone_data_wire_sep,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
-        translate([prjhngr_keystone_frac_elect*prjhngr_elect/2-prjhngr_keystone_backoff,+3.5*prjhngr_keystone_data_wire_sep,-prjhang_btn_deep]) cylinder(r=1,h=4*prjhang_btn_deep,center=true,$fn=16);
-}  // end prjhngr_datawire_ptrn()
-
 module prjhngr() {
     rotate ([0,0,-90]) union() {
-        //translate([prjhngr_keystone_frac_elect*prjhngr_elect/2,0,prjhang_thickness_frame/2-0.5]) keystone_mdo();
+        prjhngr_ardu_ptrn();
+        prjhngr_ubec_ptrn();
         difference() {
             prjhngr_frame();
             prjhngr_btn_ptrn();
+            prjhngr_ardu_holes_ptrn();
         } // end difference()
     }  // end union()
 }  // end prjhngr()
