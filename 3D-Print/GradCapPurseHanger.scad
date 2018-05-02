@@ -94,12 +94,12 @@ module prjhngr_btn() {
 }  // end prjhngr_btn()
 
 module prjhngr_btn_ptrn() {
-    translate([+0*(prjhngr_elect/2-prjhng_hole_outer_radius),-1*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
-    translate([+0*(prjhngr_elect/2-prjhng_hole_outer_radius),+1*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
-    translate([-0.4*(prjhngr_elect/2-prjhng_hole_outer_radius),-0.9*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
-    translate([-0.4*(prjhngr_elect/2-prjhng_hole_outer_radius),+0.9*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
-    translate([-0.8*(prjhngr_elect/2-prjhng_hole_outer_radius),-0.8*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
-    translate([-0.8*(prjhngr_elect/2-prjhng_hole_outer_radius),+0.8*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
+    translate([-0.7*(prjhngr_elect/2-prjhng_hole_outer_radius),-1*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
+    translate([-0.7*(prjhngr_elect/2-prjhng_hole_outer_radius),+1*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
+    translate([-1.1*(prjhngr_elect/2-prjhng_hole_outer_radius),-1*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
+    translate([-1.1*(prjhngr_elect/2-prjhng_hole_outer_radius),+1*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
+    translate([-1.1*(prjhngr_elect/2-prjhng_hole_outer_radius),-0.7*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
+    translate([-1.1*(prjhngr_elect/2-prjhng_hole_outer_radius),+0.7*(prjhngr_side/2-prjhng_hole_outer_radius),1]) prjhngr_btn();
 } // end prjhngr_btn_ptrn()
 
 module prjhngr_frame() {
@@ -129,9 +129,6 @@ module prjhngr() {
         difference() {
             prjhngr_frame();
             prjhngr_btn_ptrn();
-            prjhngr_datawire_ptrn();
-            translate([prjhngr_keystone_frac_elect*prjhngr_elect/2-5,-18.25,-prjhang_thickness_frame]) cylinder(r=10/4,h=3*prjhang_thickness_frame,$fn=128);
-            translate([prjhngr_keystone_frac_elect*prjhngr_elect/2-5,+18.25,-prjhang_thickness_frame]) cylinder(r=10/4,h=3*prjhang_thickness_frame,$fn=128);
         } // end difference()
     }  // end union()
 }  // end prjhngr()
