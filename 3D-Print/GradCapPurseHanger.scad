@@ -84,8 +84,31 @@ prjhngr_ubec_height = 4;
 // arduino location
 prjhngr_ubec_fromhole = -1.6*prjhngr_ubec_short;
 
+// rocker power switch for lights
+// comments say need 13/16 inch hole or 0.8125 in or 20.6375 mm or 10.32 mm rad.
+// manufacturer says "All you need is a 3/4" hole and the switch will sit in nicely"
+//    0.75 in = 19.05 mm
+// SparkFun says "They mount into a 20.2mm diameter hole"
+// I measure 20.3 mm diam or 10.15 mm rad and that over a little knob it has
+prjhngr_rokr_rad =       10.2;
+prjhngr_rokr_height =    18.3;
+prjhngr_rokr_lip_catch =  0.8;
+prjhngr_rokr_lip_height = 2.4;
+prjhngr_rokr_lip_rad =   11.5;
+prjhngr_rokr_key_width =  2.3;
+prjhngr_rokr_key_bump  =  0.6;
+prjhngr_rokr_fromhole =   0.7*prjhngr_elect/2;
+prjhngr_rokr_fromside =   0.35*prjhngr_side/2;
 
 prjhngr_ziptie_rad = 3;
+
+module prjhngr_rokr() {
+    color("blue") translate([prjhngr_rokr_fromhole,prjhngr_rokr_fromside,-(prjhngr_rokr_height-prjhngr_rokr_lip_height-prjhng_thickness_frame/2-0.5)]) union() {
+        translate([0,0,prjhngr_rokr_height/2])cylinder(r=prjhngr_rokr_rad,h=prjhngr_rokr_height,center=true,$fn=64);
+        translate([0,0,prjhngr_rokr_height-prjhngr_rokr_lip_height/2]) cylinder(r=prjhngr_rokr_lip_rad,h=prjhngr_rokr_lip_height,center=true,$fn=64);
+        translate([0,prjhngr_rokr_key_bump-prjhngr_rokr_rad,0]) cube([prjhngr_rokr_key_width,2*prjhngr_rokr_rad,prjhngr_rokr_height]);
+    }
+}  // end prjhngr_rokr()
 
 module prjhngr_ziptiehole() {
     translate([0,0,+2*prjhng_thickness_cutout]) cylinder(r=prjhngr_ziptie_rad,h=8*prjhng_thickness_cutout,center=true,$fn=16);
@@ -132,7 +155,7 @@ module prjhngr_ubec_ptrn() {
 }  // end prjhngr_ubec_ptrn()
 
 module prjhngr_hole() {
-    cylinder(r=prjhng_hole_inner_radius,h=2+prjhng_thickness_frame,center=true,$fn=649);
+    cylinder(r=prjhng_hole_inner_radius,h=2+prjhng_thickness_frame,center=true,$fn=64);
 } // end prjhngr_hole()
 
 module prjhngr_hanger() {
@@ -176,12 +199,16 @@ module prjhngr() {
     rotate ([0,0,-90]) union() {
         prjhngr_ardu_ptrn();
         prjhngr_ubec_ptrn();
+        prjhngr_rokr();
         difference() {
             prjhngr_frame();
             prjhngr_btn_ptrn();
             prjhngr_ardu_holes_ptrn();
+            prjhngr_ubec_holes_ptrn();
+            prjhngr_rokr();
         } // end difference()
     }  // end union()
 }  // end prjhngr()
 
 prjhngr();
+
