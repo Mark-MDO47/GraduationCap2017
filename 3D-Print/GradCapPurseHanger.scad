@@ -122,37 +122,44 @@ prjhngr_knif_knob_width =       4.7;
 prjhngr_knif_fromhole =   0.65*prjhngr_elect/2;
 prjhngr_knif_fromside =   0.45*prjhngr_side/2;
 
-module prjhngr_knif() {
+module aaaTest() { // aaaTest - test of holes for rokr and ziptie
+    rotate ([0,0,-90]) difference() {
+        union() {
+            roundCornersCube(45,60,3, 10);
+            translate([0,5,0]) prjhngr_rokrmnt();
+        } // end union()
+        //translate([0,5,-prjhngr_rokrmnt_height/2]) prjhngr_rokr(200);
+        translate([0,5,-5]) color("green")translate([0,0,+(prjhngr_rokrmnt_height-prjhng_thickness_frame)/2])linear_extrude(height = prjhngr_rokrmnt_height-prjhng_thickness_frame, center = true, convexity = 0, twist = 0, slices = 100, scale = 1.0) circle(r=prjhngr_rokr_lip_rad,$fn=128);
+        translate([+10,-20,0]) prjhngr_ziptiehole();
+        translate([-10,-20,0]) prjhngr_ziptiehole();
+    } // end difference()
+}
+
+module prjhngr_generic_hole_pattern(radius) { // cutout for one generic hole through the board; specify radius
+    translate([0,0,+2*prjhng_thickness_cutout]) cylinder(r=radius,h=8*prjhng_thickness_cutout,center=true,$fn=32);
+}  // end prjhngr_generic_hole_pattern()
+
+module prjhngr_knif() { // "additive" for one knife switch
     color(color_switch) union() {
         translate([-prjhngr_knif_outlong/2,-prjhngr_knif_outshort/2,prjhng_thickness_frame/2]) cube([prjhngr_knif_outlong,prjhngr_knif_outshort,prjhngr_knif_outhigh]);
         translate([-prjhngr_knif_outlong/2-prjhngr_knif_knob_ovrhng,-prjhngr_knif_knob_width/2,prjhng_thickness_frame/2+prjhngr_knif_outhigh]) cube([prjhngr_knif_outlong,prjhngr_knif_knob_width,prjhngr_knif_outhigh]);
     } // end union
 }  // end prjhngr_knif()
 
-module prjhngr_knif_ptrn() {
+module prjhngr_knif_ptrn() { // "additive" for the pattern of knife switch
     if (dsply_switch) translate([prjhngr_knif_fromhole,-prjhngr_knif_fromside,0]) prjhngr_knif();
 }  // end prjhngr_knif_ptrn()
 
-module prjhngr_knif_holes() {
+module prjhngr_knif_holes() { // cutout for knife switch mount holes for one knife switch
+    union() {
+        //translate([0,0,0]) prjhngr_generic_hole_pattern(TBD_RADIUS);
+    }
 }  // end prjhngr_knif_holes()
 
-module prjhngr_knif_holes_ptrn() {
+module prjhngr_knif_holes_ptrn() { // cutout for the pattern of knife switch mount holes
 }  // end prjhngr_knif_holes_ptrn()
 
-// aaaTest - test of holes for rokr and ziptie
-module aaaTest() {
-    rotate ([0,0,-90]) difference() {
-        union() {
-            roundCornersCube(45,60,3, 10);
-            translate([0,5,0]) prjhngr_rokrmnt();
-        } // end union()
-        translate([0,5,-prjhngr_rokrmnt_height/2]) prjhngr_rokr(200);
-        translate([+10,-20,0]) prjhngr_ziptiehole();
-        translate([-10,-20,0]) prjhngr_ziptiehole();
-    } // end difference()
-}
-
-module prjhngr_rokr(rokr_height) {
+module prjhngr_rokr(rokr_height) { // "additive" for one rocker switch
     color(color_switch) union() {
         translate([0,0,rokr_height/2])cylinder(r=prjhngr_rokr_rad,h=rokr_height,center=true,$fn=64);
         translate([0,0,rokr_height-prjhngr_rokr_lip_height/2]) cylinder(r=prjhngr_rokr_lip_rad,h=prjhngr_rokr_lip_height,center=true,$fn=64);
@@ -160,81 +167,86 @@ module prjhngr_rokr(rokr_height) {
     }
 }  // end prjhngr_rokr()
 
-module prjhngr_rokr_ptrn(rokr_height) {
-    if (dsply_switch) translate([prjhngr_rokr_fromhole,prjhngr_rokr_fromside,-(rokr_height-prjhngr_rokr_lip_height-prjhng_thickness_frame/2-prjhngr_rokrmnt_height)]) prjhngr_rokr(rokr_height);
+module prjhngr_rokr_ptrn(rokr_height) { // "additive" for the pattern of rocker switch
+    if (dsply_switch) translate([prjhngr_rokr_fromhole,prjhngr_rokr_fromside,-(rokr_height-prjhngr_rokr_lip_height-prjhng_thickness_frame/2-prjhngr_rokrmnt_height+1)]) prjhngr_rokr(rokr_height);
 }  // end prjhngr_rokr_ptrn()
 
-module prjhngr_rokrmnt(){
+module prjhngr_rokrmnt(){ // "additive" for one rocker switch mount buildup
     difference() {
         translate([0,0,prjhngr_rokrmnt_height/2])linear_extrude(height = prjhngr_rokrmnt_height, center = true, convexity = 0, twist = 0, slices = 100, scale = prjhngr_rokrmnt_toprad/prjhngr_rokrmnt_btmrad) circle(r=prjhngr_rokrmnt_btmrad,$fn=128);
+        color("green")translate([0,0,+(prjhngr_rokrmnt_height-prjhng_thickness_frame)/2])linear_extrude(height = prjhngr_rokrmnt_height-prjhng_thickness_frame, center = true, convexity = 0, twist = 0, slices = 100, scale = 1.0) circle(r=prjhngr_rokr_lip_rad,$fn=128);
         translate([0,0,-100/2]) prjhngr_rokr(100); // crude but effective
     } // end difference()
 }  // end test()
 
-module prjhngr_rokrmnt_ptrn() {
+module prjhngr_rokrmnt_ptrn() { // "additive" for the pattern of rocker switch mount buildup
     translate([prjhngr_rokr_fromhole,prjhngr_rokr_fromside,0]) prjhngr_rokrmnt();
 }   // end prjhngr_rokrmnt_ptrn()
 
-module prjhngr_rokr_holes_ptrn() {
+module prjhngr_rokrmnt_holes_ptrn() { // cutout for the pattern of rocker switch mount holes
+    translate([prjhngr_rokr_fromhole,prjhngr_rokr_fromside,-prjhng_thickness_frame]) color("green") translate([0,0,0])linear_extrude(height = +4*prjhng_thickness_frame, center = true, convexity = 0, twist = 0, slices = 100, scale = 1.0) circle(r=prjhngr_rokr_lip_rad,$fn=128);
+}   // end prjhngr_rokrmnt_holes_ptrn()
+
+module prjhngr_rokr_holes_ptrn() { // cutout for the pattern of rocker switch holes
     translate([prjhngr_rokr_fromhole,prjhngr_rokr_fromside,-(prjhngr_rokr_height-prjhngr_rokr_lip_height-prjhng_thickness_frame/2-0.5)]) prjhngr_rokr(prjhngr_rokr_height);
 }  // end prjhngr_rokr_holes_ptrn()
-module prjhngr_ziptiehole() {
-    translate([0,0,+2*prjhng_thickness_cutout]) cylinder(r=prjhngr_ziptie_rad,h=8*prjhng_thickness_cutout,center=true,$fn=16);
+
+module prjhngr_ziptiehole() { // cutout for one ziptie hole
+    prjhngr_generic_hole_pattern(prjhngr_ziptie_rad);
 }  // end prjhngr_ziptiehole()
 
-module prjhngr_ardu_holes() {
+module prjhngr_ardu_holes() { // cutout for the arduino ziptie holes for one arduino
     translate([0,+prjhngr_ubec_short/2,0]) prjhngr_ziptiehole();
     translate([0,-prjhngr_ubec_short/2,0]) prjhngr_ziptiehole();
 }   // end prjhngr_ardu_holes()
 
-module prjhngr_ardu_holes_ptrn() {
+module prjhngr_ardu_holes_ptrn() { // cutout for the pattern of arduino ziptie holes for all arduinos
     translate([prjhngr_ardu_fromhole_ary[0],prjhngr_ardu_fromside_ary[0],0]) prjhngr_ardu_holes();
     translate([prjhngr_ardu_fromhole_ary[1],prjhngr_ardu_fromside_ary[1],0]) prjhngr_ardu_holes();
     translate([prjhngr_ardu_fromhole_ary[2],prjhngr_ardu_fromside_ary[2],0]) prjhngr_ardu_holes();
     translate([prjhngr_ardu_fromhole_ary[3],prjhngr_ardu_fromside_ary[3],0]) prjhngr_ardu_holes();
 }   // end prjhngr_ardu_holes_ptrn()
 
-module prjhngr_ardu_model() {
+module prjhngr_ardu_model() { // "additive" for one arduino
     if (dsply_arduino) translate([0,0,prjhngr_ardu_height/2+prjhng_thickness_frame]) color(color_arduino) cube([prjhngr_ardu_long, prjhngr_ardu_short, prjhngr_ardu_height], center=true);
 }  // end prjhngr_ardu_model() {
 
-module prjhngr_ardu_ptrn() {
+module prjhngr_ardu_ptrn() { // "additive" for the pattern of arduinos
     translate([prjhngr_ardu_fromhole_ary[0],prjhngr_ardu_fromside_ary[0],0]) prjhngr_ardu_model();
     translate([prjhngr_ardu_fromhole_ary[1],prjhngr_ardu_fromside_ary[1],0]) prjhngr_ardu_model();
     translate([prjhngr_ardu_fromhole_ary[2],prjhngr_ardu_fromside_ary[2],0]) prjhngr_ardu_model();
     translate([prjhngr_ardu_fromhole_ary[3],prjhngr_ardu_fromside_ary[3],0]) prjhngr_ardu_model();
 }  // end prjhngr_ardu_ptrn()
 
-module prjhngr_ubec_holes() {
+module prjhngr_ubec_holes() { // cutout for the ubec ziptie holes for one ubec
     translate([0,+prjhngr_ubec_short/2,0]) prjhngr_ziptiehole();
     translate([0,-prjhngr_ubec_short/2,0]) prjhngr_ziptiehole();
 }   // end prjhngr_ardu_holes()
 
-module prjhngr_ubec_holes_ptrn() {
+module prjhngr_ubec_holes_ptrn() { // cutout for the pattern of ubec ziptie holes
     translate([prjhngr_ubec_fromhole,0,0]) prjhngr_ubec_holes();
 }   // end prjhngr_ubec_holes_ptrn()
 
-module prjhngr_ubec_model() {
+module prjhngr_ubec_model() { // "additive" for one of ubec
     if (dsply_ubec) translate([0,0,prjhngr_ubec_height/2+prjhng_thickness_frame]) color(color_ubec) cube([prjhngr_ubec_long, prjhngr_ubec_short, prjhngr_ubec_height], center=true);
 }  // end prjhngr_ubec_model() {
 
-module prjhngr_ubec_ptrn() {
+module prjhngr_ubec_ptrn() { // "additive" for the pattern of ubec
     translate([prjhngr_ubec_fromhole,0,0]) prjhngr_ubec_model();
 }  // end prjhngr_ubec_ptrn()
 
-module prjhngr_hole() {
+module prjhngr_hole() { // cutout for one hanger hole
     cylinder(r=prjhng_hole_inner_radius,h=2+prjhng_thickness_frame,center=true,$fn=64);
 } // end prjhngr_hole()
 
-module prjhngr_hanger() {
-    // the two holes
+module prjhngr_hanger() { // cutout for the pattern of two hanger holes
     union() {
         translate([+(prjhngr_elect/2-prjhng_hole_outer_radius), -(prjhngr_side/2-prjhng_hole_outer_radius),0]) prjhngr_hole();
         translate([+(prjhngr_elect/2-prjhng_hole_outer_radius), +(prjhngr_side/2-prjhng_hole_outer_radius),0]) prjhngr_hole();
     }
 } // end prjhngr_hanger()
 
-module prjhngr_btn() {
+module prjhngr_btn() { // cutout for place for one push button
     union() {
         cube([prjhng_btn_square,prjhng_btn_square,prjhng_btn_deep], true);
         translate([prjhng_btn_landing_long/2,prjhng_btn_landing_short/2,-prjhng_btn_deep]) cylinder(r=1,h=4*prjhng_btn_deep,center=true,$fn=16);
@@ -244,7 +256,7 @@ module prjhngr_btn() {
     }
 }  // end prjhngr_btn()
 
-module prjhngr_btn_ptrn() {
+module prjhngr_btn_ptrn() { // cutouts for the pattern of push buttons
     translate([-0.7*prjhng_btn_fromhole,-1.1*prjhng_btn_fromside,1]) prjhngr_btn();
     translate([-0.7*prjhng_btn_fromhole,+1.1*prjhng_btn_fromside,1]) prjhngr_btn();
     translate([-1.1*prjhng_btn_fromhole,-1.1*prjhng_btn_fromside,1]) prjhngr_btn();
@@ -253,31 +265,31 @@ module prjhngr_btn_ptrn() {
     translate([-1.1*prjhng_btn_fromhole,+0.8*prjhng_btn_fromside,1]) prjhngr_btn();
 } // end prjhngr_btn_ptrn()
 
-module prjhngr_frame() {
+module prjhngr_frame() { // all the "additive" parts of the frame plus the hanger cutout
     difference() {
         union() {
             // the main wide piece
             roundCornersCube(prjhngr_elect,prjhngr_side,3, 10);
+            prjhngr_rokrmnt_ptrn();
         } // end main union()
         prjhngr_hanger();
     } // end main difference()
 }  // end prjhngr_frame()
 
-module prjhngr() {
+module prjhngr() { // the entire hanger with cutouts and parts models
     rotate ([0,0,-90]) union() {
-        prjhngr_ardu_ptrn();
-        prjhngr_ubec_ptrn();
-        prjhngr_rokrmnt_ptrn();
-        prjhngr_rokr_ptrn(prjhngr_rokr_height);
-        prjhngr_knif_ptrn();
         difference() {
             prjhngr_frame();
             prjhngr_btn_ptrn();
             prjhngr_ardu_holes_ptrn();
             prjhngr_ubec_holes_ptrn();
-            prjhngr_rokr_holes_ptrn(prjhngr_rokr_height);
+            prjhngr_rokrmnt_holes_ptrn();
             prjhngr_knif_holes_ptrn();
         } // end difference()
+        prjhngr_ardu_ptrn();
+        prjhngr_ubec_ptrn();
+        prjhngr_rokr_ptrn(prjhngr_rokr_height);
+        prjhngr_knif_ptrn();
     }  // end union()
 }  // end prjhngr()
 
