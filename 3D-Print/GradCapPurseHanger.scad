@@ -48,6 +48,9 @@ color_arduino = "aqua";
 dsply_ubec = true;
 color_ubec = "red";
 
+dsply_switch = true;
+color_switch = "blue";
+
 prjhngr_side  = 165; // from purse-strap to purse-strap
 prjhngr_elect = 130; // width needed for electronics
 prjhng_hook_width = 48; // hook stick width
@@ -84,6 +87,8 @@ prjhngr_ubec_height = 4;
 // arduino location
 prjhngr_ubec_fromhole = -1.6*prjhngr_ubec_short;
 
+prjhngr_ziptie_rad = 3;
+
 // rocker power switch for lights
 // comments say need 13/16 inch hole or 0.8125 in or 20.6375 mm or 10.32 mm rad.
 // manufacturer says "All you need is a 3/4" hole and the switch will sit in nicely"
@@ -98,18 +103,81 @@ prjhngr_rokr_lip_rad =   11.5;
 prjhngr_rokr_key_width =  2.3;
 prjhngr_rokr_key_bump  =  0.6;
 prjhngr_rokr_fromhole =   0.7*prjhngr_elect/2;
-prjhngr_rokr_fromside =   0.35*prjhngr_side/2;
+prjhngr_rokr_fromside =   0.375*prjhngr_side/2;
 
-prjhngr_ziptie_rad = 3;
+prjhngr_rokrmnt_height = 24.0;
+prjhngr_rokrmnt_btmrad = prjhngr_rokr_lip_rad+8;
+prjhngr_rokrmnt_toprad = prjhngr_rokr_lip_rad+2;
 
-module prjhngr_rokr() {
-    color("blue") translate([prjhngr_rokr_fromhole,prjhngr_rokr_fromside,-(prjhngr_rokr_height-prjhngr_rokr_lip_height-prjhng_thickness_frame/2-0.5)]) union() {
-        translate([0,0,prjhngr_rokr_height/2])cylinder(r=prjhngr_rokr_rad,h=prjhngr_rokr_height,center=true,$fn=64);
-        translate([0,0,prjhngr_rokr_height-prjhngr_rokr_lip_height/2]) cylinder(r=prjhngr_rokr_lip_rad,h=prjhngr_rokr_lip_height,center=true,$fn=64);
-        translate([0,prjhngr_rokr_key_bump-prjhngr_rokr_rad,0]) cube([prjhngr_rokr_key_width,2*prjhngr_rokr_rad,prjhngr_rokr_height]);
+// knife switch for arduinos
+prjhngr_knif_outlong =         37.0;
+prjhngr_knif_outshort =        24.0;
+prjhngr_knif_outhigh =          7.5;
+prjhngr_knif_ofsthol_short_s =  5.2;
+prjhngr_knif_ofsthol_short_l = 18.8;
+prjhngr_knif_ofsthol_long_s =  16.5;
+prjhngr_knif_ofsthol_long_l =  20.5;
+prjhngr_knif_knob_ovrhng =     13.7;
+prjhngr_knif_knob_width =       4.7;
+prjhngr_knif_fromhole =   0.65*prjhngr_elect/2;
+prjhngr_knif_fromside =   0.45*prjhngr_side/2;
+
+module prjhngr_knif() {
+    color(color_switch) union() {
+        translate([-prjhngr_knif_outlong/2,-prjhngr_knif_outshort/2,prjhng_thickness_frame/2]) cube([prjhngr_knif_outlong,prjhngr_knif_outshort,prjhngr_knif_outhigh]);
+        translate([-prjhngr_knif_outlong/2-prjhngr_knif_knob_ovrhng,-prjhngr_knif_knob_width/2,prjhng_thickness_frame/2+prjhngr_knif_outhigh]) cube([prjhngr_knif_outlong,prjhngr_knif_knob_width,prjhngr_knif_outhigh]);
+    } // end union
+}  // end prjhngr_knif()
+
+module prjhngr_knif_ptrn() {
+    if (dsply_switch) translate([prjhngr_knif_fromhole,-prjhngr_knif_fromside,0]) prjhngr_knif();
+}  // end prjhngr_knif_ptrn()
+
+module prjhngr_knif_holes() {
+}  // end prjhngr_knif_holes()
+
+module prjhngr_knif_holes_ptrn() {
+}  // end prjhngr_knif_holes_ptrn()
+
+// aaaTest - test of holes for rokr and ziptie
+module aaaTest() {
+    rotate ([0,0,-90]) difference() {
+        union() {
+            roundCornersCube(45,60,3, 10);
+            translate([0,5,0]) prjhngr_rokrmnt();
+        } // end union()
+        translate([0,5,-prjhngr_rokrmnt_height/2]) prjhngr_rokr(200);
+        translate([+10,-20,0]) prjhngr_ziptiehole();
+        translate([-10,-20,0]) prjhngr_ziptiehole();
+    } // end difference()
+}
+
+module prjhngr_rokr(rokr_height) {
+    color(color_switch) union() {
+        translate([0,0,rokr_height/2])cylinder(r=prjhngr_rokr_rad,h=rokr_height,center=true,$fn=64);
+        translate([0,0,rokr_height-prjhngr_rokr_lip_height/2]) cylinder(r=prjhngr_rokr_lip_rad,h=prjhngr_rokr_lip_height,center=true,$fn=64);
+        translate([0,prjhngr_rokr_key_bump-prjhngr_rokr_rad,0]) cube([prjhngr_rokr_key_width,2*prjhngr_rokr_rad,rokr_height]);
     }
 }  // end prjhngr_rokr()
 
+module prjhngr_rokr_ptrn(rokr_height) {
+    if (dsply_switch) translate([prjhngr_rokr_fromhole,prjhngr_rokr_fromside,-(rokr_height-prjhngr_rokr_lip_height-prjhng_thickness_frame/2-prjhngr_rokrmnt_height)]) prjhngr_rokr(rokr_height);
+}  // end prjhngr_rokr_ptrn()
+
+module prjhngr_rokrmnt(){
+    difference() {
+        translate([0,0,prjhngr_rokrmnt_height/2])linear_extrude(height = prjhngr_rokrmnt_height, center = true, convexity = 0, twist = 0, slices = 100, scale = prjhngr_rokrmnt_toprad/prjhngr_rokrmnt_btmrad) circle(r=prjhngr_rokrmnt_btmrad,$fn=128);
+        translate([0,0,-100/2]) prjhngr_rokr(100); // crude but effective
+    } // end difference()
+}  // end test()
+
+module prjhngr_rokrmnt_ptrn() {
+    translate([prjhngr_rokr_fromhole,prjhngr_rokr_fromside,0]) prjhngr_rokrmnt();
+}   // end prjhngr_rokrmnt_ptrn()
+
+module prjhngr_rokr_holes_ptrn() {
+    translate([prjhngr_rokr_fromhole,prjhngr_rokr_fromside,-(prjhngr_rokr_height-prjhngr_rokr_lip_height-prjhng_thickness_frame/2-0.5)]) prjhngr_rokr(prjhngr_rokr_height);
+}  // end prjhngr_rokr_holes_ptrn()
 module prjhngr_ziptiehole() {
     translate([0,0,+2*prjhng_thickness_cutout]) cylinder(r=prjhngr_ziptie_rad,h=8*prjhng_thickness_cutout,center=true,$fn=16);
 }  // end prjhngr_ziptiehole()
@@ -199,16 +267,22 @@ module prjhngr() {
     rotate ([0,0,-90]) union() {
         prjhngr_ardu_ptrn();
         prjhngr_ubec_ptrn();
-        prjhngr_rokr();
+        prjhngr_rokrmnt_ptrn();
+        prjhngr_rokr_ptrn(prjhngr_rokr_height);
+        prjhngr_knif_ptrn();
         difference() {
             prjhngr_frame();
             prjhngr_btn_ptrn();
             prjhngr_ardu_holes_ptrn();
             prjhngr_ubec_holes_ptrn();
-            prjhngr_rokr();
+            prjhngr_rokr_holes_ptrn(prjhngr_rokr_height);
+            prjhngr_knif_holes_ptrn();
         } // end difference()
     }  // end union()
 }  // end prjhngr()
 
+// aaaTest();
+// bbbTest();
+// prjhngr_knif();
 prjhngr();
 
