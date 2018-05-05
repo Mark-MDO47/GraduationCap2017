@@ -42,16 +42,16 @@ use<roundCornersCube.scad> // http://www.thingiverse.com/thing:8812
 //
 // note: longest dimension on my table is 7 inches. 6.5 inches is about 165 millimeter
 
-dsply_arduino = true;
+dsply_arduino = false;
 color_arduino = "aqua";
 
-dsply_ubec = true;
+dsply_ubec = false;
 color_ubec = "red";
 
-dsply_switch = true;
+dsply_switch = false;
 color_switch = "blue";
 
-dsply_rsstr = true;
+dsply_rsstr = false;
 color_rsstr = "brown";
 
 color_atch = "purple"; // wire attachment points
@@ -223,7 +223,7 @@ module zzzTest() { /// zzzTest - alternate through-hole diameters
         translate([-10,-10,0]) prjhngr_generic_hole_pattern(0.75);
         }
     }
-}   // end zzzTest()    
+}   // end zzzTest()
 
 module prjhngr_generic_hole_pattern(radius) { // cutout for one generic hole through the board; specify radius
     translate([0,0,+2*prjhng_thickness_cutout]) cylinder(r=radius,h=8*prjhng_thickness_cutout,center=true,$fn=32);
@@ -277,7 +277,7 @@ module prjhngr_atch_sgnlgnd_holes_ptrn() { // cutout for the pattern of arduino 
 
 module prjhngr_rsstr() { // "additive" for one 10K pullup multi-resistor
     // note: leave bottom flat, no indentation
-    color(color_rsstr) translate([-prjhngr_rsstr_long/2,-prjhngr_rsstr_short/2,-prjhng_thickness_frame*1.25]) cube([prjhngr_rsstr_long,prjhngr_rsstr_short,prjhngr_rsstr_high]);
+    color(color_rsstr) translate([-prjhngr_rsstr_long/2,-prjhngr_rsstr_short/2,-prjhng_thickness_frame/2-prjhngr_rsstr_high]) cube([prjhngr_rsstr_long,prjhngr_rsstr_short,prjhngr_rsstr_high]);
 }  // end prjhngr_rsstr()
 
 module prjhngr_rsstr_ptrn() { // "additive" for the pattern of 10K pullup multi-resistor
@@ -287,11 +287,12 @@ module prjhngr_rsstr_ptrn() { // "additive" for the pattern of 10K pullup multi-
 module prjhngr_rsstr_holes() { // cutout for resistor mount holes for one 10K pullup multi-resistor
     translate([0,+(prjhngr_rsstr_short/2+0.9*prjhngr_ziptie_rad),0]) prjhngr_ziptiehole();
     translate([0,-(prjhngr_rsstr_short/2+0.9*prjhngr_ziptie_rad),0]) prjhngr_ziptiehole();
-    prjhngr_rsstr();
 }  // end prjhngr_rsstr_holes()
 
 module prjhngr_rsstr_holes_ptrn() { // cutout for the pattern of 10K pullup multi-resistor holes
     translate([prjhngr_rsstr_fromhole,prjhngr_rsstr_fromside,0]) prjhngr_rsstr_holes();
+    // note: leave bottom flat, no indentation
+    // translate([prjhngr_rsstr_fromhole,prjhngr_rsstr_fromside,0]) prjhngr_rsstr();
 }   // end prjhngr_rsstr_holes_ptrn()
 
 module prjhngr_knif() { // "additive" for one knife switch
@@ -369,17 +370,21 @@ module prjhngr_ardu_holes_ptrn() { // cutout for the pattern of arduino ziptie h
     translate([prjhngr_ardu_fromhole_ary[1],prjhngr_ardu_fromside_ary[1],0]) prjhngr_ardu_holes();
     translate([prjhngr_ardu_fromhole_ary[2],prjhngr_ardu_fromside_ary[2],0]) prjhngr_ardu_holes();
     translate([prjhngr_ardu_fromhole_ary[3],prjhngr_ardu_fromside_ary[3],0]) prjhngr_ardu_holes();
+    translate([prjhngr_ardu_fromhole_ary[0],prjhngr_ardu_fromside_ary[0],0]) prjhngr_ardu();
+    translate([prjhngr_ardu_fromhole_ary[1],prjhngr_ardu_fromside_ary[1],0]) prjhngr_ardu();
+    translate([prjhngr_ardu_fromhole_ary[2],prjhngr_ardu_fromside_ary[2],0]) prjhngr_ardu();
+    translate([prjhngr_ardu_fromhole_ary[3],prjhngr_ardu_fromside_ary[3],0]) prjhngr_ardu();
 }   // end prjhngr_ardu_holes_ptrn()
 
-module prjhngr_ardu_model() { // "additive" for one arduino
-    if (dsply_arduino) translate([0,0,prjhngr_ardu_height/2+prjhng_thickness_frame/2]) color(color_arduino) cube([prjhngr_ardu_long, prjhngr_ardu_short, prjhngr_ardu_height], center=true);
-}  // end prjhngr_ardu_model() {
+module prjhngr_ardu() { // "additive" for one arduino
+    translate([0,0,prjhngr_ardu_height/2+prjhng_thickness_frame/2-0.5]) color(color_arduino) cube([prjhngr_ardu_long, prjhngr_ardu_short, prjhngr_ardu_height], center=true);
+}  // end prjhngr_ardu() {
 
 module prjhngr_ardu_ptrn() { // "additive" for the pattern of arduinos
-    translate([prjhngr_ardu_fromhole_ary[0],prjhngr_ardu_fromside_ary[0],0]) prjhngr_ardu_model();
-    translate([prjhngr_ardu_fromhole_ary[1],prjhngr_ardu_fromside_ary[1],0]) prjhngr_ardu_model();
-    translate([prjhngr_ardu_fromhole_ary[2],prjhngr_ardu_fromside_ary[2],0]) prjhngr_ardu_model();
-    translate([prjhngr_ardu_fromhole_ary[3],prjhngr_ardu_fromside_ary[3],0]) prjhngr_ardu_model();
+    if (dsply_arduino) translate([prjhngr_ardu_fromhole_ary[0],prjhngr_ardu_fromside_ary[0],0]) prjhngr_ardu();
+    if (dsply_arduino) translate([prjhngr_ardu_fromhole_ary[1],prjhngr_ardu_fromside_ary[1],0]) prjhngr_ardu();
+    if (dsply_arduino) translate([prjhngr_ardu_fromhole_ary[2],prjhngr_ardu_fromside_ary[2],0]) prjhngr_ardu();
+    if (dsply_arduino) translate([prjhngr_ardu_fromhole_ary[3],prjhngr_ardu_fromside_ary[3],0]) prjhngr_ardu();
 }  // end prjhngr_ardu_ptrn()
 
 module prjhngr_ubec_holes() { // cutout for the ubec ziptie holes for one ubec
@@ -389,14 +394,15 @@ module prjhngr_ubec_holes() { // cutout for the ubec ziptie holes for one ubec
 
 module prjhngr_ubec_holes_ptrn() { // cutout for the pattern of ubec ziptie holes
     translate([prjhngr_ubec_fromhole,0,0]) prjhngr_ubec_holes();
+    translate([prjhngr_ubec_fromhole,0,0]) prjhngr_ubec();
 }   // end prjhngr_ubec_holes_ptrn()
 
-module prjhngr_ubec_model() { // "additive" for one of ubec
-    if (dsply_ubec) translate([0,0,prjhngr_ubec_height/2+prjhng_thickness_frame/2]) color(color_ubec) cube([prjhngr_ubec_long, prjhngr_ubec_short, prjhngr_ubec_height], center=true);
-}  // end prjhngr_ubec_model() {
+module prjhngr_ubec() { // "additive" for one of ubec
+    translate([0,0,prjhngr_ubec_height/2+prjhng_thickness_frame/2-0.5]) color(color_ubec) cube([prjhngr_ubec_long, prjhngr_ubec_short, prjhngr_ubec_height], center=true);
+}  // end prjhngr_ubec() {
 
 module prjhngr_ubec_ptrn() { // "additive" for the pattern of ubec
-    translate([prjhngr_ubec_fromhole,0,0]) prjhngr_ubec_model();
+    if (dsply_ubec) translate([prjhngr_ubec_fromhole,0,0]) prjhngr_ubec();
 }  // end prjhngr_ubec_ptrn()
 
 module prjhngr_hole() { // cutout for one hanger hole
