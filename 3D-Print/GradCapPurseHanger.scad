@@ -51,6 +51,9 @@ color_ubec = "red";
 dsply_switch = true;
 color_switch = "blue";
 
+dsply_rsstr = true;
+color_rsstr = "brown";
+
 prjhngr_side  = 165; // from purse-strap to purse-strap
 prjhngr_elect = 130; // width needed for electronics
 prjhng_hook_width = 48; // hook stick width
@@ -63,6 +66,7 @@ prjhng_hole_outer_radius = 20;
 prjhng_thickness_frame = 3;
 prjhng_thickness_cutout = 4;
 
+// push buttons for choosing LED pattern
 prjhng_btn_deep = prjhng_thickness_frame;
 prjhng_btn_square = 6;
 prjhng_btn_landing_long = 6.5;
@@ -72,7 +76,7 @@ prjhng_btn_outer_long = 7.75; // includes bending of legs
 prjhng_btn_fromside = (prjhngr_side/2-prjhng_hole_outer_radius);
 prjhng_btn_fromhole = (prjhngr_elect/2-prjhng_hole_outer_radius);
 
-
+// Arduino for controling LEDs
 prjhngr_ardu_long   = 45;
 prjhngr_ardu_short  = 17.6;
 prjhngr_ardu_height = 4;
@@ -81,15 +85,14 @@ prjhngr_ardu_fromhole = -0.8*prjhngr_ardu_short;
 prjhngr_ardu_fromhole_ary = [+1.0*prjhngr_ardu_fromhole, +1.5*prjhngr_ardu_fromhole, +1.5*prjhngr_ardu_fromhole, +1.0*prjhngr_ardu_fromhole];
 prjhngr_ardu_fromside_ary = [-0.8*prjhng_btn_fromside, -0.4*prjhng_btn_fromside, +0.4*prjhng_btn_fromside, +0.8*prjhng_btn_fromside];
 
+// UBEC for translating Arduino power
 prjhngr_ubec_long   = 45.5;
 prjhngr_ubec_short  = 18;
 prjhngr_ubec_height = 4;
 // arduino location
 prjhngr_ubec_fromhole = -1.6*prjhngr_ubec_short;
 
-prjhngr_ziptie_rad = 3;
-
-// rocker power switch for lights
+// rocker power switch for LED power
 // comments say need 13/16 inch hole or 0.8125 in or 20.6375 mm or 10.32 mm rad.
 // manufacturer says "All you need is a 3/4" hole and the switch will sit in nicely"
 //    0.75 in = 19.05 mm
@@ -104,12 +107,12 @@ prjhngr_rokr_key_width =  2.3;
 prjhngr_rokr_key_bump  =  0.6;
 prjhngr_rokr_fromhole =   0.7*prjhngr_elect/2;
 prjhngr_rokr_fromside =   0.375*prjhngr_side/2;
-
+// rocker mount - to keep all high points on one side
 prjhngr_rokrmnt_height = 24.0;
 prjhngr_rokrmnt_btmrad = prjhngr_rokr_lip_rad+8;
 prjhngr_rokrmnt_toprad = prjhngr_rokr_lip_rad+2;
 
-// knife switch for arduinos
+// knife switch for arduino power
 prjhngr_knif_outlong =         37.0; // y direction
 prjhngr_knif_outshort =        24.0;
 prjhngr_knif_outhigh =          7.5;
@@ -125,25 +128,26 @@ prjhngr_knif_knob_ovrhng =     13.7;
 prjhngr_knif_knob_width =       4.7;
 prjhngr_knif_fromhole =   0.65*prjhngr_elect/2;
 prjhngr_knif_fromside =   0.45*prjhngr_side/2;
-
-prjhngr_knif_ofsthol_rad = 3.0;
+// holes for potential screws for knife switch
+prjhngr_knif_ofsthol_rad = 3.0; // this works for ziptie attachment too
 prjhngr_knif_cntrhol_rad = 3.0;
 prjhngr_knif_ofsthol =  true;
-prjhngr_knif_cntrhol =  true;
+prjhngr_knif_cntrhol =  false;
 
-module prjhngr_knif_holes() { // cutout for knife switch mount holes for one knife switch
-    union() {
-        if (prjhngr_knif_ofsthol) {
-            translate([-prjhngr_knif_outlong/2+prjhngr_knif_ofsthol_long_s,-prjhngr_knif_outshort/2+prjhngr_knif_ofsthol_short_s,0]) prjhngr_generic_hole_pattern(prjhngr_knif_ofsthol_rad);
-            translate([-prjhngr_knif_outlong/2+prjhngr_knif_ofsthol_long_l,-prjhngr_knif_outshort/2+prjhngr_knif_ofsthol_short_l,0]) prjhngr_generic_hole_pattern(prjhngr_knif_ofsthol_rad);
-        }  // end if prjhngr_knif_ofsthol
-        if (prjhngr_knif_cntrhol) {
-            translate([-prjhngr_knif_outlong/2+prjhngr_knif_cntrhol_long_s,-prjhngr_knif_outshort/2+prjhngr_knif_cntrhol_short_s,0]) prjhngr_generic_hole_pattern(prjhngr_knif_cntrhol_rad);
-            translate([-prjhngr_knif_outlong/2+prjhngr_knif_cntrhol_long_l,-prjhngr_knif_outshort/2+prjhngr_knif_cntrhol_short_l,0]) prjhngr_generic_hole_pattern(prjhngr_knif_cntrhol_rad);
-        }  // end if prjhngr_knif_cntrhol
-        //translate([0,0,0]) prjhngr_generic_hole_pattern(TBD_RADIUS);
-    }
-}  // end prjhngr_knif_holes()
+// 10K pullup multi-resistor
+prjhngr_rsstr_short =     4.9;
+prjhngr_rsstr_long =     25.2;
+prjhngr_rsstr_high =      2.2;
+prjhngr_rsstr_fromhole = -0.15*prjhngr_elect/2;
+prjhngr_rsstr_fromside =  0.85*prjhngr_side/2;
+
+// wiring attachment points - width
+prjhngr_atch_pwrled_short  = 6.0;
+prjhngr_atch_pwrled_fromhole_ary = [0.5*prjhngr_elect/2];
+prjhngr_atch_pwrled_fromside_ary = [0.5*prjhngr_side/2];
+prjhngr_atch_pwrardu_short = 4.0;
+
+prjhngr_ziptie_rad = 1.1; // 3 allows actual zip-tie, 1.1 just barely fits wire
 
 module aaaTest() { // aaaTest - test of holes for rokr and ziptie
     rotate ([0,0,-90]) difference() {
@@ -169,9 +173,66 @@ module bbbTest() { // bbbTest - test of holes for knife switch
     } // end difference
 }  // end bbbTest()
 
+module cccTest() { // cccTest - test of 10k pullup resistor and mounting holes
+    rotate ([0,0,-90]) union() {
+        difference() {
+            roundCornersCube(50,40,3, 10);
+            prjhngr_rsstr_holes();
+        } // end union
+        if (dsply_rsstr) prjhngr_rsstr();
+    } // end difference
+}  // end bbbTest()
+
+module zzzTest() { /// zzzTest - alternate through-hole diameters
+    rotate ([0,0,-90]) union() {
+        difference() {
+            roundCornersCube(50,40,3, 10);
+        translate([+10,+10,0]) prjhngr_generic_hole_pattern(2);
+        translate([+10,-10,0]) prjhngr_generic_hole_pattern(2);
+        translate([+04,+10,0]) prjhngr_generic_hole_pattern(1.5);
+        translate([+04,-10,0]) prjhngr_generic_hole_pattern(1.5);
+        translate([-04,+10,0]) prjhngr_generic_hole_pattern(1); // 1.1 looks good
+        translate([-04,-10,0]) prjhngr_generic_hole_pattern(1);
+        translate([-10,+10,0]) prjhngr_generic_hole_pattern(0.75);
+        translate([-10,-10,0]) prjhngr_generic_hole_pattern(0.75);
+        }
+    }
+}   // end zzzTest()    
+
 module prjhngr_generic_hole_pattern(radius) { // cutout for one generic hole through the board; specify radius
     translate([0,0,+2*prjhng_thickness_cutout]) cylinder(r=radius,h=8*prjhng_thickness_cutout,center=true,$fn=32);
 }  // end prjhngr_generic_hole_pattern()
+
+module prjhngr_atch_pwrled_holes() { // cutout for resistor mount holes for one 10K pullup multi-resistor
+    translate([0,+(prjhngr_atch_pwrled_short/2+0.9*prjhngr_ziptie_rad),0]) prjhngr_generic_hole_pattern(prjhngr_ziptie_rad);
+    translate([0,-(prjhngr_atch_pwrled_short/2+0.9*prjhngr_ziptie_rad),0]) prjhngr_generic_hole_pattern(prjhngr_ziptie_rad);
+}  // end prjhngr_atch_pwrled_holes()
+
+module prjhngr_atch_pwrled_holes_ptrn() { // cutout for the pattern of arduino ziptie holes for all arduinos
+    translate([prjhngr_atch_pwrled_fromhole_ary[0],prjhngr_atch_pwrled_fromside_ary[0],0]) prjhngr_atch_pwrled_holes();
+    //translate([prjhngr_atch_pwrled_fromhole_ary[1],prjhngr_atch_pwrled_fromside_ary[1],0]) prjhngr_atch_pwrled_holes();
+    //translate([prjhngr_atch_pwrled_fromhole_ary[2],prjhngr_atch_pwrled_fromside_ary[2],0]) prjhngr_atch_pwrled_holes();
+    //translate([prjhngr_atch_pwrled_fromhole_ary[3],prjhngr_atch_pwrled_fromside_ary[3],0]) prjhngr_atch_pwrled_holes();
+}   // end prjhngr_atch_pwrled_holes_ptrn()
+
+module prjhngr_rsstr() { // "additive" for one 10K pullup multi-resistor
+    // note: leave bottom flat, no indentation
+    color(color_rsstr) translate([-prjhngr_rsstr_long/2,-prjhngr_rsstr_short/2,-prjhng_thickness_frame*1.25]) cube([prjhngr_rsstr_long,prjhngr_rsstr_short,prjhngr_rsstr_high]);
+}  // end prjhngr_rsstr()
+
+module prjhngr_rsstr_ptrn() { // "additive" for the pattern of 10K pullup multi-resistor
+    if (dsply_rsstr) translate([prjhngr_rsstr_fromhole,prjhngr_rsstr_fromside,0]) prjhngr_rsstr();
+}   // end prjhngr_rsstr_ptrn()
+
+module prjhngr_rsstr_holes() { // cutout for resistor mount holes for one 10K pullup multi-resistor
+    translate([0,+(prjhngr_rsstr_short/2+0.9*prjhngr_ziptie_rad),0]) prjhngr_ziptiehole();
+    translate([0,-(prjhngr_rsstr_short/2+0.9*prjhngr_ziptie_rad),0]) prjhngr_ziptiehole();
+    prjhngr_rsstr();
+}  // end prjhngr_rsstr_holes()
+
+module prjhngr_rsstr_holes_ptrn() { // cutout for the pattern of 10K pullup multi-resistor holes
+    translate([prjhngr_rsstr_fromhole,prjhngr_rsstr_fromside,0]) prjhngr_rsstr_holes();
+}   // end prjhngr_rsstr_holes_ptrn()
 
 module prjhngr_knif() { // "additive" for one knife switch
     color(color_switch) union() {
@@ -184,7 +245,22 @@ module prjhngr_knif_ptrn() { // "additive" for the pattern of knife switch
     if (dsply_switch) translate([prjhngr_knif_fromhole,-prjhngr_knif_fromside,0]) prjhngr_knif();
 }  // end prjhngr_knif_ptrn()
 
+module prjhngr_knif_holes() { // cutout for knife switch mount holes for one knife switch
+    union() {
+        if (prjhngr_knif_ofsthol) {
+            translate([-prjhngr_knif_outlong/2+prjhngr_knif_ofsthol_long_s,-prjhngr_knif_outshort/2+prjhngr_knif_ofsthol_short_s,0]) prjhngr_generic_hole_pattern(prjhngr_knif_ofsthol_rad);
+            translate([-prjhngr_knif_outlong/2+prjhngr_knif_ofsthol_long_l,-prjhngr_knif_outshort/2+prjhngr_knif_ofsthol_short_l,0]) prjhngr_generic_hole_pattern(prjhngr_knif_ofsthol_rad);
+        }  // end if prjhngr_knif_ofsthol
+        if (prjhngr_knif_cntrhol) {
+            translate([-prjhngr_knif_outlong/2+prjhngr_knif_cntrhol_long_s,-prjhngr_knif_outshort/2+prjhngr_knif_cntrhol_short_s,0]) prjhngr_generic_hole_pattern(prjhngr_knif_cntrhol_rad);
+            translate([-prjhngr_knif_outlong/2+prjhngr_knif_cntrhol_long_l,-prjhngr_knif_outshort/2+prjhngr_knif_cntrhol_short_l,0]) prjhngr_generic_hole_pattern(prjhngr_knif_cntrhol_rad);
+        }  // end if prjhngr_knif_cntrhol
+        //translate([0,0,0]) prjhngr_generic_hole_pattern(TBD_RADIUS);
+    }
+}  // end prjhngr_knif_holes()
+
 module prjhngr_knif_holes_ptrn() { // cutout for the pattern of knife switch mount holes
+    translate([prjhngr_knif_fromhole,-prjhngr_knif_fromside,0]) prjhngr_knif_holes();
 }  // end prjhngr_knif_holes_ptrn()
 
 module prjhngr_rokr(rokr_height) { // "additive" for one rocker switch
@@ -224,8 +300,8 @@ module prjhngr_ziptiehole() { // cutout for one ziptie hole
 }  // end prjhngr_ziptiehole()
 
 module prjhngr_ardu_holes() { // cutout for the arduino ziptie holes for one arduino
-    translate([0,+prjhngr_ubec_short/2,0]) prjhngr_ziptiehole();
-    translate([0,-prjhngr_ubec_short/2,0]) prjhngr_ziptiehole();
+    translate([0,+(prjhngr_ubec_short/2+0.9*prjhngr_ziptie_rad),0]) prjhngr_ziptiehole();
+    translate([0,-(prjhngr_ubec_short/2+0.9*prjhngr_ziptie_rad),0]) prjhngr_ziptiehole();
 }   // end prjhngr_ardu_holes()
 
 module prjhngr_ardu_holes_ptrn() { // cutout for the pattern of arduino ziptie holes for all arduinos
@@ -236,7 +312,7 @@ module prjhngr_ardu_holes_ptrn() { // cutout for the pattern of arduino ziptie h
 }   // end prjhngr_ardu_holes_ptrn()
 
 module prjhngr_ardu_model() { // "additive" for one arduino
-    if (dsply_arduino) translate([0,0,prjhngr_ardu_height/2+prjhng_thickness_frame]) color(color_arduino) cube([prjhngr_ardu_long, prjhngr_ardu_short, prjhngr_ardu_height], center=true);
+    if (dsply_arduino) translate([0,0,prjhngr_ardu_height/2+prjhng_thickness_frame/2]) color(color_arduino) cube([prjhngr_ardu_long, prjhngr_ardu_short, prjhngr_ardu_height], center=true);
 }  // end prjhngr_ardu_model() {
 
 module prjhngr_ardu_ptrn() { // "additive" for the pattern of arduinos
@@ -247,8 +323,8 @@ module prjhngr_ardu_ptrn() { // "additive" for the pattern of arduinos
 }  // end prjhngr_ardu_ptrn()
 
 module prjhngr_ubec_holes() { // cutout for the ubec ziptie holes for one ubec
-    translate([0,+prjhngr_ubec_short/2,0]) prjhngr_ziptiehole();
-    translate([0,-prjhngr_ubec_short/2,0]) prjhngr_ziptiehole();
+    translate([0,+(prjhngr_ubec_short/2+0.9*prjhngr_ziptie_rad),0]) prjhngr_ziptiehole();
+    translate([0,-(prjhngr_ubec_short/2+0.9*prjhngr_ziptie_rad),0]) prjhngr_ziptiehole();
 }   // end prjhngr_ardu_holes()
 
 module prjhngr_ubec_holes_ptrn() { // cutout for the pattern of ubec ziptie holes
@@ -256,7 +332,7 @@ module prjhngr_ubec_holes_ptrn() { // cutout for the pattern of ubec ziptie hole
 }   // end prjhngr_ubec_holes_ptrn()
 
 module prjhngr_ubec_model() { // "additive" for one of ubec
-    if (dsply_ubec) translate([0,0,prjhngr_ubec_height/2+prjhng_thickness_frame]) color(color_ubec) cube([prjhngr_ubec_long, prjhngr_ubec_short, prjhngr_ubec_height], center=true);
+    if (dsply_ubec) translate([0,0,prjhngr_ubec_height/2+prjhng_thickness_frame/2]) color(color_ubec) cube([prjhngr_ubec_long, prjhngr_ubec_short, prjhngr_ubec_height], center=true);
 }  // end prjhngr_ubec_model() {
 
 module prjhngr_ubec_ptrn() { // "additive" for the pattern of ubec
@@ -313,16 +389,19 @@ module prjhngr() { // the entire hanger with cutouts and parts models
             prjhngr_ubec_holes_ptrn();
             prjhngr_rokrmnt_holes_ptrn();
             prjhngr_knif_holes_ptrn();
+            prjhngr_rsstr_holes_ptrn();
         } // end difference()
         prjhngr_ardu_ptrn();
         prjhngr_ubec_ptrn();
         prjhngr_rokr_ptrn(prjhngr_rokr_height);
         prjhngr_knif_ptrn();
+        prjhngr_rsstr_ptrn();
     }  // end union()
 }  // end prjhngr()
 
 // aaaTest();
-bbbTest();
-// prjhngr_knif();
-// prjhngr();
+// bbbTest();
+// cccTest();
+// zzzTest();
+prjhngr();
 
