@@ -54,6 +54,8 @@ color_switch = "blue";
 dsply_rsstr = true;
 color_rsstr = "brown";
 
+color_atch = "purple"; // wire attachment points
+
 prjhngr_side  = 165; // from purse-strap to purse-strap
 prjhngr_elect = 130; // width needed for electronics
 prjhng_hook_width = 48; // hook stick width
@@ -139,13 +141,28 @@ prjhngr_rsstr_short =     4.9;
 prjhngr_rsstr_long =     25.2;
 prjhngr_rsstr_high =      2.2;
 prjhngr_rsstr_fromhole = -0.15*prjhngr_elect/2;
-prjhngr_rsstr_fromside =  0.85*prjhngr_side/2;
+prjhngr_rsstr_fromside =  -0.85*prjhngr_side/2;
 
 // wiring attachment points - width
 prjhngr_atch_pwrled_short  = 6.0;
-prjhngr_atch_pwrled_fromhole_ary = [0.5*prjhngr_elect/2];
-prjhngr_atch_pwrled_fromside_ary = [0.5*prjhngr_side/2];
+prjhngr_atch_pwrled_fromhole_ary = [0.9*prjhngr_elect/2, 0.7*prjhngr_elect/2, 0.38*prjhngr_elect/2];
+prjhngr_atch_pwrled_fromside_ary = [0.08*prjhngr_side/2, 0.08*prjhngr_side/2, 0.36*prjhngr_side/2];
 prjhngr_atch_pwrardu_short = 4.0;
+prjhngr_atch_pwrardu_fromhole_ary = [0.9*prjhngr_elect/2,  0.7*prjhngr_elect/2];
+prjhngr_atch_pwrardu_fromside_ary = [-0.25*prjhngr_side/2, -0.25*prjhngr_side/2];
+prjhngr_atch_sgnlgnd_short = 2.5;
+prjhngr_sgnlgnd_bus1_fromhole = -0.12*prjhngr_elect/2; // bus 1 is in middle of board
+prjhngr_sgnlgnd_bus2_fromhole = -0.90*prjhngr_elect/2; // bus 2 is near bottom of board
+prjhngr_atch_sgnlgnd_fromhole_ary = [-0.60*prjhngr_elect/2, -0.60*prjhngr_elect/2,
+    prjhngr_sgnlgnd_bus1_fromhole, prjhngr_sgnlgnd_bus1_fromhole,
+    prjhngr_sgnlgnd_bus1_fromhole, prjhngr_sgnlgnd_bus1_fromhole, prjhngr_sgnlgnd_bus1_fromhole,
+    prjhngr_sgnlgnd_bus2_fromhole, prjhngr_sgnlgnd_bus2_fromhole,
+    prjhngr_sgnlgnd_bus2_fromhole, prjhngr_sgnlgnd_bus2_fromhole];
+prjhngr_atch_sgnlgnd_fromside_ary = [-0.70*prjhngr_side/2,  +0.70*prjhngr_side/2,
+    -0.45*prjhngr_side/2, -0.15*prjhngr_side/2,
+    +0.15*prjhngr_side/2, +0.45*prjhngr_side/2, +0.75*prjhngr_side/2,
+    -0.45*prjhngr_side/2, -0.15*prjhngr_side/2,
+    +0.15*prjhngr_side/2, +0.45*prjhngr_side/2];
 
 prjhngr_ziptie_rad = 1.1; // 3 allows actual zip-tie, 1.1 just barely fits wire
 
@@ -203,17 +220,40 @@ module prjhngr_generic_hole_pattern(radius) { // cutout for one generic hole thr
     translate([0,0,+2*prjhng_thickness_cutout]) cylinder(r=radius,h=8*prjhng_thickness_cutout,center=true,$fn=32);
 }  // end prjhngr_generic_hole_pattern()
 
-module prjhngr_atch_pwrled_holes() { // cutout for resistor mount holes for one 10K pullup multi-resistor
-    translate([0,+(prjhngr_atch_pwrled_short/2+0.9*prjhngr_ziptie_rad),0]) prjhngr_generic_hole_pattern(prjhngr_ziptie_rad);
-    translate([0,-(prjhngr_atch_pwrled_short/2+0.9*prjhngr_ziptie_rad),0]) prjhngr_generic_hole_pattern(prjhngr_ziptie_rad);
-}  // end prjhngr_atch_pwrled_holes()
+module prjhngr_generic_atch_holes(distance,radius) { // cutout for wire attachment point - specify distance & radius
+    color(color_atch) translate([0,+(distance/2+0.9*radius),0]) prjhngr_generic_hole_pattern(radius);
+    color(color_atch) translate([0,-(distance/2+0.9*radius),0]) prjhngr_generic_hole_pattern(radius);
+}   // end prjhngr_generic_atch_holes()
 
 module prjhngr_atch_pwrled_holes_ptrn() { // cutout for the pattern of arduino ziptie holes for all arduinos
-    translate([prjhngr_atch_pwrled_fromhole_ary[0],prjhngr_atch_pwrled_fromside_ary[0],0]) prjhngr_atch_pwrled_holes();
-    //translate([prjhngr_atch_pwrled_fromhole_ary[1],prjhngr_atch_pwrled_fromside_ary[1],0]) prjhngr_atch_pwrled_holes();
-    //translate([prjhngr_atch_pwrled_fromhole_ary[2],prjhngr_atch_pwrled_fromside_ary[2],0]) prjhngr_atch_pwrled_holes();
-    //translate([prjhngr_atch_pwrled_fromhole_ary[3],prjhngr_atch_pwrled_fromside_ary[3],0]) prjhngr_atch_pwrled_holes();
+    translate([prjhngr_atch_pwrled_fromhole_ary[0],prjhngr_atch_pwrled_fromside_ary[0],0]) prjhngr_generic_atch_holes(prjhngr_atch_pwrled_short,prjhngr_ziptie_rad);
+    translate([prjhngr_atch_pwrled_fromhole_ary[1],prjhngr_atch_pwrled_fromside_ary[1],0]) prjhngr_generic_atch_holes(prjhngr_atch_pwrled_short,prjhngr_ziptie_rad);
+    translate([prjhngr_atch_pwrled_fromhole_ary[2],prjhngr_atch_pwrled_fromside_ary[2],0]) prjhngr_generic_atch_holes(prjhngr_atch_pwrled_short,prjhngr_ziptie_rad);
+    // translate([prjhngr_atch_pwrled_fromhole_ary[3],prjhngr_atch_pwrled_fromside_ary[3],0]) prjhngr_generic_atch_holes(prjhngr_atch_pwrled_short,prjhngr_ziptie_rad);
 }   // end prjhngr_atch_pwrled_holes_ptrn()
+
+module prjhngr_atch_pwrardu_holes_ptrn() { // cutout for the pattern of arduino ziptie holes for all arduinos
+    translate([prjhngr_atch_pwrardu_fromhole_ary[0],prjhngr_atch_pwrardu_fromside_ary[0],0]) prjhngr_generic_atch_holes(prjhngr_atch_pwrardu_short,prjhngr_ziptie_rad);
+    translate([prjhngr_atch_pwrardu_fromhole_ary[1],prjhngr_atch_pwrardu_fromside_ary[1],0]) prjhngr_generic_atch_holes(prjhngr_atch_pwrardu_short,prjhngr_ziptie_rad);
+    //translate([prjhngr_atch_pwrardu_fromhole_ary[2],prjhngr_atch_pwrardu_fromside_ary[2],0]) rotate([0,0,90]) prjhngr_generic_atch_holes(prjhngr_atch_pwrardu_short,prjhngr_ziptie_rad);
+    // translate([prjhngr_atch_pwrardu_fromhole_ary[3],prjhngr_atch_pwrardu_fromside_ary[3],0]) rotate([0,0,90]) prjhngr_generic_atch_holes(prjhngr_atch_pwrardu_short,prjhngr_ziptie_rad);
+}   // end prjhngr_atch_pwrardu_holes_ptrn()
+
+module prjhngr_atch_sgnlgnd_holes_ptrn() { // cutout for the pattern of arduino ziptie holes for all arduinos
+    translate([prjhngr_atch_sgnlgnd_fromhole_ary[0],prjhngr_atch_sgnlgnd_fromside_ary[0],0]) prjhngr_generic_atch_holes(prjhngr_atch_sgnlgnd_short,prjhngr_ziptie_rad);
+    translate([prjhngr_atch_sgnlgnd_fromhole_ary[1],prjhngr_atch_sgnlgnd_fromside_ary[1],0]) prjhngr_generic_atch_holes(prjhngr_atch_sgnlgnd_short,prjhngr_ziptie_rad);
+    translate([prjhngr_atch_sgnlgnd_fromhole_ary[2],prjhngr_atch_sgnlgnd_fromside_ary[2],0]) rotate([0,0,90]) prjhngr_generic_atch_holes(prjhngr_atch_sgnlgnd_short,prjhngr_ziptie_rad);
+    translate([prjhngr_atch_sgnlgnd_fromhole_ary[3],prjhngr_atch_sgnlgnd_fromside_ary[3],0]) rotate([0,0,90]) prjhngr_generic_atch_holes(prjhngr_atch_sgnlgnd_short,prjhngr_ziptie_rad);
+    translate([prjhngr_atch_sgnlgnd_fromhole_ary[4],prjhngr_atch_sgnlgnd_fromside_ary[4],0]) rotate([0,0,90]) prjhngr_generic_atch_holes(prjhngr_atch_sgnlgnd_short,prjhngr_ziptie_rad);
+    translate([prjhngr_atch_sgnlgnd_fromhole_ary[5],prjhngr_atch_sgnlgnd_fromside_ary[5],0]) rotate([0,0,90]) prjhngr_generic_atch_holes(prjhngr_atch_sgnlgnd_short,prjhngr_ziptie_rad);
+    translate([prjhngr_atch_sgnlgnd_fromhole_ary[6],prjhngr_atch_sgnlgnd_fromside_ary[6],0]) rotate([0,0,90]) prjhngr_generic_atch_holes(prjhngr_atch_sgnlgnd_short,prjhngr_ziptie_rad);
+
+    translate([prjhngr_atch_sgnlgnd_fromhole_ary[7],prjhngr_atch_sgnlgnd_fromside_ary[7],0]) rotate([0,0,90]) prjhngr_generic_atch_holes(prjhngr_atch_sgnlgnd_short,prjhngr_ziptie_rad);
+    translate([prjhngr_atch_sgnlgnd_fromhole_ary[8],prjhngr_atch_sgnlgnd_fromside_ary[8],0]) rotate([0,0,90]) prjhngr_generic_atch_holes(prjhngr_atch_sgnlgnd_short,prjhngr_ziptie_rad);
+    translate([prjhngr_atch_sgnlgnd_fromhole_ary[9],prjhngr_atch_sgnlgnd_fromside_ary[9],0]) rotate([0,0,90]) prjhngr_generic_atch_holes(prjhngr_atch_sgnlgnd_short,prjhngr_ziptie_rad);
+    translate([prjhngr_atch_sgnlgnd_fromhole_ary[10],prjhngr_atch_sgnlgnd_fromside_ary[10],0]) rotate([0,0,90]) prjhngr_generic_atch_holes(prjhngr_atch_sgnlgnd_short,prjhngr_ziptie_rad);
+    translate([prjhngr_atch_sgnlgnd_fromhole_ary[11],prjhngr_atch_sgnlgnd_fromside_ary[11],0]) rotate([0,0,90]) prjhngr_generic_atch_holes(prjhngr_atch_sgnlgnd_short,prjhngr_ziptie_rad);
+}   // end prjhngr_atch_sgnlgnd_holes_ptrn()
 
 module prjhngr_rsstr() { // "additive" for one 10K pullup multi-resistor
     // note: leave bottom flat, no indentation
@@ -396,6 +436,9 @@ module prjhngr() { // the entire hanger with cutouts and parts models
         prjhngr_rokr_ptrn(prjhngr_rokr_height);
         prjhngr_knif_ptrn();
         prjhngr_rsstr_ptrn();
+        prjhngr_atch_pwrled_holes_ptrn();
+        prjhngr_atch_pwrardu_holes_ptrn();
+        prjhngr_atch_sgnlgnd_holes_ptrn();
     }  // end union()
 }  // end prjhngr()
 
