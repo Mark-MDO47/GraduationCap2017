@@ -110,17 +110,40 @@ prjhngr_rokrmnt_btmrad = prjhngr_rokr_lip_rad+8;
 prjhngr_rokrmnt_toprad = prjhngr_rokr_lip_rad+2;
 
 // knife switch for arduinos
-prjhngr_knif_outlong =         37.0;
+prjhngr_knif_outlong =         37.0; // y direction
 prjhngr_knif_outshort =        24.0;
 prjhngr_knif_outhigh =          7.5;
 prjhngr_knif_ofsthol_short_s =  5.2;
 prjhngr_knif_ofsthol_short_l = 18.8;
 prjhngr_knif_ofsthol_long_s =  16.5;
 prjhngr_knif_ofsthol_long_l =  20.5;
+prjhngr_knif_cntrhol_short_s = 12.0;
+prjhngr_knif_cntrhol_short_l = 12.0;
+prjhngr_knif_cntrhol_long_s =   8.1;
+prjhngr_knif_cntrhol_long_l =  28.9;
 prjhngr_knif_knob_ovrhng =     13.7;
 prjhngr_knif_knob_width =       4.7;
 prjhngr_knif_fromhole =   0.65*prjhngr_elect/2;
 prjhngr_knif_fromside =   0.45*prjhngr_side/2;
+
+prjhngr_knif_ofsthol_rad = 3.0;
+prjhngr_knif_cntrhol_rad = 3.0;
+prjhngr_knif_ofsthol =  true;
+prjhngr_knif_cntrhol =  true;
+
+module prjhngr_knif_holes() { // cutout for knife switch mount holes for one knife switch
+    union() {
+        if (prjhngr_knif_ofsthol) {
+            translate([-prjhngr_knif_outlong/2+prjhngr_knif_ofsthol_long_s,-prjhngr_knif_outshort/2+prjhngr_knif_ofsthol_short_s,0]) prjhngr_generic_hole_pattern(prjhngr_knif_ofsthol_rad);
+            translate([-prjhngr_knif_outlong/2+prjhngr_knif_ofsthol_long_l,-prjhngr_knif_outshort/2+prjhngr_knif_ofsthol_short_l,0]) prjhngr_generic_hole_pattern(prjhngr_knif_ofsthol_rad);
+        }  // end if prjhngr_knif_ofsthol
+        if (prjhngr_knif_cntrhol) {
+            translate([-prjhngr_knif_outlong/2+prjhngr_knif_cntrhol_long_s,-prjhngr_knif_outshort/2+prjhngr_knif_cntrhol_short_s,0]) prjhngr_generic_hole_pattern(prjhngr_knif_cntrhol_rad);
+            translate([-prjhngr_knif_outlong/2+prjhngr_knif_cntrhol_long_l,-prjhngr_knif_outshort/2+prjhngr_knif_cntrhol_short_l,0]) prjhngr_generic_hole_pattern(prjhngr_knif_cntrhol_rad);
+        }  // end if prjhngr_knif_cntrhol
+        //translate([0,0,0]) prjhngr_generic_hole_pattern(TBD_RADIUS);
+    }
+}  // end prjhngr_knif_holes()
 
 module aaaTest() { // aaaTest - test of holes for rokr and ziptie
     rotate ([0,0,-90]) difference() {
@@ -134,6 +157,17 @@ module aaaTest() { // aaaTest - test of holes for rokr and ziptie
         translate([-10,-20,0]) prjhngr_ziptiehole();
     } // end difference()
 }
+
+module bbbTest() { // bbbTest - test of holes for knife switch
+    rotate ([0,0,-90]) union() {
+        difference() {
+            roundCornersCube(50,40,3, 10);
+            translate([0,0,-1]) prjhngr_knif();
+            prjhngr_knif_holes();
+        } // end union
+        //prjhngr_knif();
+    } // end difference
+}  // end bbbTest()
 
 module prjhngr_generic_hole_pattern(radius) { // cutout for one generic hole through the board; specify radius
     translate([0,0,+2*prjhng_thickness_cutout]) cylinder(r=radius,h=8*prjhng_thickness_cutout,center=true,$fn=32);
@@ -149,12 +183,6 @@ module prjhngr_knif() { // "additive" for one knife switch
 module prjhngr_knif_ptrn() { // "additive" for the pattern of knife switch
     if (dsply_switch) translate([prjhngr_knif_fromhole,-prjhngr_knif_fromside,0]) prjhngr_knif();
 }  // end prjhngr_knif_ptrn()
-
-module prjhngr_knif_holes() { // cutout for knife switch mount holes for one knife switch
-    union() {
-        //translate([0,0,0]) prjhngr_generic_hole_pattern(TBD_RADIUS);
-    }
-}  // end prjhngr_knif_holes()
 
 module prjhngr_knif_holes_ptrn() { // cutout for the pattern of knife switch mount holes
 }  // end prjhngr_knif_holes_ptrn()
@@ -294,7 +322,7 @@ module prjhngr() { // the entire hanger with cutouts and parts models
 }  // end prjhngr()
 
 // aaaTest();
-// bbbTest();
+bbbTest();
 // prjhngr_knif();
-prjhngr();
+// prjhngr();
 
