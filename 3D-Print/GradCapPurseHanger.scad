@@ -164,6 +164,15 @@ prjhngr_atch_sgnlgnd_fromside_ary = [-0.70*prjhngr_side/2,  +0.70*prjhngr_side/2
     -0.45*prjhngr_side/2, -0.15*prjhngr_side/2,
     +0.15*prjhngr_side/2, +0.45*prjhngr_side/2];
 
+prjhngr_thruwire_rad = 4;
+prjhngr_thruwire_fromhole_ary = [+0.30*prjhngr_elect/2, -0.90*prjhngr_elect/2,
+    -0.90*prjhngr_elect/2, -0.90*prjhngr_elect/2,
+    -0.90*prjhngr_elect/2, -0.90*prjhngr_elect/2,
+    +0.20*prjhngr_elect/2, +0.20*prjhngr_elect/2];
+prjhngr_thruwire_fromside_ary = [ 0, 0,
+    -0.72*prjhngr_side/2,  +0.72*prjhngr_side/2,
+    -0.30*prjhngr_side/2,  +0.30*prjhngr_side/2,
+    -0.4*prjhngr_side/2,  +0.4*prjhngr_side/2];
 prjhngr_ziptie_rad = 1.1; // 3 allows actual zip-tie, 1.1 just barely fits wire
 
 module aaaTest() { // aaaTest - test of holes for rokr and ziptie
@@ -225,6 +234,17 @@ module prjhngr_generic_atch_holes(distance,radius) { // cutout for wire attachme
     color(color_atch) translate([0,-(distance/2+0.9*radius),0]) prjhngr_generic_hole_pattern(radius);
 }   // end prjhngr_generic_atch_holes()
 
+module prjhngr_thruwire_holes_ptrn() { // cutout for the pattern of wires passing between bottom and top of board
+    translate([prjhngr_thruwire_fromhole_ary[0],prjhngr_thruwire_fromside_ary[0],0]) prjhngr_generic_hole_pattern(prjhngr_thruwire_rad);
+    translate([prjhngr_thruwire_fromhole_ary[1],prjhngr_thruwire_fromside_ary[1],0]) prjhngr_generic_hole_pattern(prjhngr_thruwire_rad);
+    translate([prjhngr_thruwire_fromhole_ary[2],prjhngr_thruwire_fromside_ary[2],0]) prjhngr_generic_hole_pattern(prjhngr_thruwire_rad);
+    translate([prjhngr_thruwire_fromhole_ary[3],prjhngr_thruwire_fromside_ary[3],0]) prjhngr_generic_hole_pattern(prjhngr_thruwire_rad);
+    translate([prjhngr_thruwire_fromhole_ary[4],prjhngr_thruwire_fromside_ary[4],0]) prjhngr_generic_hole_pattern(prjhngr_thruwire_rad);
+    translate([prjhngr_thruwire_fromhole_ary[5],prjhngr_thruwire_fromside_ary[5],0]) prjhngr_generic_hole_pattern(prjhngr_thruwire_rad);
+    translate([prjhngr_thruwire_fromhole_ary[6],prjhngr_thruwire_fromside_ary[6],0]) prjhngr_generic_hole_pattern(prjhngr_thruwire_rad);
+    translate([prjhngr_thruwire_fromhole_ary[7],prjhngr_thruwire_fromside_ary[7],0]) prjhngr_generic_hole_pattern(prjhngr_thruwire_rad);
+}  // end prjhngr_thruwire_holes_ptrn()
+
 module prjhngr_atch_pwrled_holes_ptrn() { // cutout for the pattern of arduino ziptie holes for all arduinos
     translate([prjhngr_atch_pwrled_fromhole_ary[0],prjhngr_atch_pwrled_fromside_ary[0],0]) prjhngr_generic_atch_holes(prjhngr_atch_pwrled_short,prjhngr_ziptie_rad);
     translate([prjhngr_atch_pwrled_fromhole_ary[1],prjhngr_atch_pwrled_fromside_ary[1],0]) prjhngr_generic_atch_holes(prjhngr_atch_pwrled_short,prjhngr_ziptie_rad);
@@ -252,7 +272,7 @@ module prjhngr_atch_sgnlgnd_holes_ptrn() { // cutout for the pattern of arduino 
     translate([prjhngr_atch_sgnlgnd_fromhole_ary[8],prjhngr_atch_sgnlgnd_fromside_ary[8],0]) rotate([0,0,90]) prjhngr_generic_atch_holes(prjhngr_atch_sgnlgnd_short,prjhngr_ziptie_rad);
     translate([prjhngr_atch_sgnlgnd_fromhole_ary[9],prjhngr_atch_sgnlgnd_fromside_ary[9],0]) rotate([0,0,90]) prjhngr_generic_atch_holes(prjhngr_atch_sgnlgnd_short,prjhngr_ziptie_rad);
     translate([prjhngr_atch_sgnlgnd_fromhole_ary[10],prjhngr_atch_sgnlgnd_fromside_ary[10],0]) rotate([0,0,90]) prjhngr_generic_atch_holes(prjhngr_atch_sgnlgnd_short,prjhngr_ziptie_rad);
-    translate([prjhngr_atch_sgnlgnd_fromhole_ary[11],prjhngr_atch_sgnlgnd_fromside_ary[11],0]) rotate([0,0,90]) prjhngr_generic_atch_holes(prjhngr_atch_sgnlgnd_short,prjhngr_ziptie_rad);
+    // translate([prjhngr_atch_sgnlgnd_fromhole_ary[11],prjhngr_atch_sgnlgnd_fromside_ary[11],0]) rotate([0,0,90]) prjhngr_generic_atch_holes(prjhngr_atch_sgnlgnd_short,prjhngr_ziptie_rad);
 }   // end prjhngr_atch_sgnlgnd_holes_ptrn()
 
 module prjhngr_rsstr() { // "additive" for one 10K pullup multi-resistor
@@ -430,15 +450,16 @@ module prjhngr() { // the entire hanger with cutouts and parts models
             prjhngr_rokrmnt_holes_ptrn();
             prjhngr_knif_holes_ptrn();
             prjhngr_rsstr_holes_ptrn();
+            prjhngr_atch_pwrled_holes_ptrn();
+            prjhngr_atch_pwrardu_holes_ptrn();
+            prjhngr_atch_sgnlgnd_holes_ptrn();
+            prjhngr_thruwire_holes_ptrn();
         } // end difference()
         prjhngr_ardu_ptrn();
         prjhngr_ubec_ptrn();
         prjhngr_rokr_ptrn(prjhngr_rokr_height);
         prjhngr_knif_ptrn();
         prjhngr_rsstr_ptrn();
-        prjhngr_atch_pwrled_holes_ptrn();
-        prjhngr_atch_pwrardu_holes_ptrn();
-        prjhngr_atch_sgnlgnd_holes_ptrn();
     }  // end union()
 }  // end prjhngr()
 
