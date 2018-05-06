@@ -14,3 +14,10 @@ Fortunately when I heated up to pull the filament out the encapsulation was brit
 
 Additional cleanup makes it look almost like before. Will have to see if it works
   489 thru 491
+
+The partial print was usable to do a fit-check of some parts.
+  493 thru 495
+
+Hmm - comment of "that doesn't look good!!!" gets turned by bash into "that doesn't look goodgit status!".
+A bit of an information leak there... not too bad this time.
+
