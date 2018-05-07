@@ -100,6 +100,7 @@ prjhngr_ubec_fromhole = -1.6*prjhngr_ubec_short;
 //    0.75 in = 19.05 mm
 // SparkFun says "They mount into a 20.2mm diameter hole"
 // I measure 20.3 mm diam or 10.15 mm rad and that over a little knob it has
+//   my measurement works quite well at 10.2
 prjhngr_rokr_rad =       10.2;
 prjhngr_rokr_height =    18.3;
 prjhngr_rokr_lip_catch =  0.8;
@@ -144,7 +145,7 @@ prjhngr_rsstr_fromhole = -0.15*prjhngr_elect/2;
 prjhngr_rsstr_fromside =  -0.85*prjhngr_side/2;
 
 // wiring attachment points - width
-prjhngr_atch_pwrled_short  = 6.0;
+prjhngr_atch_pwrled_short  = 6.0; // both LED power (under) and Arduino data lines (over)
 prjhngr_atch_pwrled_fromhole_ary = [0.9*prjhngr_elect/2, 0.7*prjhngr_elect/2, 0.38*prjhngr_elect/2];
 prjhngr_atch_pwrled_fromside_ary = [0.08*prjhngr_side/2, 0.08*prjhngr_side/2, 0.36*prjhngr_side/2];
 prjhngr_atch_pwrardu_short = 4.0;
@@ -297,7 +298,7 @@ module prjhngr_rsstr_holes_ptrn() { // cutout for the pattern of 10K pullup mult
 
 module prjhngr_knif() { // "additive" for one knife switch
     color(color_switch) union() {
-        translate([-prjhngr_knif_outlong/2,-prjhngr_knif_outshort/2,prjhng_thickness_frame/2]) cube([prjhngr_knif_outlong,prjhngr_knif_outshort,prjhngr_knif_outhigh]);
+        translate([-prjhngr_knif_outlong/2,-prjhngr_knif_outshort/2,prjhng_thickness_frame/2-1]) cube([prjhngr_knif_outlong,prjhngr_knif_outshort,prjhngr_knif_outhigh]);
         translate([-prjhngr_knif_outlong/2-prjhngr_knif_knob_ovrhng,-prjhngr_knif_knob_width/2,prjhng_thickness_frame/2+prjhngr_knif_outhigh]) cube([prjhngr_knif_outlong,prjhngr_knif_knob_width,prjhngr_knif_outhigh]);
     } // end union
 }  // end prjhngr_knif()
@@ -316,7 +317,7 @@ module prjhngr_knif_holes() { // cutout for knife switch mount holes for one kni
             translate([-prjhngr_knif_outlong/2+prjhngr_knif_cntrhol_long_s,-prjhngr_knif_outshort/2+prjhngr_knif_cntrhol_short_s,0]) prjhngr_generic_hole_pattern(prjhngr_knif_cntrhol_rad);
             translate([-prjhngr_knif_outlong/2+prjhngr_knif_cntrhol_long_l,-prjhngr_knif_outshort/2+prjhngr_knif_cntrhol_short_l,0]) prjhngr_generic_hole_pattern(prjhngr_knif_cntrhol_rad);
         }  // end if prjhngr_knif_cntrhol
-        //translate([0,0,0]) prjhngr_generic_hole_pattern(TBD_RADIUS);
+        prjhngr_knif();
     }
 }  // end prjhngr_knif_holes()
 
@@ -474,4 +475,3 @@ module prjhngr() { // the entire hanger with cutouts and parts models
 // cccTest();
 // zzzTest();
 prjhngr();
-
