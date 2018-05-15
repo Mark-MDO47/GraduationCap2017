@@ -44,6 +44,7 @@
 // connections:
 //    Data Pin 3 is used for serial communications with the LEDs
 //    Data Pins 4-9 are used for pushbuttons 1-6 to choose pattern. Pattern 1 is OFF
+//       NOTE: only data pins 4-6 (pushbuttons 1-3) are wired at this time
 //    Data Pins 11-12 are used for synchronizing with the other Arduinos. 11 is "IAMSYNC"; 12 is "ALLSYNC" input
 // 
 // Recommendations -  ;^)
@@ -123,7 +124,7 @@ const uint8_t  radar_adv_per_LED_per_ring[NUM_RINGS_PER_DISK] = { 0, 192, 128, 9
 #define DEBUG4_PRINT(param)   Serial.print((param));
 #endif // DEBUG
 
-#define REAL_BUTTONS 0 // 1 = use buttons for input, 0 = use serial port
+#define REAL_BUTTONS 1 // 1 = use buttons for input, 0 = use serial port
 #if 0 == REAL_BUTTONS
 #define SERIALPORT 1 // use serial port
 #endif // REAL_BUTTONS
@@ -136,7 +137,7 @@ const uint8_t  radar_adv_per_LED_per_ring[NUM_RINGS_PER_DISK] = { 0, 192, 128, 9
 // setMySync(val) - sets sync to TRUE if val is nonzero, else sets sync to FALSE
 //
 #define iamSync()    setMySync(1)
-#define iamNotSync() setMySync(1)
+#define iamNotSync() setMySync(0)
 
 #if DEBUG
 int16_t tmp_DEBUG = 0;
@@ -419,6 +420,7 @@ void setup() {
   FastLED.setBrightness(BRIGHTMAX); // we will do our own power management
 
   // initialize the input pins. Not sure if my nano actually has a pullup...
+  //    fortunately the PurseHanger controller board has a 10K pullup
   // README - this code assumes these are contiguous and in order
   for (int16_t thePin = PSHBTN1; thePin <= PSHBTN6; thePin ++) {
     pinMode(thePin, INPUT_PULLUP);
