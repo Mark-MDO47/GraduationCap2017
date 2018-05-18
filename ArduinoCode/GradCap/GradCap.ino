@@ -62,9 +62,10 @@
 // I am using 93-LED rings - four of them.
 #define NUM_DISKS 1 // definitely not enough room for multiple disks in one Arduino
 #define NUM_LEDS_PER_DISK 93
-#define WHICH_DISK 1 // if we have multiple Arduinos, this will identify them
 #define NUM_RINGS_PER_DISK 6
 #define NUM_SHADOWS 1  // number of shadow disks
+#define WHICH_ARDUINO 0 // this will identify the Arduinos, 0-3 inclusive
+#define NUM_ARDUINOS  4 // number of Arduinos is 4; max usable is 3
 
 // LED count - number of LEDs in each ring in order of serial access
 const uint8_t  leds_per_ring[NUM_RINGS_PER_DISK]  = { 32, 24, 16, 12, 8, 1 };
@@ -374,6 +375,9 @@ const int8_t ptrnRingQrtrDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1
 
 
 const int8_t ptrnWideDrawShdw1Fade[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_DRWTRGT_SHDW1_STICKY, SPCL_DRAW_BKGD_CLR_BKGND, PER_LED_DRAW_BLNKING_LTR_ALL, SUPRSPCL_DRWTRGT_LEDS_NONSTICKY, STEP2_FADEDLY_ADD_100, STEP2_FADEFCT_DIV_2, STEP2_FADEDISK2_SHDW1, SUPRSPCL_END_OF_PTRNS };
+
+const int8_t * ltrs_Poly[] = { ltr_P, ltr_O, ltr_L, ltr_Y }; // starts with WHICH_ARDUINO; loops at NUM_ARDUINOS
+const int8_t * ltrs_2018[] = { ltr_2, ltr_0, ltr_1, ltr_8 }; // starts with WHICH_ARDUINO; loops at NUM_ARDUINOS
 
 // pattern vars
 
