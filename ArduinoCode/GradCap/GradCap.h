@@ -189,3 +189,267 @@ const int8_t* const surround_pointers[] /* PROGMEM */ = {
    srnd_88, srnd_89, srnd_90, srnd_91, srnd_92
 };
 
+
+#define BRIGHTMAX 40 // set to 250 for final version
+#define BAD_LED_92 0 // LED [92] is not working in test hardware
+
+// I am using 93-LED rings - four of them.
+#define NUM_DISKS 1 // definitely not enough room for multiple disks in one Arduino
+#define NUM_LEDS_PER_DISK 93
+#define NUM_RINGS_PER_DISK 6
+#define NUM_SHADOWS 1  // number of shadow disks
+#define WHICH_ARDUINO 0 // this will identify the Arduinos, 0-3 inclusive
+#define NUM_ARDUINOS  4 // number of Arduinos is 4; max usable is 3
+
+// LED count - number of LEDs in each ring in order of serial access
+const uint8_t  leds_per_ring[NUM_RINGS_PER_DISK]  = { 32, 24, 16, 12, 8, 1 };
+const uint8_t  leds_per_ringqrtr[NUM_RINGS_PER_DISK]  = { 8, 6, 4, 3, 2, 1 };
+const uint8_t  start_per_ring[NUM_RINGS_PER_DISK] = {  0, 32, 56, 72, 84, 92 };
+const uint8_t  radar_adv_per_LED_per_ring[NUM_RINGS_PER_DISK] = { 0, 192, 128, 96, 64, 0 };
+
+// We'll be using Digital Data Pin D3 to control the WS2812 LEDs
+// We skip D2 to leave a space between our data and our GND connection
+#define LED_DATA_PIN 3
+#define LED_TYPE     WS2812
+#define COLOR_ORDER  GRB
+#define FRAMES_PER_SECOND  120
+
+// pushbutton inputs are D4 to D9
+// README - the initialization code assumes these are contiguous and in order
+#define PSHBTN1 4 // input
+#define PSHBTN2 5 // input
+#define PSHBTN3 6 // input
+#define PSHBTN4 7 // input
+#define PSHBTN5 8 // input
+#define PSHBTN6 9 // input
+
+#define IAMSYNC 11 // output
+#define ALLSYNC 12 // input
+
+#define SERIALPORT 1 // use serial port
+
+#define DEBUG 1 // 1 = debug thru serial port, 0 = no debug
+#define DEBUG2 0 // 1 = debug thru serial port, 0 = no debug
+
+#define DEBUG_LED_DISPLAY 1
+#ifdef DEBUG_LED_DISPLAY
+#define LED_DISPLAY(PARMS) debug_led_display((PARMS),"PARMS",__LINE__);
+#else // not DEBUG_LED_DISPLAY
+#define LED_DISPLAY(PARMS)
+#endif // not DEBUG_LED_DISPLAY
+
+#if DEBUG
+#define DEBUG_ERRORS_PRINT(param)   Serial.print((param));
+#define DEBUG_ERRORS_PRINTLN(param) Serial.println((param));
+// #define DEBUG_PRINTLN(param) Serial.println((param));
+// #define DEBUG_PRINT(param)   Serial.print((param));
+#define DEBUG_PRINTLN(param) // nothing
+#define DEBUG_PRINT(param)   // nothing
+// #define DEBUG2_PRINTLN(param) Serial.println((param));
+// #define DEBUG2_PRINT(param)   Serial.print((param));
+// #define DEBUG2_RETURN(p1, p2)  debug2_return((p1), (p2));
+#define DEBUG2_PRINTLN(param) // nothing
+#define DEBUG2_PRINT(param)   // nothing
+#define DEBUG2_RETURN(p1, p2)  // nothing
+// #define DEBUG3_PRINTLN(param) Serial.println((param));
+// #define DEBUG3_PRINT(param)   Serial.print((param));
+#define DEBUG3_PRINTLN(param) // nothing
+#define DEBUG3_PRINT(param)   // nothing
+#define DEBUG4_PRINTLN(param) Serial.println((param));
+#define DEBUG4_PRINT(param)   Serial.print((param));
+#endif // DEBUG
+
+// iamNotSync() - sets our sync output to FALSE. note: #define
+// iamSync()    - sets our sync output to TRUE. note: #define
+// val = areWeAllSync() - returns nonzero if we are all sync
+// val = iamSyncAreWeAllSync - sets our sync output TRUE and returns nonzero if we are all sync
+// 
+// setMySync(val) - sets sync to TRUE if val is nonzero, else sets sync to FALSE
+//
+#define iamSync()    setMySync(1)
+#define iamNotSync() setMySync(0)
+
+#if DEBUG
+int16_t tmp_DEBUG = 0;
+int16_t tmp_DEBUG2 = 0;
+#endif // DEBUG
+
+
+// Creates an array with the length set by NUM_LEDS_PER_DISK above
+// This is the array the library will read to determine how each LED in the strand should be set
+static uint32_t data_guard_before = 0x55555555;
+static CRGB led_display[(1+NUM_SHADOWS)*NUM_LEDS_PER_DISK]; // 1st set is for display, then shadow1 then shadow2
+static uint32_t data_guard_after = 0x55555555;
+
+// lists of pattern tokens for drawing letters and other shapes
+// pattern lists are processed in 2.5 steps.
+// two major steps:
+//   1) process pattern-tokens that are one or more changes per LED, either letter LED or surround LED
+//     1.5) in the middle of this, do SPECIAL and some SUPER-SPECIAL pattern-token processing
+//   2) process SUPER-SPECIAL pattern-tokens that are done after the above, typically disk-wide, ring-wide, or section-wide effects
+//
+// SPECIAL processing allows things that should be done just once per pattern-list (or see SUPRSPCL_ALLOW_SPCL might be once per letter LED)
+//   SPCL_DRAW_BKGD_CLR_BKGND: clear and set background pattern for entire disk
+// SUPER-SPECIAL:
+//   SUPRSPCL_STOP_WHEN_DONE when placed first ([0]) will stop the pattern-list and return
+//   SUPRSPCL_ALLOW_SPCL resets the SPECIAL counter. If placed before a SPECIAL, it will be done for each letter LED
+//   SUPRSPCL_SKIP_STEP1 or SUPRSPCL_SKIP_STEP2 can be used to speed up processing If there are no more step1 or step2 tokens in the pattern
+//   SUPRSPCL_DRWTRGT_* sets the draw_target to shadow1 or display LEDs.
+//       This can be non-sticky (applies only to next pattern token) or sticky
+//          in other words, if non-sticky then next pattern-tocken reverts to draw on DSPLY
+//                          if sticky then next pattern-tocken continues to draw where this says until another SUPRSPCL_DRWTRGT_*
+//
+// STEP2 items do not USUALLY use the "letter|shape" directly (but STEP2_RADAR_XRAYMSK_OR_SHAPE does)
+// the "DRAW" series makes sense to do either on shadow or on display LEDs
+//   STEP2_DRAW_RING_* draws a ring
+//      STEP2_SET_RING_* sets which ring: ring_6 is outer ring and ring_1 is inner ring with just one LED
+//   STEP2_DRAW_RINGQRTR_* draws one quarter of a ring, using same ring as above
+//      STEP2_SET_QRTR_* sets which quarter: quarter 1 starts at "top" and goes clockwise; other rings clockwise
+//   STEP2_DRAW_DISKQRTR_* draws a quarter wedge of a ring, using same quarter as above
+//
+// Some of the effect series (like drain) would not make sense except on display LEDs
+// Some effects do use shadow and display LEDs so maybe could target shadow, but not sure it is useful
+//   STEP2_DRAIN_DOWN_* and STEP2_DRAIN_UP_* cycle existing patterns
+//   STEP2_FADEDISK2_* fades the entire disk of display LEDs to either SHADOW1 or a color
+//     STEP2_FADEDLY_* and  STEP2_FADEFCT_* affect delay and fade factor parameters
+//   STEP2_RADAR_FROM_SHDW1 and STEP2_RADAR_XRAY_SHDW1 do a "radar" pattern
+//     STEP2_RADAR_XRAY_SHDW1 includes "X-raying" SHDW1
+//     STEP2_RADAR_FROM_SHDW1 is radar-only; no X-ray. It clears the X-ray bitmask to achieve this
+//
+//
+// between STEP2_LARGEST and STEP2_SMALLEST are the ones that should be done after all the letter LED patterns (step 2 above)
+//   for letter|shape LED patterns:
+//      negative is pattern-token for letter LED changing one at a time 
+//      positive is pattern-token for surround LED changing one at a time
+//      specials are  >= 90 and <= 100. Only one special per pattern will execute only one time unless preceeded by SUPRSPCL_ALLOW_SPCL
+#define SUPRSPCL_END_OF_PTRNS              0 //
+#define PER_LED_DRAW_BLNKNG_SRND_CLKWS     1 //
+#define PER_LED_DRAW_PREV_SRND_CLKWS       2 //
+#define PER_LED_DRAW_BLNKNG_SRND_CTRCLKWS  3 //
+#define PER_LED_DRAW_PREV_SRND_CTRCLKWS    4 // walk thru surround setting LEDs to previous color
+
+#define STEP1_I_AM_SYNC_WAIT_ALL_SYNC      10 // step1: set IAMSYNC TRUE and wait for ALLSYNC
+#define STEP1_I_AM_NOT_SYNC                11 // step1: set IAMSYNC FALSE
+
+#define PER_LED_DRAW_BLNKING_SRND_ALL   (-1) // set all surround LEDs to blinking color
+#define PER_LED_DRAW_PREV_SRND_ALL      (-2) // set all surround LEDs to previous color
+#define PER_LED_DRAW_BLNKING            (-3) // set letter LED to blinking color
+#define PER_LED_DRAW_FORE               (-4) // set letter LED to foreground color
+#define PER_LED_DRAW_BLNKING_LTR_ALL    (-5) // set all letter LEDs to blinking color
+#define PER_LED_DRAW_FORE_LTR_ALL       (-6) // set all letter LED to foreground color
+
+#define TOKEN_DRAW_CLR_MAX           4 //
+#define TOKEN_DRAW_CLR_BLNKNG        3 //
+#define TOKEN_DRAW_CLR_BLACK         2 //
+#define TOKEN_DRAW_CLR_FRGND         1 //
+#define TOKEN_DRAW_CLR_BKGND         0 //
+
+#define STEP2_I_AM_SYNC_WAIT_ALL_SYNC  -50 // step2: set IAMSYNC TRUE and wait for ALLSYNC
+#define STEP2_I_AM_NOT_SYNC            -51 // step2: set IAMSYNC FALSE
+
+#define STEP2_MAX_TOKENVAL           STEP2_DRAW_RING_LARGEST // first or maximum STEP2 token
+#define STEP2_DRAW_RING_LARGEST      STEP2_DRAW_RING_CLR_BLNKNG
+#define STEP2_DRAW_RING_CLR_BLNKNG     -60
+#define STEP2_DRAW_RING_CLR_BLACK      -61
+#define STEP2_DRAW_RING_CLR_FRGND      -62
+#define STEP2_DRAW_RING_CLR_BKGND      -63
+#define STEP2_DRAW_RING_SMALLEST     STEP2_DRAW_RING_CLR_BKGND
+
+#define STEP2_DRAW_RINGQRTR_LARGEST      STEP2_DRAW_RINGQRTR_CLR_BLNKNG
+#define STEP2_DRAW_RINGQRTR_CLR_BLNKNG     -64
+#define STEP2_DRAW_RINGQRTR_CLR_BLACK      -65
+#define STEP2_DRAW_RINGQRTR_CLR_FRGND      -66
+#define STEP2_DRAW_RINGQRTR_CLR_BKGND      -67
+#define STEP2_DRAW_RINGQRTR_SMALLEST     STEP2_DRAW_RINGQRTR_CLR_BKGND
+
+#define STEP2_DRAW_DISKQRTR_LARGEST      STEP2_DRAW_DISKQRTR_CLR_BLNKNG
+#define STEP2_DRAW_DISKQRTR_CLR_BLNKNG     -68
+#define STEP2_DRAW_DISKQRTR_CLR_BLACK      -69
+#define STEP2_DRAW_DISKQRTR_CLR_FRGND      -70
+#define STEP2_DRAW_DISKQRTR_CLR_BKGND      -71
+#define STEP2_DRAW_DISKQRTR_SMALLEST     STEP2_DRAW_DISKQRTR_CLR_BKGND
+
+#define STEP2_DRAIN_DOWN_LARGEST         STEP2_DRAIN_DOWN_CLR_BLNKNG
+#define STEP2_DRAIN_DOWN_CLR_BLNKNG        -72
+#define STEP2_DRAIN_DOWN_CLR_BLACK         -73
+#define STEP2_DRAIN_DOWN_CLR_FRGND         -74
+#define STEP2_DRAIN_DOWN_CLR_BKGND         -75
+#define STEP2_DRAIN_DOWN_SMALLEST        STEP2_DRAIN_DOWN_CLR_BKGND
+
+#define STEP2_DRAIN_UP_LARGEST           STEP2_DRAIN_UP_CLR_BLNKNG
+#define STEP2_DRAIN_UP_CLR_BLNKNG          -76
+#define STEP2_DRAIN_UP_CLR_BLACK           -77
+#define STEP2_DRAIN_UP_CLR_FRGND           -78
+#define STEP2_DRAIN_UP_CLR_BKGND           -79
+#define STEP2_DRAIN_UP_SMALLEST          STEP2_DRAIN_UP_CLR_BKGND
+
+#define STEP2_DRAIN_IN_DOWN                -80
+#define STEP2_DRAIN_IN_UP                  -81
+
+#define STEP2_SET_RING_6               -88 // 0 is ring_6 is outer ring; 5 is ring_1 is inner ring (one LED)
+#define STEP2_SET_RING_1               -89 // 0 is ring_6 is outer ring; 5 is ring_1 is inner ring (one LED)
+#define STEP2_SET_RING_ADD1            -90 // stops at ring_6 is outer ring
+#define STEP2_SET_RING_SUB1            -91 // stops at ring_1 is inner ring (one LED)
+#define STEP2_SET_QRTR_1               -92 // quarter 1 starts at "top" and goes clockwise
+#define STEP2_SET_QRTR_3               -93 // quarter 3 starts at "bottom" and goes clockwise
+#define STEP2_SET_QRTR_ADD1            -94 // keeps going modulo
+#define STEP2_SET_QRTR_SUB1            -95 // keeps going modulo
+
+#define STEP2_DELAY_100                -96 // simply delay, step 2
+#define STEP2_DELAY_1000               -97 // simply delay, step 2
+#define STEP2_DELAY_10000              -98 // simply delay, step 2
+
+// #define STEP2_RADAR                    -98 // radar pattern, step 2 - attempt to shade to true "line" of radar
+#define STEP2_RADAR_FROM_SHDW1         -99 // radar pattern with trailing fading SHDW1, step 2 (clears XRAYMSK)
+#define STEP2_RADAR_XRAY_SHDW1         -100 // radar pattern with trailing fading SHDW1, xray using XRAYMSK, step 2
+#define STEP2_RADAR_XRAYMSK_CLEAR      -101 // clear XRAYMSK
+#define STEP2_RADAR_XRAYMSK_OR_SHDW1_FRGND -102 // "or" into XRAYMSK based on the current FRGND color within SHDW1
+#define STEP2_RADAR_XRAYMSK_OR_SHAPE   -103 // "or" into XRAYMSK the current SHAPE
+
+#define STEP2_CPY_DSPLY_2_SHDW1        -110 // copy display to shadow 1, step 2
+#define STEP2_CPY_SHDW1_2_DSPLY        -111 // copy shadow 1 to display, step 2
+
+#define STEP2_HAUNTED_FROM_SHDW1       -112 // Haunted effect from SHDW1
+
+
+#define SPCL_DRAW_BKGD_CLR_BLACK          90 // SPECIAL: set all LEDs to black
+#define SPCL_DRAW_BKGD_CLR_FRGND          91 // SPECIAL: set all LEDs to foreground color
+#define SPCL_DRAW_BKGD_CLR_BKGND          92 // SPECIAL: set all LEDs to background color
+
+#define STEP1_DELAY_100                   93 // simply delay, step 1
+#define STEP1_DELAY_1000                  94 // simply delay, step 1
+#define STEP1_DELAY_10000                 95 // simply delay, step 1
+
+
+#define SUPRSPCL_SKIP_STEP2               110 // SUPER-SPECIAL: do not do any (more) step-2 processing for this call do doPatternDraw()
+#define SUPRSPCL_SKIP_STEP1               111 // SUPER-SPECIAL: do not do any (more) step-1 processing for this call do doPatternDraw()
+
+#define SUPRSPCL_DRWTRGT_SHDW1_NONSTICKY  112 // SUPER-SPECIAL: draw target TARGET_SHDW1 is usually reset to TARGET_DSPLAY after each token; this re-enables that. Do before changing target
+#define SUPRSPCL_DRWTRGT_SHDW1_STICKY     113 // SUPER-SPECIAL: draw target is usually reset to TARGET_DSPLAY after each token; this re-enables that. Do before changing target
+#define SUPRSPCL_DRWTRGT_LEDS_NONSTICKY   114 // SUPER-SPECIAL: draw target is now default: TARGET_DSPLAY and NONSTICKY (same behavior as TARGET_DSPLAY and STICKY) 
+
+#define STEP2_FADEDLY_ADD_100          115 // SUPER-SPECIAL: add 50 millisec to   fade delay
+#define STEP2_FADEDLY_SUB_100          116 // SUPER-SPECIAL: sub 50 millisec from fade delay
+#define STEP2_FADEFCT_MLT_2            117 // SUPER-SPECIAL: multply fade factor by 2
+#define STEP2_FADEFCT_DIV_2            118 // SUPER-SPECIAL: divide  fade factor by 2
+
+#define STEP2_FADEDISK2_CLR_SMALLEST   STEP2_FADEDISK2_CLR_BKGND //
+#define STEP2_FADEDISK2_CLR_BKGND       119 // SUPER-SPECIAL: fade all disk LEDs to be more like background color
+#define STEP2_FADEDISK2_CLR_FRGND        120 // SUPER-SPECIAL: fade all disk LEDs to be more like foreground color
+#define STEP2_FADEDISK2_CLR_BLACK       121 // SUPER-SPECIAL: fade all disk LEDs to be more like BLACK
+#define STEP2_FADEDISK2_CLR_BLNKNG      122 // SUPER-SPECIAL: fade all disk LEDs to be more like blinking color
+#define STEP2_FADEDISK2_CLR_LARGEST    STEP2_FADEDISK2_CLR_BLNKNG //
+// #define SUPRSPCL_SAVE_SRND                123 // SUPER-SPECIAL: save current state of surround LEDs and current letter LED
+#define STEP2_FADEDISK2_SHDW1           124 // SUPER-SPECIAL: fade all disk LEDs to be more like shadow1.
+// #define STEP2_FADEDISK2_SHDW2          125 // SUPER-SPECIAL: fade LEDs to be more like shadow2    --- NOT ENOUGH ROOM
+#define SUPRSPCL_ALLOW_SPCL               126 // SUPER-SPECIAL: execute next special when pattern restarts
+#define SUPRSPCL_STOP_WHEN_DONE           127 // SUPER-SPECIAL: run just one time if first entry in pattern. Otherwise the pattern repeats
+
+#define TARGET_DSPLAY                ((uint16_t) 0) // target or DRAW is LEDs
+#define TARGET_SHDW1               ((uint16_t) NUM_LEDS_PER_DISK) // target or DRAW is SHADOW1 LEDs
+// #define TARGET_SHDW2               ((uint16_t) NUM_LEDS_PER_DISK*2) // target or DRAW is SHADOW2 LEDs --- NOT ENOUGH ROOM
+
+// some radar functions that are useful in other areas
+#define RADAR_LED_CORRESPONDING_MIDDLE_RING(OUTER_LED, THIS_RING) ((uint16_t)radar_adv_per_LED_per_ring[THIS_RING]) * OUTER_LED / 256 + start_per_ring[THIS_RING]
+
+
