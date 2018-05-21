@@ -56,6 +56,24 @@
 //    https://github.com/FastLED/FastLED/wiki/Wiring-leds
 //
 
+
+#define WHICH_ARDUINO 0 // this will identify the Arduinos, 0-3 inclusive
+#define NUM_ARDUINOS  4 // number of Arduinos is 4; max usable is 3
+
+const int8_t * ltrs_Poly[] = { ltr_Y, ltr_O, ltr_L, ltr_P }; // starts with WHICH_ARDUINO; loops at NUM_ARDUINOS
+const int8_t * ltrs_2018[] = { ltr_8, ltr_0, ltr_1, ltr_2 }; // starts with WHICH_ARDUINO; loops at NUM_ARDUINOS
+
+// with REAL_BUTTONS, holding button down gives pattern 1 which is OFF
+// pressing and releasing button 1 gives pattern 2, etc.
+#define REAL_BUTTONS 1 // 1 = use buttons for input, 0 = use serial port
+#if 0 == REAL_BUTTONS
+#define SERIALPORT 1 // use serial port
+#endif // REAL_BUTTONS
+#define NO_BUTTON_PRESS -1 // when no input from user
+#define NO_BUTTON_CHANGE -1 // when no CHANGE in input from user
+
+static uint32_t button_time = 0;
+
 const int8_t ptrnOff[]      = { SUPRSPCL_STOP_WHEN_DONE, SPCL_DRAW_BKGD_CLR_BLACK, SUPRSPCL_SKIP_STEP2, SUPRSPCL_SKIP_STEP1, SUPRSPCL_END_OF_PTRNS };
 const int8_t ptrnJustDraw[] = { SPCL_DRAW_BKGD_CLR_BKGND, SUPRSPCL_SKIP_STEP2, PER_LED_DRAW_BLNKING, PER_LED_DRAW_FORE, SUPRSPCL_END_OF_PTRNS };
 const int8_t ptrnJustWideDraw[] = { SPCL_DRAW_BKGD_CLR_BKGND, SUPRSPCL_SKIP_STEP2, PER_LED_DRAW_BLNKING_SRND_ALL, PER_LED_DRAW_FORE_LTR_ALL, SUPRSPCL_END_OF_PTRNS };
@@ -109,9 +127,6 @@ const int8_t ptrnRingQrtrDraw[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_SKIP_STEP1
 
 const int8_t ptrnWideDrawShdw1Fade[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_DRWTRGT_SHDW1_STICKY, SPCL_DRAW_BKGD_CLR_BKGND, PER_LED_DRAW_BLNKING_LTR_ALL, SUPRSPCL_DRWTRGT_LEDS_NONSTICKY, STEP2_FADEDLY_ADD_100, STEP2_FADEFCT_DIV_2, STEP2_FADEDISK2_SHDW1, SUPRSPCL_END_OF_PTRNS };
 
-const int8_t * ltrs_Poly[] = { ltr_P, ltr_O, ltr_L, ltr_Y }; // starts with WHICH_ARDUINO; loops at NUM_ARDUINOS
-const int8_t * ltrs_2018[] = { ltr_2, ltr_0, ltr_1, ltr_8 }; // starts with WHICH_ARDUINO; loops at NUM_ARDUINOS
-
 // pattern vars
 
 // Currently only effect is surround
@@ -137,18 +152,6 @@ static int8_t   this_qrtr = 0; // from qrtr_1 (value 0) to qrtr_4 (value 3), cou
 static uint32_t radar_xray_bitmask[3] = {0, 0, 0}; // bitmask where X-Ray LEDs are for STEP2_RADAR_XRAY_SHDW1
 static uint32_t bitmsk32; // used to pick out the bit in radar_xray_bitmask
 static uint8_t  idx_bitmsk32; // index to which array member for radar_xray_bitmask
-
-// with REAL_BUTTONS, holding button down gives pattern 1 which is OFF
-// pressing and releasing button 1 gives pattern 2, etc.
-#define REAL_BUTTONS 1 // 1 = use buttons for input, 0 = use serial port
-#if 0 == REAL_BUTTONS
-#define SERIALPORT 1 // use serial port
-#endif // REAL_BUTTONS
-
-#define NO_BUTTON_PRESS -1 // when no input from user
-#define NO_BUTTON_CHANGE -1 // when no CHANGE in input from user
-
-static uint32_t button_time = 0;
 
 // it's hard to be green: 0x226B22 Green; also 0x126b12, ForestGreen, DarkGreen, DarkOliveGreen, LimeGreen, MediumSeaGreen, OliveDrab (Olive looks like Gold), SeaGreen, Teal
 
@@ -268,56 +271,50 @@ void doPattern() {
        // DEBUG2_RETURN(save_return, __LINE__)
        save_return = doPatternDraw(10, shape_star, ptrnDownTheDrainIn, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__)
-       save_return = doPatternDraw(10, ltr_P, ptrnJustWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(10, ltrs_Poly[WHICH_ARDUINO], ptrnJustWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__);
-       save_return = doPatternDraw(10, ltr_P, ptrnCopyToShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(10, ltrs_Poly[WHICH_ARDUINO], ptrnCopyToShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__)
-       save_return = doPatternDraw(10, ltr_P, ptrnUpTheDrain, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(10, ltrs_Poly[WHICH_ARDUINO], ptrnUpTheDrain, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__);
-       save_return = doPatternDraw(10, ltr_P, ptrnUpTheDrainIn, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(10, ltrs_Poly[WHICH_ARDUINO], ptrnUpTheDrainIn, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__);
-       save_return = doPatternDraw(10, ltr_Y, ptrnJustWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       if (doDwell(dwell, 1)) break;
+       save_return = doPatternDraw(10, ltrs_2018[WHICH_ARDUINO], ptrnJustWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__);
-       save_return = doPatternDraw(10, ltr_Y, ptrnHaunted, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(10, ltrs_2018[WHICH_ARDUINO], ptrnHaunted, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__);
+       if (doDwell(dwell, 1)) break;
        break;
     case 3: // 3 = Radar
-       save_return = doPatternDraw(1, ltr_P, ptrnJustWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(1, ltrs_Poly[WHICH_ARDUINO], ptrnJustWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        if (doDwell(dwell, 1)) break;
        // DEBUG2_RETURN(save_return, __LINE__)
-       save_return = doPatternDraw(1, ltr_P, ptrnCopyToShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(1, ltrs_Poly[WHICH_ARDUINO], ptrnCopyToShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        if (doDwell(1, 1)) break;
        // DEBUG2_RETURN(save_return, __LINE__)
-       for (uint8_t tmp = 0; (tmp < 4) && (0 == doDwell(1, 1)); tmp++) {
-         save_return = doPatternDraw(100, ltr_P, ptrnRadarFrgndFromShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       for (uint8_t tmp = 0; (tmp < 2) ; tmp++) {
+         save_return = doPatternDraw(100, ltrs_Poly[WHICH_ARDUINO], ptrnRadarFrgndFromShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
          // DEBUG2_RETURN(save_return, __LINE__)
        } // end loop
-       if (doDwell(dwell*5, 1)) break;
+       save_return = doPatternDraw(1, ltrs_2018[WHICH_ARDUINO], ptrnJustWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       if (doDwell(dwell, 1)) break;
+       // DEBUG2_RETURN(save_return, __LINE__)
+       save_return = doPatternDraw(1, ltrs_2018[WHICH_ARDUINO], ptrnCopyToShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       if (doDwell(1, 1)) break;
+       // DEBUG2_RETURN(save_return, __LINE__)
+       for (uint8_t tmp = 0; (tmp < 2) ; tmp++) {
+         save_return = doPatternDraw(100, ltrs_2018[WHICH_ARDUINO], ptrnRadarFrgndFromShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+         // DEBUG2_RETURN(save_return, __LINE__)
+       } // end loop
        break;
     case 4: // 4 = POLY 2018
-       save_return = doPatternDraw(8, ltr_P, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(8, ltrs_Poly[WHICH_ARDUINO], ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__)
        if (doDwell(dwell, 1)) break;
-       save_return = doPatternDraw(8, ltr_O, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(8, ltrs_2018[WHICH_ARDUINO], ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__)
        if (doDwell(dwell, 1)) break;
-       save_return = doPatternDraw(8, ltr_L, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       // DEBUG2_RETURN(save_return, __LINE__)
-       if (doDwell(dwell, 1)) break;
-       save_return = doPatternDraw(8, ltr_Y, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       // DEBUG2_RETURN(save_return, __LINE__)
-       if (doDwell(dwell, 1)) break;
-       save_return = doPatternDraw(8, ltr_2, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       // DEBUG2_RETURN(save_return, __LINE__)
-       if (doDwell(dwell, 1)) break;
-       save_return = doPatternDraw(8, ltr_0, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       // DEBUG2_RETURN(save_return, __LINE__)
-       if (doDwell(dwell, 1)) break;
-       save_return = doPatternDraw(8, ltr_1, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       // DEBUG2_RETURN(save_return, __LINE__)
-       if (doDwell(dwell, 1)) break;
-       save_return = doPatternDraw(8, ltr_8, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       // DEBUG2_RETURN(save_return, __LINE__)
        break;
     case 5: // 5 = draw rings
        // save_return = doPatternDraw(10, ltr_Y, ptrnWide, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
@@ -330,10 +327,9 @@ void doPattern() {
        break;
     case 6: // 6 = do surrounding around letter then fade one to the other
        if (oldPattern != pattern) {
-         save_return = doPatternDraw(8, ltr_Y, ptrnDblClkws, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+         save_return = doPatternDraw(8, ltrs_Poly[WHICH_ARDUINO], ptrnDblClkws, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
          // DEBUG2_RETURN(save_return, __LINE__)
-         save_return = doPatternDraw(8, ltr_8, ptrnWideDrawShdw1Fade, CRGB::Green, CRGB::Gold, CRGB::Blue, 0, 0, 0);
-         Serial.println(F("Return from case 4"));
+         save_return = doPatternDraw(8, ltrs_2018[WHICH_ARDUINO], ptrnWideDrawShdw1Fade, CRGB::Green, CRGB::Gold, CRGB::Blue, 0, 0, 0);
          // DEBUG2_RETURN(save_return, __LINE__)
        }
        break;
@@ -951,7 +947,7 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
           idx_bitmsk32 += 1;
           bitmsk32 = 1;
           if (idx_bitmsk32 > 2) { // should never get here
-            DEBUG_ERRORS_PRINTLN(F("   OVERFLOW ERROR IN STEP2_RADAR_XRAY_SHDW1 loop to make bitmask for X-Ray cells"))
+            DEBUG_ERRORS_PRINTLN(F("   OVERFLOW ERROR IN STEP2_RADAR_XRAYMSK_OR_SHAPE "))
             return(__LINE__);
           } // end if something went horribly wrong
         } // end if need to cross bitmsk32 boundary
@@ -1011,7 +1007,7 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
           LED_DISPLAY(TARGET_SHDW1+tmp_calc)
           led_display[TARGET_DSPLAY+tmp_calc] = blend(CRGB::Black, led_display[TARGET_SHDW1+tmp_calc], leds_per_ring[this_ring]*7); // 32 leds * 8 would be 256 but our largest is 24 so no need for uint16_t
         } // end RADAR for this_ring
-        if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__);
+        if (doPtrnShowDwell(draw_target,led_delay,__LINE__)) return(__LINE__); // this delay for each step around circle
       } // end RADAR for LED idx outer disk
     } // end STEP2_RADAR_FROM_SHDW1 or STEP2_RADAR_XRAY_SHDW1 for LED idx outer disk
     else if ((this_ptrn_token <= STEP2_FADEDISK2_CLR_LARGEST) && (this_ptrn_token >= STEP2_FADEDISK2_CLR_SMALLEST)) {
@@ -1232,6 +1228,8 @@ int16_t getButtonPress() {
 } // end getButtonPress()
 
 #if REAL_BUTTONS
+
+  #define CAPTURE_BUTTONS_THISTIME button_count = button_count_thistime; button_mask = button_mask_thistime; button_timestamp = button_time;
   // checkButtons() - returns number of button pressed (1 through 6) or NO_BUTTON_PRESS
   //    news flash - not enough time to do all 6 buttons; just did 3
   // 
@@ -1243,15 +1241,47 @@ int16_t getButtonPress() {
   int16_t checkButtons() {
     uint8_t  val;
     int16_t thePin;
-    static uint32_t button_timestamp;
-    static uint8_t button_mask; // 1=btn1, 10=btn2, 100=btn3
-    
+    static uint32_t button_timestamp = 0;
+    static uint8_t button_mask = 0; // 1=btn1, 2=btn2, 4=btn3
+    static uint8_t button_count = 0;
+    uint8_t button_mask_thistime, button_count_thistime;
+    int16_t returnPtrn = 1; // 1 is display nothing
+    // button combos to pattern: 1&2=5, 1&3=6, 2&3=6 1&2&3=6
+    int16_t theReturns[] = { NO_BUTTON_PRESS, /*1*/ 2, /*2*/ 3, /*1&2*/ 5, /*3*/ 4, /*1&3*/ 6, /*2&3*/ 6, /*1&2&3*/ 6 };
+//    static int16_t prevReturn = NO_BUTTON_PRESS; // for debugging only
+
+    button_mask_thistime = button_count_thistime = 0;
     for (thePin = PSHBTN1; thePin <= PSHBTN6; thePin ++) {
       val = digitalRead(thePin);
-      if (LOW == val) break;
+      if (LOW == val) {
+        button_mask_thistime += (1 << (thePin - PSHBTN1));
+        button_count_thistime += 1;
+      }
     } // end for all pushbuttons
-    if (PSHBTN6 < thePin) return(NO_BUTTON_PRESS); // if no button pushed
-    else                  return(thePin-PSHBTN1+2); // with real buttons, all patterns display
+    if (0 != button_mask_thistime) {
+      if (0 != button_mask) {
+        returnPtrn = NO_BUTTON_PRESS; // already said we have button down
+      } else {
+        returnPtrn = 1; // always return 1 whenever a button is being pushed
+      }
+      if (button_count_thistime >= button_count) {
+        CAPTURE_BUTTONS_THISTIME
+      } else {
+        // they may be letting up on the buttons; they get 1000 millisec or we reset to current buttons
+        if ((button_time - button_timestamp) > 1000) {
+          // reset to thistime buttons
+          CAPTURE_BUTTONS_THISTIME
+        }
+      } // button count decreased but not zero
+    } else { // button count is zero
+      returnPtrn = theReturns[button_mask];
+      button_timestamp = button_mask = button_count = 0;
+    }
+//    if (prevReturn != returnPtrn) { // DEBUG
+//      Serial.print("prevReturn="); Serial.print(prevReturn); Serial.print("returnPtrn="); Serial.println(returnPtrn); 
+//    }
+//    prevReturn = returnPtrn;
+    return(returnPtrn);
   } // end checkButtons()
 #else // end if REAL_BUTTONS; now NOT REAL_BUTTONS
   // checkKeyboard() - for debugging - serial port buttons

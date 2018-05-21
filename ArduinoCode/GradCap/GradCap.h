@@ -1,4 +1,3 @@
-// include file for GradCap.ino
 
 // Mark Olson 2017-12
 //
@@ -198,8 +197,6 @@ const int8_t* const surround_pointers[] /* PROGMEM */ = {
 #define NUM_LEDS_PER_DISK 93
 #define NUM_RINGS_PER_DISK 6
 #define NUM_SHADOWS 1  // number of shadow disks
-#define WHICH_ARDUINO 0 // this will identify the Arduinos, 0-3 inclusive
-#define NUM_ARDUINOS  4 // number of Arduinos is 4; max usable is 3
 
 // LED count - number of LEDs in each ring in order of serial access
 const uint8_t  leds_per_ring[NUM_RINGS_PER_DISK]  = { 32, 24, 16, 12, 8, 1 };
