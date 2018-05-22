@@ -102,18 +102,19 @@ void setup() {
   FastLED.addLeds<NEOPIXEL,LED_DATA_PIN>(led_display, NUM_LEDS_PER_DISK);
   FastLED.setBrightness(BRIGHTMAX); // we will do our own power management
 
-  // initialize the input pins. Not sure if my nano actually has a pullup...
+  // initialize the input pins. Not sure if my Nano actually has a pullup...
   //    fortunately the PurseHanger controller board has a 10K pullup
   // README - this code assumes these are contiguous and in order
   for (int16_t thePin = PSHBTN1; thePin <= PSHBTN6; thePin ++) {
     pinMode(thePin, INPUT_PULLUP);
   } // end initialize pushbutton input pins
-  // now the ALLSYNC input
-  pinMode(ALLSYNC, INPUT_PULLUP);
-
-  // now initialize the IAMSYNC output pin
-  pinMode(IAMSYNC, INPUT_PULLUP);
   
+  // now the ALLSYNC input pin
+  pinMode(ALLSYNC, INPUT_PULLUP);
+  // and the IAMSYNC output pin
+  pinMode(IAMSYNC, INPUT_PULLUP);
+
+  setMySync(0); // we are not yet in synch
 
 #if (DEBUG+SERIALPORT)
   // README if debugging we want serial port
@@ -982,61 +983,6 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
   return(__LINE__);
 } // end doPatternDraw()
 
-
-// ******************************** PROGMEM UTILITIES ********************************
-
-// copyEffectFromPROGMEM() - straight copy from PROGMEM to local storage
-//    fills this_effect_ptr, count_of_this_effect_ptr and the array led_effect_varmem[]
-void copyEffectFromPROGMEM(uint8_t thisLED) {
-  /*
-  Serial.print(F("copyEffectFromPROGMEM thisLED="));
-  Serial.print((int16_t) thisLED);
-
-  {
-    int8_t myChar;
-    Serial.print(F(" &surround_pointers[thisLED]="));
-    Serial.print((uint32_t) surround_pointers[thisLED]);
-    Serial.print(F(" surround_pointers[thisLED8][0]="));
-    myChar =  pgm_read_byte_near(surround_pointers[thisLED]);
-    Serial.print((uint16_t) myChar);
-    Serial.print(F(" surround_pointers[thisLED][1]="));
-    myChar =  pgm_read_byte_near(surround_pointers[thisLED]+1);
-    Serial.println((uint16_t) myChar);
-
-    Serial.print(F(" srnd_78="));
-    Serial.print((uint32_t) &srnd_78[0]);
-    Serial.print(F(" srnd_78[0]="));
-    myChar =  pgm_read_byte_near(srnd_78);
-    Serial.print((uint16_t) myChar);
-    Serial.print(F(" srnd_78[1]="));
-    myChar =  pgm_read_byte_near(srnd_78+1);
-    Serial.println((uint16_t) myChar);
-
-    Serial.print(F(" &surround_pointers[78]="));
-    Serial.print((uint32_t) surround_pointers[78]);
-    Serial.print(F(" surround_pointers[78][0]="));
-    myChar =  pgm_read_byte_near(surround_pointers[78]);
-    Serial.print((uint16_t) myChar);
-    Serial.print(F(" surround_pointers[78][1]="));
-    myChar =  pgm_read_byte_near(surround_pointers[78]+1);
-    Serial.println((uint16_t) myChar);
-  }
-  */
-
-  // Serial.print(F(" srnd="));
-  this_effect_ptr = &led_effect_varmem[0];
-  led_effect_varmem[0] = pgm_read_byte_near(surround_pointers[thisLED]);
-  count_of_this_effect_ptr = -led_effect_varmem[0];
-  // Serial.print((int16_t) count_of_this_effect_ptr);
-  for (this_effect_ptr_idx = 1; this_effect_ptr_idx <= count_of_this_effect_ptr; this_effect_ptr_idx++) {
-    // Serial.print(F(" "));
-    led_effect_varmem[this_effect_ptr_idx] =  pgm_read_byte_near(surround_pointers[thisLED] + this_effect_ptr_idx);
-    // Serial.print((int16_t) led_effect_varmem[this_effect_ptr_idx]);
-  }
-  // Serial.println(F(" that is all..."));
-  // count_of_this_effect_ptr = led_effect_varmem[0] = 0; // FIXME - get this out of the picture
-} // end copyEffectFromPROGMEM()
-
 // ******************************** SYNCHRONIZATION UTILITIES ********************************
 
 // setMySync(val) - sets sync to TRUE if val is nonzero, else sets sync to FALSE
@@ -1274,5 +1220,60 @@ int16_t nextPatternFromButtons() {
 } // end nextPatternFromButtons()
 
 
+
+
+// ******************************** PROGMEM UTILITIES ********************************
+
+// copyEffectFromPROGMEM() - straight copy from PROGMEM to local storage
+//    fills this_effect_ptr, count_of_this_effect_ptr and the array led_effect_varmem[]
+void copyEffectFromPROGMEM(uint8_t thisLED) {
+  /*
+  Serial.print(F("copyEffectFromPROGMEM thisLED="));
+  Serial.print((int16_t) thisLED);
+
+  {
+    int8_t myChar;
+    Serial.print(F(" &surround_pointers[thisLED]="));
+    Serial.print((uint32_t) surround_pointers[thisLED]);
+    Serial.print(F(" surround_pointers[thisLED8][0]="));
+    myChar =  pgm_read_byte_near(surround_pointers[thisLED]);
+    Serial.print((uint16_t) myChar);
+    Serial.print(F(" surround_pointers[thisLED][1]="));
+    myChar =  pgm_read_byte_near(surround_pointers[thisLED]+1);
+    Serial.println((uint16_t) myChar);
+
+    Serial.print(F(" srnd_78="));
+    Serial.print((uint32_t) &srnd_78[0]);
+    Serial.print(F(" srnd_78[0]="));
+    myChar =  pgm_read_byte_near(srnd_78);
+    Serial.print((uint16_t) myChar);
+    Serial.print(F(" srnd_78[1]="));
+    myChar =  pgm_read_byte_near(srnd_78+1);
+    Serial.println((uint16_t) myChar);
+
+    Serial.print(F(" &surround_pointers[78]="));
+    Serial.print((uint32_t) surround_pointers[78]);
+    Serial.print(F(" surround_pointers[78][0]="));
+    myChar =  pgm_read_byte_near(surround_pointers[78]);
+    Serial.print((uint16_t) myChar);
+    Serial.print(F(" surround_pointers[78][1]="));
+    myChar =  pgm_read_byte_near(surround_pointers[78]+1);
+    Serial.println((uint16_t) myChar);
+  }
+  */
+
+  // Serial.print(F(" srnd="));
+  this_effect_ptr = &led_effect_varmem[0];
+  led_effect_varmem[0] = pgm_read_byte_near(surround_pointers[thisLED]);
+  count_of_this_effect_ptr = -led_effect_varmem[0];
+  // Serial.print((int16_t) count_of_this_effect_ptr);
+  for (this_effect_ptr_idx = 1; this_effect_ptr_idx <= count_of_this_effect_ptr; this_effect_ptr_idx++) {
+    // Serial.print(F(" "));
+    led_effect_varmem[this_effect_ptr_idx] =  pgm_read_byte_near(surround_pointers[thisLED] + this_effect_ptr_idx);
+    // Serial.print((int16_t) led_effect_varmem[this_effect_ptr_idx]);
+  }
+  // Serial.println(F(" that is all..."));
+  // count_of_this_effect_ptr = led_effect_varmem[0] = 0; // FIXME - get this out of the picture
+} // end copyEffectFromPROGMEM()
 
 
