@@ -154,31 +154,6 @@ void loop() {
 // ******************************** UTILITIES ********************************
 
 
-#ifdef DEBUG_LED_DISPLAY
-void debug_led_display(int32_t index,char * str_index, int line_num){
-  if ((index < 0) || (index >= NUM_LEDS_PER_DISK*(1+NUM_SHADOWS))) {
-    Serial.print(F("debug_led_display line="));
-    Serial.print(line_num);
-    Serial.print(F(" index="));
-    Serial.print(str_index);
-    Serial.print(F(" out-of-range value="));
-    Serial.println(index);
-    delay(2000); // for debugging & show
-  }
-} // end debug_led_display()
-#endif DEBUG_LED_DISPLAY
-
-// checkDataGuard()
-void checkDataGuard() {
-  if ((0x55555555 != data_guard_before) || (0x55555555 != data_guard_after)) {
-    Serial.print(F("checkDataGuard should be 1431655765; before="));
-    Serial.print(data_guard_before);
-    Serial.print(F(" after="));
-    Serial.println(data_guard_after);
-    delay(2000); // for debugging & show
-  }
-} // end checkDataGuard()
-
 
 // doPattern()
 //   first level organization of patterns for show, checking for button presses
@@ -1007,6 +982,9 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
   return(__LINE__);
 } // end doPatternDraw()
 
+
+// ******************************** PROGMEM UTILITIES ********************************
+
 // copyEffectFromPROGMEM() - straight copy from PROGMEM to local storage
 //    fills this_effect_ptr, count_of_this_effect_ptr and the array led_effect_varmem[]
 void copyEffectFromPROGMEM(uint8_t thisLED) {
@@ -1059,7 +1037,33 @@ void copyEffectFromPROGMEM(uint8_t thisLED) {
   // count_of_this_effect_ptr = led_effect_varmem[0] = 0; // FIXME - get this out of the picture
 } // end copyEffectFromPROGMEM()
 
-// saveSurroundEffectLEDs()
+// ******************************** SYNCHRONIZATION UTILITIES ********************************
+
+// setMySync(val) - sets sync to TRUE if val is nonzero, else sets sync to FALSE
+void setMySync(uint8_t yes) {
+  if (0 == yes) {
+    digitalWrite(IAMSYNC, LOW); // sync = FALSE
+  } else {
+    digitalWrite(IAMSYNC, HIGH); // sync = TRUE
+  }
+} // end setMySync()
+
+// val = areWeAllSync() - returns nonzero if we are all sync
+int8_t areWeAllSync() {
+  int8_t val = digitalRead(ALLSYNC);
+  if (LOW == val) return(0);
+  else            return(1);
+} // end areWeAllSync()
+
+// val = iamSyncAreWeAllSync - sets our sync output TRUE and returns nonzero if we are all sync
+int8_t iamSyncAreWeAllSync() {
+  iamSync(); // set us as synchronized
+  return(areWeAllSync()); // return 1 if we are now all synchronized
+} // end iamSyncAreWeAllSync()
+
+
+// ******************************** EFFECT UTILITIES ********************************
+
 //    NOTE: now all LEDs have a surround effect, but it is in PROGMEM. It was copied into local storage at effect_LEDidx_array_ptr
 void saveSurroundEffectLEDs(int8_t ltr_index, const int8_t * effect_LEDidx_array_ptr, int16_t draw_target, CRGB * save_here) {
   LED_DISPLAY(draw_target + ltr_index)
@@ -1089,6 +1093,10 @@ CRGB calcColor_step2DawClrMax(int8_t thePtrnToken, int8_t tokenSmallest, CRGB bl
   }
   return(theColor);
 } // end calcColor_step2DawClrMax
+
+
+// ******************************** BUTTON AND TIMING UTILITIES ********************************
+
 
 // doDwell(int16_t dwell, uint8_t must_be_diff_pattern) - dwell or break out if button press
 //   returns TRUE if should switch to different pattern
@@ -1265,36 +1273,6 @@ int16_t nextPatternFromButtons() {
   return (nextPattern);
 } // end nextPatternFromButtons()
 
-
-// setMySync(val) - sets sync to TRUE if val is nonzero, else sets sync to FALSE
-void setMySync(uint8_t yes) {
-  if (0 == yes) {
-    digitalWrite(IAMSYNC, LOW); // sync = FALSE
-  } else {
-    digitalWrite(IAMSYNC, HIGH); // sync = TRUE
-  }
-} // end setMySync()
-
-// val = areWeAllSync() - returns nonzero if we are all sync
-int8_t areWeAllSync() {
-  int8_t val = digitalRead(ALLSYNC);
-  if (LOW == val) return(0);
-  else            return(1);
-} // end areWeAllSync()
-
-// val = iamSyncAreWeAllSync - sets our sync output TRUE and returns nonzero if we are all sync
-int8_t iamSyncAreWeAllSync() {
-  iamSync(); // set us as synchronized
-  return(areWeAllSync()); // return 1 if we are now all synchronized
-} // end iamSyncAreWeAllSync()
-
-// debug2_return(line_from, line_to) - used for debugging
-void debug2_return(int16_t rtn_from, int16_t rtn_to) {
-  DEBUG2_PRINT(F("returned from doPatternDraw:"))
-  DEBUG2_PRINT(rtn_from)
-  DEBUG2_PRINT(F(" to line:"))
-  DEBUG2_PRINTLN(rtn_to)
-}
 
 
 

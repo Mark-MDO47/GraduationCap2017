@@ -514,4 +514,40 @@ const int8_t ptrnWideDrawShdw1Fade[] = { SUPRSPCL_STOP_WHEN_DONE, SUPRSPCL_DRWTR
 
 // it's hard to be green: 0x226B22 Green; also 0x126b12, ForestGreen, DarkGreen, DarkOliveGreen, LimeGreen, MediumSeaGreen, OliveDrab (Olive looks like Gold), SeaGreen, Teal
 
+// ******************************** DEBUGGING UTILITIES ********************************
+
+#ifdef DEBUG_LED_DISPLAY
+void debug_led_display(int32_t index,char * str_index, int line_num){
+  if ((index < 0) || (index >= NUM_LEDS_PER_DISK*(1+NUM_SHADOWS))) {
+    Serial.print(F("debug_led_display line="));
+    Serial.print(line_num);
+    Serial.print(F(" index="));
+    Serial.print(str_index);
+    Serial.print(F(" out-of-range value="));
+    Serial.println(index);
+    delay(2000); // for debugging & show
+  }
+} // end debug_led_display()
+#endif DEBUG_LED_DISPLAY
+
+// checkDataGuard()
+void checkDataGuard() {
+  if ((0x55555555 != data_guard_before) || (0x55555555 != data_guard_after)) {
+    Serial.print(F("checkDataGuard should be 1431655765; before="));
+    Serial.print(data_guard_before);
+    Serial.print(F(" after="));
+    Serial.println(data_guard_after);
+    delay(2000); // for debugging & show
+  }
+} // end checkDataGuard()
+
+
+// debug2_return(line_from, line_to) - used for debugging
+void debug2_return(int16_t rtn_from, int16_t rtn_to) {
+  DEBUG2_PRINT(F("returned from doPatternDraw:"))
+  DEBUG2_PRINT(rtn_from)
+  DEBUG2_PRINT(F(" to line:"))
+  DEBUG2_PRINTLN(rtn_to)
+}
+
 
