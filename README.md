@@ -43,4 +43,4 @@ These LEDs use power that adds up. Can use this to estimate the power
 Using DigiKey (https://digikey.com) 4610X-AP1-103LFCT-ND RES ARRAY 9 RES 10K OHM 10SIP
    This way I have one component for all the 10K pull-up resistors I need
 
-The .mp4 file shows the letter "Y". When Arduino gets restarted it re-draws the "Y" in yellow on green background. Hard to see but light flashes white before turning yellow. Note that center light in this set of lights is misbehaving.
+The directory FirstCap has a small .mp4  file done when the four LED Disks were being controlled to the same pattern.

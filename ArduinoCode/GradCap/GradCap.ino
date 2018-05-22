@@ -62,7 +62,7 @@
 #define REAL_BUTTONS 1 // 1 = use buttons for input, 0 = use serial port
 #if 0 == REAL_BUTTONS
 #define SERIALPORT 1 // use serial port
-#endif // REAL_BUTTONS
+#endif // not REAL_BUTTONS
 #define NO_BUTTON_PRESS -1 // when no input from user
 #define NO_BUTTON_CHANGE -1 // when no CHANGE in input from user
 
