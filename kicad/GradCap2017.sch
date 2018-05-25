@@ -38,7 +38,7 @@ EELAYER 25 0
 EELAYER END
 $Descr A 11000 8500
 encoding utf-8
-Sheet 1 1
+Sheet 1 2
 Title "Olson Graduation Cap 2017"
 Date "2017-12-26"
 Rev "---"
@@ -466,4 +466,10 @@ Wire Wire Line
 Wire Wire Line
 	5150 3450 7100 3450
 Connection ~ 7100 3450
+$Sheet
+S 2150 7250 500  150 
+U 5B063CC5
+F0 "GradCapWiring" 197
+F1 "GradCapWiring.sch" 197
+$EndSheet
 $EndSCHEMATC
