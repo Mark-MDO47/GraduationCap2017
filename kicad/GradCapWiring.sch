@@ -246,4 +246,6 @@ F 3 "" H 7350 3000 60  0001 C CNN
 	1    7350 3000
 	1    0    0    -1  
 $EndComp
+Text Notes 8150 3000 0    197  ~ 39
+Grad Cap
 $EndSCHEMATC
