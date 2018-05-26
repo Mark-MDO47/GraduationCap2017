@@ -19,3 +19,11 @@ P1010510.JPG - closeup Arduino Nano soldering<br>
 P1010511.JPG - closeup Arduino Nano soldering<br>
 P1010512.JPG - closeup Arduino Nano soldering complete<br>
 P1010513.JPG - closeup Arduino Nano soldering complete reverse side<br>
+
+Videos of the graduation cap:<br>
+tour  - https://youtu.be/3sHkcpifI_0 - Walkthrough of Graduation Cap<br>
+btn 1 - https://youtu.be/MmYY2umBRew - Down the Drain and Haunted<br>
+btn 2 - https://youtu.be/tLaOULMrv5k - Radar with POLY and 2018<br>
+btn 3 - https://youtu.be/Dj8-MQJ5RHk - POLY and 2018<br>
+btn 1 & 2 - https://youtu.be/rxHV2zIuTHE - Concentric Circles then Color Fade<br>
+btn 1 & 3 - https://youtu.be/uFElwT2LZ7Y - Scribe POLY then fade to 2018<br>
