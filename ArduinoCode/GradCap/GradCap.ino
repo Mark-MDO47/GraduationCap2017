@@ -244,6 +244,15 @@ void doPattern() {
          // DEBUG2_RETURN(save_return, __LINE__)
        }
        break;
+    case 7:
+       rainbowWithGlitter();
+       break;
+    case 8:
+       bpm();
+       break;
+    case 9:
+       juggle();
+       break;
   } // end switch on pattern
   if (pattern != oldPattern) {
     oldPattern = pattern;
@@ -1180,7 +1189,7 @@ int16_t getButtonPress() {
     uint8_t button_mask_thistime, button_count_thistime;
     int16_t returnPtrn = 1; // 1 is display nothing
     // button combos to pattern: 1&2=5, 1&3=6, 2&3=6 1&2&3=6
-    int16_t theReturns[] = { NO_BUTTON_PRESS, /*1*/ 2, /*2*/ 3, /*1&2*/ 5, /*3*/ 4, /*1&3*/ 6, /*2&3*/ 6, /*1&2&3*/ 6 };
+    int16_t theReturns[] = { NO_BUTTON_PRESS, /*1*/ 2, /*2*/ 3, /*1&2*/ 7, /*3*/ 4, /*1&3*/ 8, /*2&3*/ 9, /*1&2&3*/ 9 };
 //    static int16_t prevReturn = NO_BUTTON_PRESS; // for debugging only
 
     button_mask_thistime = button_count_thistime = 0;
