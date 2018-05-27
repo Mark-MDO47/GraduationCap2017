@@ -71,6 +71,23 @@ static uint32_t button_time = 0;
 static CRGB led_effect_save_LEDs[EFFECT_NUM_LED_SAV+1];  // place to save original values of effect LEDs. Currently only effect is surround
 static int8_t led_effect_varmem[EFFECT_NUM_PROGMEM_SAV]; // place to copy bytes of effect into (from PROGMEM). Currently only effect is surround
 
+// buttons:
+//   btn1 = knife switch side outer, high
+//   btn2 = knife switch side outer, low
+//   btn3 = knife switch side inner, low
+//   btn4-btn6 - not wired
+// patterns:
+//   1 = OFF
+//   2 = draw then down the drain
+//   3 = Radar POLY 2018
+//   4 = POLY 2018
+//   5 = draw rings
+//   6 = do surrounding around letter then fade one to the other
+//   7 = rainbowWithGlitter Demo Reel 100 pattern
+//   8 = bpm; this is the best Demo Reel 100 pattern on the Mokungit 93 LED disk
+//   9 = juggle Demo Reel 100 pattern
+static int16_t ButtonsToPatternNumber[] = { NO_BUTTON_PRESS, /*1*/ 2, /*2*/ 3, /*1&2*/ 7, /*3*/ 4, /*1&3*/ 8, /*2&3*/ 9, /*1&2&3*/ 9 };
+
 static int8_t   pattern = 1;
 static int8_t   oldPattern = 2;
 static int8_t   nextPattern = 2;
@@ -248,7 +265,7 @@ void doPattern() {
     case 7:
        rainbowWithGlitter();
        break;
-    case 8:
+    case 8: // this is the best one on the Mokungit 93 LED disk
        bpm();
        break;
     case 9:
@@ -303,6 +320,299 @@ void juggle() { // pattern from Demo Reel 100
     dothue += 32;
   }
 } // end juggle()
+
+// ******************************** SYNCHRONIZATION UTILITIES ********************************
+
+// setMySync(val) - sets sync to TRUE if val is nonzero, else sets sync to FALSE
+void setMySync(uint8_t yes) {
+  if (0 == yes) {
+    digitalWrite(IAMSYNC, LOW); // sync = FALSE
+  } else {
+    digitalWrite(IAMSYNC, HIGH); // sync = TRUE
+  }
+} // end setMySync()
+
+// val = areWeAllSync() - returns nonzero if we are all sync
+int8_t areWeAllSync() {
+  int8_t val = digitalRead(ALLSYNC);
+  if (LOW == val) return(0);
+  else            return(1);
+} // end areWeAllSync()
+
+// val = iamSyncAreWeAllSync - sets our sync output TRUE and returns nonzero if we are all sync
+int8_t iamSyncAreWeAllSync() {
+  iamSync(); // set us as synchronized
+  return(areWeAllSync()); // return 1 if we are now all synchronized
+} // end iamSyncAreWeAllSync()
+
+
+// ******************************** EFFECT UTILITIES ********************************
+
+//    NOTE: now all LEDs have a surround effect, but it is in PROGMEM. It was copied into local storage at effect_LEDidx_array_ptr
+void saveSurroundEffectLEDs(int8_t ltr_index, const int8_t * effect_LEDidx_array_ptr, int16_t draw_target, CRGB * save_here) {
+  LED_DISPLAY(draw_target + ltr_index)
+  save_here[0] =   led_display[draw_target + ltr_index]; // save_here[0] is the LED in the middle, [1..end] are the LEDs in the surround effect
+  for (uint8_t i = 1; i <= -effect_LEDidx_array_ptr[0]; i++) {
+    LED_DISPLAY(draw_target + effect_LEDidx_array_ptr[i])
+    save_here[i] = led_display[draw_target + effect_LEDidx_array_ptr[i]];
+  } // end save the original LED info for surround effect area
+} // end saveSurroundEffectLEDs()
+
+CRGB calcColor_step2DawClrMax(int8_t thePtrnToken, int8_t tokenSmallest, CRGB blinking, CRGB foreground, CRGB background) {
+  CRGB theColor;
+  switch ((thePtrnToken - tokenSmallest) % TOKEN_DRAW_CLR_MAX) {
+    case TOKEN_DRAW_CLR_BLNKNG:
+      theColor = blinking;
+      break;
+    case TOKEN_DRAW_CLR_BLACK:
+    default:
+      theColor = CRGB::Black ;
+      break;
+    case TOKEN_DRAW_CLR_FRGND:
+      theColor = foreground;
+      break;
+    case TOKEN_DRAW_CLR_BKGND:
+      theColor = background;
+      break;
+  }
+  return(theColor);
+} // end calcColor_step2DawClrMax
+
+
+// ******************************** BUTTON AND TIMING UTILITIES ********************************
+
+
+// doDwell(int16_t dwell, uint8_t must_be_diff_pattern) - dwell or break out if button press
+//   returns TRUE if should switch to different pattern
+//   else returns false
+//
+// keeps track of button_time
+//
+#define SMALL_DWELL 20
+int16_t doDwell(int16_t dwell, uint8_t must_be_diff_pattern) {
+  int16_t numloops = dwell / SMALL_DWELL;
+  int16_t i;
+
+  for (i = 0; i < numloops; i++) {
+    nextPatternFromButtons();
+    if ((0 != must_be_diff_pattern) && (nextPattern == pattern)) nextPattern = NO_BUTTON_CHANGE;
+    if (nextPattern != NO_BUTTON_CHANGE) return(nextPattern != NO_BUTTON_CHANGE);
+    delay(SMALL_DWELL);
+    button_time += SMALL_DWELL;
+  }
+  if ((dwell % SMALL_DWELL) != 0) {
+    nextPatternFromButtons();
+    if ((0 != must_be_diff_pattern) && (nextPattern == pattern)) nextPattern = NO_BUTTON_CHANGE;
+    if (nextPattern != NO_BUTTON_CHANGE) return(nextPattern != NO_BUTTON_CHANGE);
+    delay(dwell % SMALL_DWELL);
+    button_time += (dwell % SMALL_DWELL);
+  }
+  return(nextPattern != NO_BUTTON_CHANGE);
+} // end doDwell()
+
+// doPtrnShowDwell() - break out if button press, then show, then dwell
+// Used inside doPatternDraw
+// Idea is to not do delays when drawing to target that is not visible
+// Two things that matter: value returned and timing
+//   value returned:
+//     returns TRUE if should switch to different pattern
+//     else returns false
+//   timing:
+//     if draw_target is TARGET_DSPLAY (visible display LEDs), either does entire delay or delays until button press
+//     if draw_target is not TARGET_DSPLAY, returns immediately after checking for button press
+int16_t doPtrnShowDwell(int16_t draw_target, int16_t dwell, int16_t called_from) {
+  nextPatternFromButtons();
+  DEBUG2_PRINT(F("doPtrnShowDwell called from: "))
+  DEBUG2_PRINT((int16_t) called_from)
+  DEBUG2_PRINT(F(" pattern: "))
+  DEBUG2_PRINT((int16_t) pattern)
+  DEBUG2_PRINT(F(" nextPattern: "))
+  DEBUG2_PRINT((int16_t) nextPattern)
+  DEBUG2_PRINT(F(" draw_target: "))
+  DEBUG2_PRINTLN((int16_t) draw_target)
+  if (nextPattern == pattern) nextPattern = NO_BUTTON_CHANGE;
+  if ((nextPattern != pattern) && ( nextPattern != NO_BUTTON_CHANGE)) {
+    DEBUG2_PRINTLN(F("  doPtrnShowDwell rtn; pattern != nextPattern"))
+    return(nextPattern != NO_BUTTON_CHANGE);
+  }
+  if (draw_target != TARGET_DSPLAY) {
+    DEBUG2_PRINTLN(F("  doPtrnShowDwell rtn; draw_target != TARGET_DSPLAY"))
+    return(nextPattern != NO_BUTTON_CHANGE);
+  }
+  DEBUG2_PRINTLN(F("  FastLED.show()"))
+  FastLED.show();
+  return(doDwell(dwell, 1));
+} // end doPtrnShowDwell()
+
+// getButtonPress() - get next button press, true button or debugging
+int16_t getButtonPress() {
+#if REAL_BUTTONS
+  return(checkButtons());
+#else // end if REAL_BUTTONS; now NOT REAL_BUTTONS
+  return(checkKeyboard());
+#endif // not REAL_BUTTONS
+} // end getButtonPress()
+
+#if REAL_BUTTONS
+
+  #define CAPTURE_BUTTONS_THISTIME button_count = button_count_thistime; button_mask = button_mask_thistime; button_timestamp = button_time;
+  // checkButtons() - returns number of button pressed (1 through 6) or NO_BUTTON_PRESS
+  //    news flash - not enough time to do all 6 buttons; just did 3
+  // 
+  // with REAL_BUTTONS, holding button down gives pattern 1 which is OFF
+  // pressing button 1 gives pattern 2, etc.
+  // 
+  // use button_time to determine when to do things
+  //
+  int16_t checkButtons() {
+    uint8_t  val;
+    int16_t thePin;
+    static uint32_t button_timestamp = 0;
+    static uint8_t button_mask = 0; // 1=btn1, 2=btn2, 4=btn3
+    static uint8_t button_count = 0;
+    uint8_t button_mask_thistime, button_count_thistime;
+    int16_t returnPtrn = 1; // 1 is display nothing
+//    static int16_t prevReturn = NO_BUTTON_PRESS; // for debugging only
+
+    button_mask_thistime = button_count_thistime = 0;
+    for (thePin = PSHBTN1; thePin <= PSHBTN6; thePin ++) {
+      val = digitalRead(thePin);
+      if (LOW == val) {
+        button_mask_thistime += (1 << (thePin - PSHBTN1));
+        button_count_thistime += 1;
+      }
+    } // end for all pushbuttons
+    if (0 != button_mask_thistime) {
+      if (0 != button_mask) {
+        returnPtrn = NO_BUTTON_PRESS; // already said we have button down
+      } else {
+        returnPtrn = 1; // always return 1 whenever a button is being pushed
+      }
+      if (button_count_thistime >= button_count) {
+        CAPTURE_BUTTONS_THISTIME
+      } else {
+        // they may be letting up on the buttons; they get 1000 millisec or we reset to current buttons
+        if ((button_time - button_timestamp) > 1000) {
+          // reset to thistime buttons
+          CAPTURE_BUTTONS_THISTIME
+        }
+      } // button count decreased but not zero
+    } else { // button count is zero
+      returnPtrn = ButtonsToPatternNumber[button_mask];
+      button_timestamp = button_mask = button_count = 0;
+    }
+//    if (prevReturn != returnPtrn) { // DEBUG
+//      Serial.print("prevReturn="); Serial.print(prevReturn); Serial.print("returnPtrn="); Serial.println(returnPtrn); 
+//    }
+//    prevReturn = returnPtrn;
+    return(returnPtrn);
+  } // end checkButtons()
+#else // end if REAL_BUTTONS; now NOT REAL_BUTTONS
+  // checkKeyboard() - for debugging - serial port buttons
+  int16_t checkKeyboard() { // not REAL_BUTTONS
+    int8_t received_serial_input;
+    int16_t myButton = NO_BUTTON_PRESS;
+    if (Serial.available() > 0) {
+      received_serial_input = Serial.read();
+      switch ((int16_t) received_serial_input) {
+        case (int16_t) '1': myButton = 1; break;
+        case (int16_t) '2': myButton = 2; break;
+        case (int16_t) '3': myButton = 3; break;
+        case (int16_t) '4': myButton = 4; break;
+        case (int16_t) '5': myButton = 5; break;
+        case (int16_t) '6': myButton = 6; break;
+        default: myButton = NO_BUTTON_PRESS; break;
+      } // end switch on received serial "button"
+    } // end if there was serial input ready to read
+    return(myButton);
+  } // end checkKeyboard()
+#endif // not REAL_BUTTONS
+
+// patternFromButtons() - get pattern to use (called from main loop)
+// could have button pressed now - do that ignore any earlier press
+// could have seen button pressed earlier and just now handling it - do that
+// otherwise keep same pattern - no change
+int16_t patternFromButtons() {
+  int16_t myButton = getButtonPress(); // no change unless we see a change
+  if (myButton == NO_BUTTON_PRESS) {
+    if (NO_BUTTON_CHANGE != nextPattern) {
+      myButton = nextPattern;
+    } else {
+      myButton = pattern;
+    }
+  } // end if no button pressed now so process earlier button press
+  nextPattern = NO_BUTTON_CHANGE;
+  return(myButton);
+} // end patternFromButtons()
+
+// nextPatternFromButtons() - store nextPattern if button pressed
+//     nextPattern will get used when we get back to the main loop
+int16_t nextPatternFromButtons() {
+  int16_t myButton = getButtonPress();
+  if (myButton != NO_BUTTON_PRESS) {
+    nextPattern = myButton;
+  }
+  return (nextPattern);
+} // end nextPatternFromButtons()
+
+
+
+
+// ******************************** PROGMEM UTILITIES ********************************
+
+// copyEffectFromPROGMEM() - straight copy from PROGMEM to local storage
+//    fills this_effect_ptr, count_of_this_effect_ptr and the array led_effect_varmem[]
+void copyEffectFromPROGMEM(uint8_t thisLED) {
+  /*
+  Serial.print(F("copyEffectFromPROGMEM thisLED="));
+  Serial.print((int16_t) thisLED);
+
+  {
+    int8_t myChar;
+    Serial.print(F(" &surround_pointers[thisLED]="));
+    Serial.print((uint32_t) surround_pointers[thisLED]);
+    Serial.print(F(" surround_pointers[thisLED8][0]="));
+    myChar =  pgm_read_byte_near(surround_pointers[thisLED]);
+    Serial.print((uint16_t) myChar);
+    Serial.print(F(" surround_pointers[thisLED][1]="));
+    myChar =  pgm_read_byte_near(surround_pointers[thisLED]+1);
+    Serial.println((uint16_t) myChar);
+
+    Serial.print(F(" srnd_78="));
+    Serial.print((uint32_t) &srnd_78[0]);
+    Serial.print(F(" srnd_78[0]="));
+    myChar =  pgm_read_byte_near(srnd_78);
+    Serial.print((uint16_t) myChar);
+    Serial.print(F(" srnd_78[1]="));
+    myChar =  pgm_read_byte_near(srnd_78+1);
+    Serial.println((uint16_t) myChar);
+
+    Serial.print(F(" &surround_pointers[78]="));
+    Serial.print((uint32_t) surround_pointers[78]);
+    Serial.print(F(" surround_pointers[78][0]="));
+    myChar =  pgm_read_byte_near(surround_pointers[78]);
+    Serial.print((uint16_t) myChar);
+    Serial.print(F(" surround_pointers[78][1]="));
+    myChar =  pgm_read_byte_near(surround_pointers[78]+1);
+    Serial.println((uint16_t) myChar);
+  }
+  */
+
+  // Serial.print(F(" srnd="));
+  this_effect_ptr = &led_effect_varmem[0];
+  led_effect_varmem[0] = pgm_read_byte_near(surround_pointers[thisLED]);
+  count_of_this_effect_ptr = -led_effect_varmem[0];
+  // Serial.print((int16_t) count_of_this_effect_ptr);
+  for (this_effect_ptr_idx = 1; this_effect_ptr_idx <= count_of_this_effect_ptr; this_effect_ptr_idx++) {
+    // Serial.print(F(" "));
+    led_effect_varmem[this_effect_ptr_idx] =  pgm_read_byte_near(surround_pointers[thisLED] + this_effect_ptr_idx);
+    // Serial.print((int16_t) led_effect_varmem[this_effect_ptr_idx]);
+  }
+  // Serial.println(F(" that is all..."));
+  // count_of_this_effect_ptr = led_effect_varmem[0] = 0; // FIXME - get this out of the picture
+} // end copyEffectFromPROGMEM()
+
+// ******************************** THE GIANT DOPATTERNDRAW ROUTINE ********************************
 
 // doPatternDraw() = draw pattern list with surround
 //   second level of organization for of patterns for show, checking for button presses
@@ -1037,298 +1347,5 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
   } // end for step-2 pattern-tokens
   return(__LINE__);
 } // end doPatternDraw()
-
-// ******************************** SYNCHRONIZATION UTILITIES ********************************
-
-// setMySync(val) - sets sync to TRUE if val is nonzero, else sets sync to FALSE
-void setMySync(uint8_t yes) {
-  if (0 == yes) {
-    digitalWrite(IAMSYNC, LOW); // sync = FALSE
-  } else {
-    digitalWrite(IAMSYNC, HIGH); // sync = TRUE
-  }
-} // end setMySync()
-
-// val = areWeAllSync() - returns nonzero if we are all sync
-int8_t areWeAllSync() {
-  int8_t val = digitalRead(ALLSYNC);
-  if (LOW == val) return(0);
-  else            return(1);
-} // end areWeAllSync()
-
-// val = iamSyncAreWeAllSync - sets our sync output TRUE and returns nonzero if we are all sync
-int8_t iamSyncAreWeAllSync() {
-  iamSync(); // set us as synchronized
-  return(areWeAllSync()); // return 1 if we are now all synchronized
-} // end iamSyncAreWeAllSync()
-
-
-// ******************************** EFFECT UTILITIES ********************************
-
-//    NOTE: now all LEDs have a surround effect, but it is in PROGMEM. It was copied into local storage at effect_LEDidx_array_ptr
-void saveSurroundEffectLEDs(int8_t ltr_index, const int8_t * effect_LEDidx_array_ptr, int16_t draw_target, CRGB * save_here) {
-  LED_DISPLAY(draw_target + ltr_index)
-  save_here[0] =   led_display[draw_target + ltr_index]; // save_here[0] is the LED in the middle, [1..end] are the LEDs in the surround effect
-  for (uint8_t i = 1; i <= -effect_LEDidx_array_ptr[0]; i++) {
-    LED_DISPLAY(draw_target + effect_LEDidx_array_ptr[i])
-    save_here[i] = led_display[draw_target + effect_LEDidx_array_ptr[i]];
-  } // end save the original LED info for surround effect area
-} // end saveSurroundEffectLEDs()
-
-CRGB calcColor_step2DawClrMax(int8_t thePtrnToken, int8_t tokenSmallest, CRGB blinking, CRGB foreground, CRGB background) {
-  CRGB theColor;
-  switch ((thePtrnToken - tokenSmallest) % TOKEN_DRAW_CLR_MAX) {
-    case TOKEN_DRAW_CLR_BLNKNG:
-      theColor = blinking;
-      break;
-    case TOKEN_DRAW_CLR_BLACK:
-    default:
-      theColor = CRGB::Black ;
-      break;
-    case TOKEN_DRAW_CLR_FRGND:
-      theColor = foreground;
-      break;
-    case TOKEN_DRAW_CLR_BKGND:
-      theColor = background;
-      break;
-  }
-  return(theColor);
-} // end calcColor_step2DawClrMax
-
-
-// ******************************** BUTTON AND TIMING UTILITIES ********************************
-
-
-// doDwell(int16_t dwell, uint8_t must_be_diff_pattern) - dwell or break out if button press
-//   returns TRUE if should switch to different pattern
-//   else returns false
-//
-// keeps track of button_time
-//
-#define SMALL_DWELL 20
-int16_t doDwell(int16_t dwell, uint8_t must_be_diff_pattern) {
-  int16_t numloops = dwell / SMALL_DWELL;
-  int16_t i;
-
-  for (i = 0; i < numloops; i++) {
-    nextPatternFromButtons();
-    if ((0 != must_be_diff_pattern) && (nextPattern == pattern)) nextPattern = NO_BUTTON_CHANGE;
-    if (nextPattern != NO_BUTTON_CHANGE) return(nextPattern != NO_BUTTON_CHANGE);
-    delay(SMALL_DWELL);
-    button_time += SMALL_DWELL;
-  }
-  if ((dwell % SMALL_DWELL) != 0) {
-    nextPatternFromButtons();
-    if ((0 != must_be_diff_pattern) && (nextPattern == pattern)) nextPattern = NO_BUTTON_CHANGE;
-    if (nextPattern != NO_BUTTON_CHANGE) return(nextPattern != NO_BUTTON_CHANGE);
-    delay(dwell % SMALL_DWELL);
-    button_time += (dwell % SMALL_DWELL);
-  }
-  return(nextPattern != NO_BUTTON_CHANGE);
-} // end doDwell()
-
-// doPtrnShowDwell() - break out if button press, then show, then dwell
-// Used inside doPatternDraw
-// Idea is to not do delays when drawing to target that is not visible
-// Two things that matter: value returned and timing
-//   value returned:
-//     returns TRUE if should switch to different pattern
-//     else returns false
-//   timing:
-//     if draw_target is TARGET_DSPLAY (visible display LEDs), either does entire delay or delays until button press
-//     if draw_target is not TARGET_DSPLAY, returns immediately after checking for button press
-int16_t doPtrnShowDwell(int16_t draw_target, int16_t dwell, int16_t called_from) {
-  nextPatternFromButtons();
-  DEBUG2_PRINT(F("doPtrnShowDwell called from: "))
-  DEBUG2_PRINT((int16_t) called_from)
-  DEBUG2_PRINT(F(" pattern: "))
-  DEBUG2_PRINT((int16_t) pattern)
-  DEBUG2_PRINT(F(" nextPattern: "))
-  DEBUG2_PRINT((int16_t) nextPattern)
-  DEBUG2_PRINT(F(" draw_target: "))
-  DEBUG2_PRINTLN((int16_t) draw_target)
-  if (nextPattern == pattern) nextPattern = NO_BUTTON_CHANGE;
-  if ((nextPattern != pattern) && ( nextPattern != NO_BUTTON_CHANGE)) {
-    DEBUG2_PRINTLN(F("  doPtrnShowDwell rtn; pattern != nextPattern"))
-    return(nextPattern != NO_BUTTON_CHANGE);
-  }
-  if (draw_target != TARGET_DSPLAY) {
-    DEBUG2_PRINTLN(F("  doPtrnShowDwell rtn; draw_target != TARGET_DSPLAY"))
-    return(nextPattern != NO_BUTTON_CHANGE);
-  }
-  DEBUG2_PRINTLN(F("  FastLED.show()"))
-  FastLED.show();
-  return(doDwell(dwell, 1));
-} // end doPtrnShowDwell()
-
-// getButtonPress() - get next button press, true button or debugging
-int16_t getButtonPress() {
-#if REAL_BUTTONS
-  return(checkButtons());
-#else // end if REAL_BUTTONS; now NOT REAL_BUTTONS
-  return(checkKeyboard());
-#endif // not REAL_BUTTONS
-} // end getButtonPress()
-
-#if REAL_BUTTONS
-
-  #define CAPTURE_BUTTONS_THISTIME button_count = button_count_thistime; button_mask = button_mask_thistime; button_timestamp = button_time;
-  // checkButtons() - returns number of button pressed (1 through 6) or NO_BUTTON_PRESS
-  //    news flash - not enough time to do all 6 buttons; just did 3
-  // 
-  // with REAL_BUTTONS, holding button down gives pattern 1 which is OFF
-  // pressing button 1 gives pattern 2, etc.
-  // 
-  // use button_time to determine when to do things
-  //
-  int16_t checkButtons() {
-    uint8_t  val;
-    int16_t thePin;
-    static uint32_t button_timestamp = 0;
-    static uint8_t button_mask = 0; // 1=btn1, 2=btn2, 4=btn3
-    static uint8_t button_count = 0;
-    uint8_t button_mask_thistime, button_count_thistime;
-    int16_t returnPtrn = 1; // 1 is display nothing
-    // button combos to pattern: 1&2=5, 1&3=6, 2&3=6 1&2&3=6
-    int16_t theReturns[] = { NO_BUTTON_PRESS, /*1*/ 2, /*2*/ 3, /*1&2*/ 7, /*3*/ 4, /*1&3*/ 8, /*2&3*/ 9, /*1&2&3*/ 9 };
-//    static int16_t prevReturn = NO_BUTTON_PRESS; // for debugging only
-
-    button_mask_thistime = button_count_thistime = 0;
-    for (thePin = PSHBTN1; thePin <= PSHBTN6; thePin ++) {
-      val = digitalRead(thePin);
-      if (LOW == val) {
-        button_mask_thistime += (1 << (thePin - PSHBTN1));
-        button_count_thistime += 1;
-      }
-    } // end for all pushbuttons
-    if (0 != button_mask_thistime) {
-      if (0 != button_mask) {
-        returnPtrn = NO_BUTTON_PRESS; // already said we have button down
-      } else {
-        returnPtrn = 1; // always return 1 whenever a button is being pushed
-      }
-      if (button_count_thistime >= button_count) {
-        CAPTURE_BUTTONS_THISTIME
-      } else {
-        // they may be letting up on the buttons; they get 1000 millisec or we reset to current buttons
-        if ((button_time - button_timestamp) > 1000) {
-          // reset to thistime buttons
-          CAPTURE_BUTTONS_THISTIME
-        }
-      } // button count decreased but not zero
-    } else { // button count is zero
-      returnPtrn = theReturns[button_mask];
-      button_timestamp = button_mask = button_count = 0;
-    }
-//    if (prevReturn != returnPtrn) { // DEBUG
-//      Serial.print("prevReturn="); Serial.print(prevReturn); Serial.print("returnPtrn="); Serial.println(returnPtrn); 
-//    }
-//    prevReturn = returnPtrn;
-    return(returnPtrn);
-  } // end checkButtons()
-#else // end if REAL_BUTTONS; now NOT REAL_BUTTONS
-  // checkKeyboard() - for debugging - serial port buttons
-  int16_t checkKeyboard() { // not REAL_BUTTONS
-    int8_t received_serial_input;
-    int16_t myButton = NO_BUTTON_PRESS;
-    if (Serial.available() > 0) {
-      received_serial_input = Serial.read();
-      switch ((int16_t) received_serial_input) {
-        case (int16_t) '1': myButton = 1; break;
-        case (int16_t) '2': myButton = 2; break;
-        case (int16_t) '3': myButton = 3; break;
-        case (int16_t) '4': myButton = 4; break;
-        case (int16_t) '5': myButton = 5; break;
-        case (int16_t) '6': myButton = 6; break;
-        default: myButton = NO_BUTTON_PRESS; break;
-      } // end switch on received serial "button"
-    } // end if there was serial input ready to read
-    return(myButton);
-  } // end checkKeyboard()
-#endif // not REAL_BUTTONS
-
-// patternFromButtons() - get pattern to use (called from main loop)
-// could have button pressed now - do that ignore any earlier press
-// could have seen button pressed earlier and just now handling it - do that
-// otherwise keep same pattern - no change
-int16_t patternFromButtons() {
-  int16_t myButton = getButtonPress(); // no change unless we see a change
-  if (myButton == NO_BUTTON_PRESS) {
-    if (NO_BUTTON_CHANGE != nextPattern) {
-      myButton = nextPattern;
-    } else {
-      myButton = pattern;
-    }
-  } // end if no button pressed now so process earlier button press
-  nextPattern = NO_BUTTON_CHANGE;
-  return(myButton);
-} // end patternFromButtons()
-
-// nextPatternFromButtons() - store nextPattern if button pressed
-//     nextPattern will get used when we get back to the main loop
-int16_t nextPatternFromButtons() {
-  int16_t myButton = getButtonPress();
-  if (myButton != NO_BUTTON_PRESS) {
-    nextPattern = myButton;
-  }
-  return (nextPattern);
-} // end nextPatternFromButtons()
-
-
-
-
-// ******************************** PROGMEM UTILITIES ********************************
-
-// copyEffectFromPROGMEM() - straight copy from PROGMEM to local storage
-//    fills this_effect_ptr, count_of_this_effect_ptr and the array led_effect_varmem[]
-void copyEffectFromPROGMEM(uint8_t thisLED) {
-  /*
-  Serial.print(F("copyEffectFromPROGMEM thisLED="));
-  Serial.print((int16_t) thisLED);
-
-  {
-    int8_t myChar;
-    Serial.print(F(" &surround_pointers[thisLED]="));
-    Serial.print((uint32_t) surround_pointers[thisLED]);
-    Serial.print(F(" surround_pointers[thisLED8][0]="));
-    myChar =  pgm_read_byte_near(surround_pointers[thisLED]);
-    Serial.print((uint16_t) myChar);
-    Serial.print(F(" surround_pointers[thisLED][1]="));
-    myChar =  pgm_read_byte_near(surround_pointers[thisLED]+1);
-    Serial.println((uint16_t) myChar);
-
-    Serial.print(F(" srnd_78="));
-    Serial.print((uint32_t) &srnd_78[0]);
-    Serial.print(F(" srnd_78[0]="));
-    myChar =  pgm_read_byte_near(srnd_78);
-    Serial.print((uint16_t) myChar);
-    Serial.print(F(" srnd_78[1]="));
-    myChar =  pgm_read_byte_near(srnd_78+1);
-    Serial.println((uint16_t) myChar);
-
-    Serial.print(F(" &surround_pointers[78]="));
-    Serial.print((uint32_t) surround_pointers[78]);
-    Serial.print(F(" surround_pointers[78][0]="));
-    myChar =  pgm_read_byte_near(surround_pointers[78]);
-    Serial.print((uint16_t) myChar);
-    Serial.print(F(" surround_pointers[78][1]="));
-    myChar =  pgm_read_byte_near(surround_pointers[78]+1);
-    Serial.println((uint16_t) myChar);
-  }
-  */
-
-  // Serial.print(F(" srnd="));
-  this_effect_ptr = &led_effect_varmem[0];
-  led_effect_varmem[0] = pgm_read_byte_near(surround_pointers[thisLED]);
-  count_of_this_effect_ptr = -led_effect_varmem[0];
-  // Serial.print((int16_t) count_of_this_effect_ptr);
-  for (this_effect_ptr_idx = 1; this_effect_ptr_idx <= count_of_this_effect_ptr; this_effect_ptr_idx++) {
-    // Serial.print(F(" "));
-    led_effect_varmem[this_effect_ptr_idx] =  pgm_read_byte_near(surround_pointers[thisLED] + this_effect_ptr_idx);
-    // Serial.print((int16_t) led_effect_varmem[this_effect_ptr_idx]);
-  }
-  // Serial.println(F(" that is all..."));
-  // count_of_this_effect_ptr = led_effect_varmem[0] = 0; // FIXME - get this out of the picture
-} // end copyEffectFromPROGMEM()
 
 
