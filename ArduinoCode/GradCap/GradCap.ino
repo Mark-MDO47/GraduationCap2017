@@ -21,9 +21,8 @@
 //    https://github.com/FastLED/FastLED
 //    https://github.com/FastLED/FastLED/blob/master/examples/Fire2012WithPalette/Fire2012WithPalette.ino
 //
-// Used some routines and modified routines from TWIT-TV Know How 187 and follow-on episodes:
-//     https://twit.tv/shows/know-how/episodes/187?autostart=false
-//     major kudos to Fr. Robert Ballecer and Bryan Burnett for their steampunk goggles project! 
+// The Arduino pattern code here is pretty much done from scratch by me using the FastLED library.
+//    I also tried a few items from Mark Kriegsman's classic DemoReel100.ino https://gist.github.com/kriegsman/062e10f7f07ba8518af6
 //
 // These LEDs use power that adds up. Can use this to estimate the power
 //   http://fastled.io/docs/3.1/group___power.html
@@ -54,7 +53,7 @@
 //
 
 
-#define WHICH_ARDUINO 0 // this will identify the Arduinos, 0-3 inclusive
+#define WHICH_ARDUINO 3 // this will identify the Arduinos, 0-3 inclusive
 #define NUM_ARDUINOS  4 // number of Arduinos is 4; max usable is 3
 
 // with REAL_BUTTONS, holding button down gives pattern 1 which is OFF
@@ -90,6 +89,8 @@ static int8_t   this_qrtr = 0; // from qrtr_1 (value 0) to qrtr_4 (value 3), cou
 static uint32_t radar_xray_bitmask[3] = {0, 0, 0}; // bitmask where X-Ray LEDs are for STEP2_RADAR_XRAY_SHDW1
 static uint32_t bitmsk32; // used to pick out the bit in radar_xray_bitmask
 static uint8_t  idx_bitmsk32; // index to which array member for radar_xray_bitmask
+
+uint8_t gHue = 0; // rotating "base color" used by DemoReel100
 
 // ******************************** SETUP ********************************
 // setup()
@@ -248,6 +249,50 @@ void doPattern() {
     oldPattern = pattern;
   } // end if pattern changed
 } // end doPattern()
+
+void rainbow() { // pattern from DemoReel100
+  // FastLED's built-in rainbow generator
+  fill_rainbow( led_display, NUM_LEDS_PER_DISK, gHue, 7);
+}
+
+void rainbowWithGlitter() { // pattern from DemoReel100
+  // built-in FastLED rainbow, plus some random sparkly glitter
+  rainbow();
+  addGlitter(80);
+} // end rainbowWithGlitter
+
+void addGlitter( fract8 chanceOfGlitter) { // helper routine from DemoReel100
+  if( random8() < chanceOfGlitter) {
+    led_display[ random16(NUM_LEDS_PER_DISK) ] += CRGB::White;
+  }
+} // end 
+
+void confetti() { // pattern from DemoReel100
+  // random colored speckles that blink in and fade smoothly
+  fadeToBlackBy( led_display, NUM_LEDS_PER_DISK, 10);
+  int pos = random16(NUM_LEDS_PER_DISK);
+  led_display[pos] += CHSV( gHue + random8(64), 200, 255);
+} // end 
+
+void bpm() { // pattern from DemoReel100
+  // colored stripes pulsing at a defined Beats-Per-Minute (BPM)
+  uint8_t BeatsPerMinute = 62;
+  CRGBPalette16 palette = PartyColors_p;
+  uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
+  for( int i = 0; i < NUM_LEDS_PER_DISK; i++) { //9948
+    led_display[i] = ColorFromPalette(palette, gHue+(i*2), beat-gHue+(i*10));
+  }
+} // end bpm()
+
+void juggle() { // pattern from DemoReel100
+  // eight colored dots, weaving in and out of sync with each other
+  fadeToBlackBy( led_display, NUM_LEDS_PER_DISK, 20);
+  byte dothue = 0;
+  for( int i = 0; i < 8; i++) {
+    led_display[beatsin16(i+7,0,NUM_LEDS_PER_DISK)] |= CHSV(dothue, 200, 255);
+    dothue += 32;
+  }
+} // end juggle()
 
 // doPatternDraw() = draw pattern list with surround
 //   second level of organization for of patterns for show, checking for button presses

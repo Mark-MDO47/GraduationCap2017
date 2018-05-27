@@ -20,9 +20,8 @@
 //    https://github.com/FastLED/FastLED
 //    https://github.com/FastLED/FastLED/blob/master/examples/Fire2012WithPalette/Fire2012WithPalette.ino
 //
-// Used some routines and modified routines from TWIT-TV Know How 187 and follow-on episodes:
-//     https://twit.tv/shows/know-how/episodes/187?autostart=false
-//     major kudos to Fr. Robert Ballecer and Bryan Burnett for their steampunk goggles project! 
+// The Arduino pattern code here is pretty much done from scratch by me using the FastLED library.
+//    I also tried a few items from Mark Kriegsman's classic DemoReel100.ino https://gist.github.com/kriegsman/062e10f7f07ba8518af6
 //
 // These LEDs use power that adds up. Can use this to estimate the power
 //   http://fastled.io/docs/3.1/group___power.html
