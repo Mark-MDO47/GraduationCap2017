@@ -52,7 +52,7 @@
 //    https://github.com/FastLED/FastLED/wiki/Wiring-leds
 //
 
-#define WHICH_ARDUINO 3 // this will identify the Arduinos, 0-3 inclusive
+#define WHICH_ARDUINO 0 // this will identify the Arduinos, 0-3 inclusive
 #define NUM_ARDUINOS  4 // number of Arduinos is 4; max usable is 3
 
 // with REAL_BUTTONS, holding button down gives pattern 1 which is OFF
@@ -86,7 +86,7 @@ static int8_t led_effect_varmem[EFFECT_NUM_PROGMEM_SAV]; // place to copy bytes 
 //   7 = rainbowWithGlitter Demo Reel 100 pattern
 //   8 = bpm; this is the best Demo Reel 100 pattern on the Mokungit 93 LED disk
 //   9 = juggle Demo Reel 100 pattern
-static int16_t ButtonsToPatternNumber[] = { NO_BUTTON_PRESS, /*1*/ 2, /*2*/ 3, /*1&2*/ 7, /*3*/ 4, /*1&3*/ 8, /*2&3*/ 9, /*1&2&3*/ 9 };
+static int16_t ButtonsToPatternNumber[] = { NO_BUTTON_PRESS, /*1*/ 2, /*2*/ 3, /*1&2*/ 8, /*3*/ 5, /*1&3*/ 7, /*2&3*/ 9, /*1&2&3*/ 1 };
 
 static int8_t   pattern = 1;
 static int8_t   oldPattern = 2;
@@ -181,7 +181,7 @@ void loop() {
 //
 void doPattern() {
   static int16_t save_return = 0;
-  static int16_t dwell = 1000;
+  static int16_t dwell = 500;
 
   switch (pattern) {
     case 1: // 1 = OFF
@@ -249,7 +249,7 @@ void doPattern() {
        // save_return = doPatternDraw(10, ltr_Y, ptrnWide, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        save_return = doPatternDraw(100, ltr_Y, ptrnRingDraw, CRGB::Red, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__)
-       save_return = doPatternDraw(100, ltr_Y, ptrnRingDraw, CRGB::Red, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(100, ltr_Y, ptrnRingQrtrDraw, CRGB::Red, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__)
        // save_return = doPatternDraw(1000, ltr_Y, 5, CRGB::Red, CRGB::Blue, CRGB::Green, 0, 0, 0);
        doDwell(dwell, 1);
