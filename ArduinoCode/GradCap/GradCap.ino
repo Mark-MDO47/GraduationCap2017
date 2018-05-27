@@ -52,7 +52,6 @@
 //    https://github.com/FastLED/FastLED/wiki/Wiring-leds
 //
 
-
 #define WHICH_ARDUINO 3 // this will identify the Arduinos, 0-3 inclusive
 #define NUM_ARDUINOS  4 // number of Arduinos is 4; max usable is 3
 
@@ -90,7 +89,7 @@ static uint32_t radar_xray_bitmask[3] = {0, 0, 0}; // bitmask where X-Ray LEDs a
 static uint32_t bitmsk32; // used to pick out the bit in radar_xray_bitmask
 static uint8_t  idx_bitmsk32; // index to which array member for radar_xray_bitmask
 
-uint8_t gHue = 0; // rotating "base color" used by DemoReel100
+uint8_t gHue = 0; // rotating "base color" used by Demo Reel 100
 
 // ******************************** SETUP ********************************
 // setup()
@@ -133,6 +132,7 @@ void setup() {
 
 // ******************************** LOOP ********************************
 void loop() {
+  gHue += (WHICH_ARDUINO*2 + 1); // rotating "base color" used by Demo Reel 100
   nextPatternFromButtons();
   if ((NO_BUTTON_CHANGE != nextPattern) && (nextPattern != pattern)) {
     pattern = nextPattern;
@@ -165,6 +165,7 @@ void loop() {
 void doPattern() {
   static int16_t save_return = 0;
   static int16_t dwell = 1000;
+
   switch (pattern) {
     case 1: // 1 = OFF
        save_return = doPatternDraw(10, ltr_Y, ptrnOff, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
@@ -259,33 +260,33 @@ void doPattern() {
   } // end if pattern changed
 } // end doPattern()
 
-void rainbow() { // pattern from DemoReel100
+void rainbow() { // pattern from Demo Reel 100
   // FastLED's built-in rainbow generator
-  fill_rainbow( led_display, NUM_LEDS_PER_DISK, gHue, 7);
+  fill_rainbow( led_display, NUM_LEDS_PER_DISK, gHue, 7+WHICH_ARDUINO);
 }
 
-void rainbowWithGlitter() { // pattern from DemoReel100
+void rainbowWithGlitter() { // pattern from Demo Reel 100
   // built-in FastLED rainbow, plus some random sparkly glitter
   rainbow();
-  addGlitter(80);
+  addGlitter(80+(WHICH_ARDUINO-1)*20);
 } // end rainbowWithGlitter
 
-void addGlitter( fract8 chanceOfGlitter) { // helper routine from DemoReel100
+void addGlitter( fract8 chanceOfGlitter) { // helper routine from Demo Reel 100
   if( random8() < chanceOfGlitter) {
     led_display[ random16(NUM_LEDS_PER_DISK) ] += CRGB::White;
   }
 } // end 
 
-void confetti() { // pattern from DemoReel100
+void confetti() { // pattern from Demo Reel 100
   // random colored speckles that blink in and fade smoothly
-  fadeToBlackBy( led_display, NUM_LEDS_PER_DISK, 10);
+  fadeToBlackBy( led_display, NUM_LEDS_PER_DISK, (WHICH_ARDUINO+1)*10);
   int pos = random16(NUM_LEDS_PER_DISK);
   led_display[pos] += CHSV( gHue + random8(64), 200, 255);
 } // end 
 
-void bpm() { // pattern from DemoReel100
+void bpm() { // pattern from Demo Reel 100
   // colored stripes pulsing at a defined Beats-Per-Minute (BPM)
-  uint8_t BeatsPerMinute = 62;
+  uint8_t BeatsPerMinute = 62+(WHICH_ARDUINO-1)*10;
   CRGBPalette16 palette = PartyColors_p;
   uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
   for( int i = 0; i < NUM_LEDS_PER_DISK; i++) { //9948
@@ -293,9 +294,9 @@ void bpm() { // pattern from DemoReel100
   }
 } // end bpm()
 
-void juggle() { // pattern from DemoReel100
+void juggle() { // pattern from Demo Reel 100
   // eight colored dots, weaving in and out of sync with each other
-  fadeToBlackBy( led_display, NUM_LEDS_PER_DISK, 20);
+  fadeToBlackBy( led_display, NUM_LEDS_PER_DISK, (WHICH_ARDUINO+1)*20);
   byte dothue = 0;
   for( int i = 0; i < 8; i++) {
     led_display[beatsin16(i+7,0,NUM_LEDS_PER_DISK)] |= CHSV(dothue, 200, 255);
