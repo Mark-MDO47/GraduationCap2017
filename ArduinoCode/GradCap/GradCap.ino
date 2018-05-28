@@ -86,7 +86,8 @@ static int8_t led_effect_varmem[EFFECT_NUM_PROGMEM_SAV]; // place to copy bytes 
 //   7 = rainbowWithGlitter Demo Reel 100 pattern
 //   8 = bpm; this is the best Demo Reel 100 pattern on the Mokungit 93 LED disk
 //   9 = juggle Demo Reel 100 pattern
-static int16_t ButtonsToPatternNumber[] = { NO_BUTTON_PRESS, /*1*/ 2, /*2*/ 3, /*1&2*/ 8, /*3*/ 5, /*1&3*/ 7, /*2&3*/ 9, /*1&2&3*/ 1 };
+//  10 = Fire2012 from another Kriegsman FastLED example
+static int16_t ButtonsToPatternNumber[] = { NO_BUTTON_PRESS, /*1*/ 2, /*2*/ 3, /*1&2*/ 8, /*3*/ 5, /*1&3*/ 10, /*2&3*/ 9, /*1&2&3*/ 1 };
 
 static int8_t   pattern = 1;
 static int8_t   oldPattern = 2;
@@ -270,6 +271,9 @@ void doPattern() {
        break;
     case 9:
        juggle();
+       break;
+    case 10:
+       Fire2012();
        break;
   } // end switch on pattern
   if (pattern != oldPattern) {
@@ -1347,5 +1351,86 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
   } // end for step-2 pattern-tokens
   return(__LINE__);
 } // end doPatternDraw()
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#define FALSE 0
+#define TRUE 1
+
+uint8_t gReverseDirection = FALSE;
+
+// Fire2012 by Mark Kriegsman, July 2012
+// as part of "Five Elements" shown here: http://youtu.be/knWiGsmgycY
+//// 
+// This basic one-dimensional 'fire' simulation works roughly as follows:
+// There's a underlying array of 'heat' cells, that model the temperature
+// at each point along the line.  Every cycle through the simulation, 
+// four steps are performed:
+//  1) All cells cool down a little bit, losing heat to the air
+//  2) The heat from each cell drifts 'up' and diffuses a little
+//  3) Sometimes randomly new 'sparks' of heat are added at the bottom
+//  4) The heat from each cell is rendered as a color into the led_display array
+//     The heat-to-color mapping uses a black-body radiation approximation.
+//
+// Temperature is in arbitrary units from 0 (cold black) to 255 (white hot).
+//
+// This simulation scales it self a bit depending on +NUM_LEDS_PER_DISK; it should look
+// "OK" on anywhere from 20 to 100 LEDs without too much tweaking. 
+//
+// I recommend running this simulation at anywhere from 30-100 frames per second,
+// meaning an interframe delay of about 10-35 milliseconds.
+//
+// Looks best on a high-density LED setup (60+ pixels/meter).
+//
+//
+// There are two main parameters you can play with to control the look and
+// feel of your fire: COOLING (used in step 1 above), and SPARKING (used
+// in step 3 above).
+//
+// COOLING: How much does the air cool as it rises?
+// Less cooling = taller flames.  More cooling = shorter flames.
+// Default 50, suggested range 20-100 
+#define COOLING  60
+
+// SPARKING: What chance (out of 255) is there that a new spark will be lit?
+// Higher chance = more roaring fire.  Lower chance = more flickery fire.
+// Default 120, suggested range 50-200.
+#define SPARKING 200
+
+
+void Fire2012()
+{
+// Array of temperature readings at each simulation cell
+  static byte heat[+NUM_LEDS_PER_DISK];
+
+  // Step 1.  Cool down every cell a little
+    for( int i = 0; i < +NUM_LEDS_PER_DISK; i++) {
+      heat[i] = qsub8( heat[i],  random8(0, ((COOLING * 10) / +NUM_LEDS_PER_DISK) + 2));
+    }
+  
+    // Step 2.  Heat from each cell drifts 'up' and diffuses a little
+    for( int k= +NUM_LEDS_PER_DISK - 1; k >= 2; k--) {
+      heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2] ) / 3;
+    }
+    
+    // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
+    if( random8() < SPARKING ) {
+      int y = random8(7);
+      heat[y] = qadd8( heat[y], random8(160,255) );
+    }
+
+    // Step 4.  Map from heat cells to LED colors
+    for( int j = 0; j < +NUM_LEDS_PER_DISK; j++) {
+      CRGB color = HeatColor( heat[j]);
+      int pixelnumber;
+      if( gReverseDirection ) {
+        pixelnumber = (+NUM_LEDS_PER_DISK-1) - j;
+      } else {
+        pixelnumber = j;
+      }
+      led_display[pixelnumber] = color;
+    }
+}
 
 
