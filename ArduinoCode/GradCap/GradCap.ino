@@ -113,6 +113,10 @@ static uint32_t bitmsk32; // used to pick out the bit in radar_xray_bitmask
 static uint8_t  idx_bitmsk32; // index to which array member for radar_xray_bitmask
 
 uint8_t gHue = 0; // rotating "base color" used by Demo Reel 100
+CRGBPalette16 gPal; // palette for Fire2012WithPalette()
+CRGB dark_color_palette[NUM_ARDUINOS]  = { CRGB::DarkGreen, CRGB::Red,    CRGB::Blue, CRGB::DarkOrange };
+CRGB light_color_palette[NUM_ARDUINOS] = { CRGB::LimeGreen, CRGB::Yellow, CRGB::Aqua, CRGB::Gold };
+
 
 // ******************************** SETUP ********************************
 // setup()
@@ -147,6 +151,10 @@ void setup() {
 
   smallCount = 0;
   bigCount = 0;
+
+  // initialize gPal for Fire2012WithPalette()
+  gPal = CRGBPalette16( CRGB::Black, dark_color_palette[WHICH_ARDUINO], light_color_palette[WHICH_ARDUINO], CRGB::White);
+  
 
   pattern = 1; // FIXME - set to 1 when read pattern from buttons
   oldPattern = NO_BUTTON_CHANGE;
@@ -284,7 +292,7 @@ void doPattern() {
        break;
     case 10:
 #if DO_FIRE_2012
-       Fire2012();
+       Fire2012WithPalette();
 #else
        juggle();
 #endif
@@ -1372,6 +1380,33 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
 #define FALSE 0
 #define TRUE 1
 
+// Fire2012 with programmable Color Palette
+//
+// This code is the same fire simulation as the original "Fire2012",
+// but each heat cell's temperature is translated to color through a FastLED
+// programmable color palette, instead of through the "HeatColor(...)" function.
+//
+// Four different static color palettes are provided here, plus one dynamic one.
+// 
+// The three static ones are: 
+//   1. the FastLED built-in HeatColors_p -- this is the default, and it looks
+//      pretty much exactly like the original Fire2012.
+//
+//  To use any of the other palettes below, just "uncomment" the corresponding code.
+//
+//   2. a gradient from black to red to yellow to white, which is
+//      visually similar to the HeatColors_p, and helps to illustrate
+//      what the 'heat colors' palette is actually doing,
+//   3. a similar gradient, but in blue colors rather than red ones,
+//      i.e. from black to blue to aqua to white, which results in
+//      an "icy blue" fire effect,
+//   4. a simplified three-step gradient, from black to red to white, just to show
+//      that these gradients need not have four components; two or
+//      three are possible, too, even if they don't look quite as nice for fire.
+//
+// The dynamic palette shows how you can change the basic 'hue' of the
+// color palette every time through the loop, producing "rainbow fire".
+
 // Fire2012 by Mark Kriegsman, July 2012
 // as part of "Five Elements" shown here: http://youtu.be/knWiGsmgycY
 //// 
@@ -1412,39 +1447,45 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
 
 uint8_t gReverseDirection = TRUE; // Mark Olson simplest approach: translate start to the middle
 
-void Fire2012()
-{
+void Fire2012WithPalette() {
 // Array of temperature readings at each simulation cell
   static byte heat[+NUM_LEDS_PER_DISK];
 
-  // Step 1.  Cool down every cell a little
-    for( int i = 0; i < +NUM_LEDS_PER_DISK; i++) {
-      heat[i] = qsub8( heat[i],  random8(0, ((COOLING * 10) / +NUM_LEDS_PER_DISK) + 2));
-    }
-  
-    // Step 2.  Heat from each cell drifts 'up' and diffuses a little
-    for( int k= +NUM_LEDS_PER_DISK - 1; k >= 2; k--) {
-      heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2] ) / 3;
-    }
-    
-    // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
-    if( random8() < SPARKING ) {
-      int y = random8(7);
-      heat[y] = qadd8( heat[y], random8(160,255) );
-    }
+  // Add entropy to random number generator; we use a lot of it.
+  random16_add_entropy( random());
 
-    // Step 4.  Map from heat cells to LED colors
-    for( int j = 0; j < +NUM_LEDS_PER_DISK; j++) {
-      CRGB color = HeatColor(heat[j]);
-      int pixelnumber;
-      if( gReverseDirection ) {
-        pixelnumber = (+NUM_LEDS_PER_DISK-1) - j;
-      } else {
-        pixelnumber = j;
-      }
-      led_display[pixelnumber] = color;
+  // Step 1.  Cool down every cell a little
+  for( int i = 0; i < NUM_LEDS_PER_DISK; i++) {
+    heat[i] = qsub8( heat[i],  random8(0, ((COOLING * 10) / NUM_LEDS_PER_DISK) + 2));
+  }
+
+  // Step 2.  Heat from each cell drifts 'up' and diffuses a little
+  for( int k= NUM_LEDS_PER_DISK - 1; k >= 2; k--) {
+    heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2] ) / 3;
+  }
+  
+  // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
+  if( random8() < SPARKING ) {
+    int y = random8(7);
+    heat[y] = qadd8( heat[y], random8(160,255) );
+  }
+
+  // Step 4.  Map from heat cells to LED colors
+  for( int j = 0; j < NUM_LEDS_PER_DISK; j++) {
+    // Scale the heat value from 0-255 down to 0-240
+    // for best results with color palettes.
+    byte colorindex = scale8( heat[j], 240);
+    CRGB color = ColorFromPalette( gPal, colorindex);
+    int pixelnumber;
+    if( gReverseDirection ) {
+      pixelnumber = (NUM_LEDS_PER_DISK-1) - j;
+    } else {
+      pixelnumber = j;
     }
-}
+    led_display[pixelnumber] = color;
+  }
+}  // end Fire2012WithPalette()
+
 
 #endif
 
