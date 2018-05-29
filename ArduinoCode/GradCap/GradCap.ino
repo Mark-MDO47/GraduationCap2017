@@ -71,6 +71,8 @@ static uint32_t button_time = 0;
 static CRGB led_effect_save_LEDs[EFFECT_NUM_LED_SAV+1];  // place to save original values of effect LEDs. Currently only effect is surround
 static int8_t led_effect_varmem[EFFECT_NUM_PROGMEM_SAV]; // place to copy bytes of effect into (from PROGMEM). Currently only effect is surround
 
+#define DO_FIRE_2012 1 // trying to put the Fire2012 demo in and make it look flashy
+
 // buttons:
 //   btn1 = knife switch side outer, high
 //   btn2 = knife switch side outer, low
@@ -87,12 +89,15 @@ static int8_t led_effect_varmem[EFFECT_NUM_PROGMEM_SAV]; // place to copy bytes 
 //   8 = bpm; this is the best Demo Reel 100 pattern on the Mokungit 93 LED disk
 //   9 = juggle Demo Reel 100 pattern
 //  10 = Fire2012 from another Kriegsman FastLED example
+#define MIN_FASTLED_PATTERN 7
 static int16_t ButtonsToPatternNumber[] = { NO_BUTTON_PRESS, /*1*/ 2, /*2*/ 3, /*1&2*/ 8, /*3*/ 5, /*1&3*/ 10, /*2&3*/ 9, /*1&2&3*/ 1 };
+
+static int16_t  ptrn_delay = 100; // proper delay for Mark's patterns
+static int16_t  ptrn_delay_fastled = 15; // proper delay for FastLED patterns
 
 static int8_t   pattern = 1;
 static int8_t   oldPattern = 2;
 static int8_t   nextPattern = 2;
-static int16_t  ptrn_delay = 100; // set by patterns to proper delay
 static uint16_t bigCount;  // unsigned 16-bit int
 static uint8_t  smallCount;  // unsigned  8-bit int
 static int8_t   ltr_ptr_idx = -1;
@@ -164,7 +169,12 @@ void loop() {
   checkDataGuard();
   FastLED.show();
   oldPattern = pattern;
-  doDwell(ptrn_delay, 1);
+
+  if (pattern < MIN_FASTLED_PATTERN) { // Mark's patterns
+    doDwell(ptrn_delay, 1);
+  } else { // FastLED patterns
+    doDwell(ptrn_delay_fastled, 1);
+  }
 
   smallCount += 1;
   bigCount += 1;
@@ -273,7 +283,11 @@ void doPattern() {
        juggle();
        break;
     case 10:
+#if DO_FIRE_2012
        Fire2012();
+#else
+       juggle();
+#endif
        break;
   } // end switch on pattern
   if (pattern != oldPattern) {
@@ -1353,12 +1367,10 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
 } // end doPatternDraw()
 
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#ifdef DO_FIRE_2012
 
 #define FALSE 0
 #define TRUE 1
-
-uint8_t gReverseDirection = FALSE;
 
 // Fire2012 by Mark Kriegsman, July 2012
 // as part of "Five Elements" shown here: http://youtu.be/knWiGsmgycY
@@ -1398,6 +1410,7 @@ uint8_t gReverseDirection = FALSE;
 // Default 120, suggested range 50-200.
 #define SPARKING 200
 
+uint8_t gReverseDirection = TRUE; // Mark Olson simplest approach: translate start to the middle
 
 void Fire2012()
 {
@@ -1422,7 +1435,7 @@ void Fire2012()
 
     // Step 4.  Map from heat cells to LED colors
     for( int j = 0; j < +NUM_LEDS_PER_DISK; j++) {
-      CRGB color = HeatColor( heat[j]);
+      CRGB color = HeatColor(heat[j]);
       int pixelnumber;
       if( gReverseDirection ) {
         pixelnumber = (+NUM_LEDS_PER_DISK-1) - j;
@@ -1433,4 +1446,5 @@ void Fire2012()
     }
 }
 
+#endif
 
