@@ -1403,12 +1403,12 @@ int16_t doPatternDraw(int16_t led_delay, const int8_t * ltr_ptr, const int8_t * 
 // COOLING: How much does the air cool as it rises?
 // Less cooling = taller flames.  More cooling = shorter flames.
 // Default 50, suggested range 20-100 
-#define COOLING  60
+#define COOLING  (70+WHICH_ARDUINO)
 
 // SPARKING: What chance (out of 255) is there that a new spark will be lit?
 // Higher chance = more roaring fire.  Lower chance = more flickery fire.
 // Default 120, suggested range 50-200.
-#define SPARKING 200
+#define SPARKING (50+WHICH_ARDUINO)
 
 uint8_t gReverseDirection = TRUE; // Mark Olson simplest approach: translate start to the middle
 
