@@ -52,7 +52,7 @@
 //    https://github.com/FastLED/FastLED/wiki/Wiring-leds
 //
 
-#define WHICH_ARDUINO 0 // this will identify the Arduinos, 0-3 inclusive
+#define WHICH_ARDUINO 3 // this will identify the Arduinos, 0-3 inclusive
 #define NUM_ARDUINOS  4 // number of Arduinos is 4; max usable is 3
 
 // with REAL_BUTTONS, holding button down gives pattern 1 which is OFF
