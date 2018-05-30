@@ -43,7 +43,7 @@
 //       NOTE: only data pins 4-6 (pushbuttons 1-3) are wired at this time
 //    Data Pins 11-12 are used for synchronizing with the other Arduinos. 11 is "IAMSYNC"; 12 is "ALLSYNC" input
 // 
-// Recommendations -  ;^)
+// Recommendations -  ;^) I never do the capacitor or the resistor, it still works. Also my wires were about 3 feet!!!
 //    Before connecting the WS2812 to a power source, connect a big capacitor from power to ground.
 //      A cap between 100microF and 1000microF should be good. Try to place this cap as close to your WS2812 as possible.
 //      Electrolytic Decoupling Capacitors 
@@ -114,6 +114,7 @@ static uint8_t  idx_bitmsk32; // index to which array member for radar_xray_bitm
 
 uint8_t gHue = 0; // rotating "base color" used by Demo Reel 100
 CRGBPalette16 gPal; // palette for Fire2012WithPalette()
+uint16_t gSeed = ((uint16_t) (WHICH_ARDUINO+1))*((uint16_t) 42); // my favorite is 47 but the whole world loves 42 and HHG2TG
 CRGB dark_color_palette[NUM_ARDUINOS]  = { CRGB::DarkGreen, CRGB::Red,    CRGB::Blue, CRGB::DarkOrange };
 CRGB light_color_palette[NUM_ARDUINOS] = { CRGB::LimeGreen, CRGB::Yellow, CRGB::Aqua, CRGB::Gold };
 
@@ -154,7 +155,8 @@ void setup() {
 
   // initialize gPal for Fire2012WithPalette()
   gPal = CRGBPalette16( CRGB::Black, dark_color_palette[WHICH_ARDUINO], light_color_palette[WHICH_ARDUINO], CRGB::White);
-  
+  // initialize random seed to be different for each Arduino
+  random16_set_seed (gSeed);
 
   pattern = 1; // FIXME - set to 1 when read pattern from buttons
   oldPattern = NO_BUTTON_CHANGE;
@@ -204,80 +206,78 @@ void doPattern() {
 
   switch (pattern) {
     case 1: // 1 = OFF
-       save_return = doPatternDraw(10, ltr_Y, ptrnOff, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(10, ltrs_Poly, ptrnOff, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        LED_DISPLAY(TARGET_DSPLAY+NUM_LEDS_PER_DISK-1)
        led_display[TARGET_DSPLAY+NUM_LEDS_PER_DISK-1] = CRGB::Red; // indication that we are on
        // DEBUG2_RETURN(save_return, __LINE__)
        break;
     case 2: // 2 = draw then down the drain
     default:
-       save_return = doPatternDraw(10, shape_star, ptrnJustDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       // DEBUG2_RETURN(save_return, __LINE__)
-       save_return = doPatternDraw(10, shape_star, ptrnCopyToShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       // DEBUG2_RETURN(save_return, __LINE__)
-       save_return = doPatternDraw(10, shape_star, ptrnDownTheDrain, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       // DEBUG2_RETURN(save_return, __LINE__)
-       save_return = doPatternDraw(10, shape_star, ptrnDownTheDrainIn, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       // DEBUG2_RETURN(save_return, __LINE__)
-       save_return = doPatternDraw(10, ltrs_Poly[WHICH_ARDUINO], ptrnJustWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(10, ltrs_Poly, ptrnJustWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__);
-       save_return = doPatternDraw(10, ltrs_Poly[WHICH_ARDUINO], ptrnCopyToShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(10, ltrs_Poly, ptrnCopyToShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__)
-       save_return = doPatternDraw(10, ltrs_Poly[WHICH_ARDUINO], ptrnUpTheDrain, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       if (doDwell(dwell, 200)) break;
+       save_return = doPatternDraw(10, ltrs_Poly, ptrnDownTheDrain, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       // DEBUG2_RETURN(save_return, __LINE__)
+       save_return = doPatternDraw(10, ltrs_Poly, ptrnDownTheDrainIn, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       // DEBUG2_RETURN(save_return, __LINE__)
+       if (doDwell(dwell, 200)) break;
+       save_return = doPatternDraw(10, ltrs_Poly, ptrnUpTheDrain, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__);
-       save_return = doPatternDraw(10, ltrs_Poly[WHICH_ARDUINO], ptrnUpTheDrainIn, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(10, ltrs_Poly, ptrnUpTheDrainIn, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__);
-       if (doDwell(dwell, 1)) break;
-       save_return = doPatternDraw(10, ltrs_2018[WHICH_ARDUINO], ptrnJustWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       if (doDwell(dwell, 200)) break;
+       save_return = doPatternDraw(10, ltrs_2018, ptrnJustWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__);
-       save_return = doPatternDraw(10, ltrs_2018[WHICH_ARDUINO], ptrnHaunted, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(10, ltrs_2018, ptrnHaunted, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__);
        if (doDwell(dwell, 1)) break;
        break;
     case 3: // 3 = Radar
-       save_return = doPatternDraw(1, ltrs_Poly[WHICH_ARDUINO], ptrnJustWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(1, ltrs_Poly, ptrnJustWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        if (doDwell(dwell, 1)) break;
        // DEBUG2_RETURN(save_return, __LINE__)
-       save_return = doPatternDraw(1, ltrs_Poly[WHICH_ARDUINO], ptrnCopyToShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(1, ltrs_Poly, ptrnCopyToShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        if (doDwell(1, 1)) break;
        // DEBUG2_RETURN(save_return, __LINE__)
        for (uint8_t tmp = 0; (tmp < 2) ; tmp++) {
-         save_return = doPatternDraw(100, ltrs_Poly[WHICH_ARDUINO], ptrnRadarFrgndFromShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+         save_return = doPatternDraw(100, ltrs_Poly, ptrnRadarFrgndFromShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
          // DEBUG2_RETURN(save_return, __LINE__)
        } // end loop
-       save_return = doPatternDraw(1, ltrs_2018[WHICH_ARDUINO], ptrnJustWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(1, ltrs_2018, ptrnJustWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        if (doDwell(dwell, 1)) break;
        // DEBUG2_RETURN(save_return, __LINE__)
-       save_return = doPatternDraw(1, ltrs_2018[WHICH_ARDUINO], ptrnCopyToShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(1, ltrs_2018, ptrnCopyToShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        if (doDwell(1, 1)) break;
        // DEBUG2_RETURN(save_return, __LINE__)
        for (uint8_t tmp = 0; (tmp < 2) ; tmp++) {
-         save_return = doPatternDraw(100, ltrs_2018[WHICH_ARDUINO], ptrnRadarFrgndFromShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+         save_return = doPatternDraw(100, ltrs_2018, ptrnRadarFrgndFromShdw1, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
          // DEBUG2_RETURN(save_return, __LINE__)
        } // end loop
        break;
     case 4: // 4 = POLY 2018
-       save_return = doPatternDraw(8, ltrs_Poly[WHICH_ARDUINO], ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(8, ltrs_Poly, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__)
        if (doDwell(dwell, 1)) break;
-       save_return = doPatternDraw(8, ltrs_2018[WHICH_ARDUINO], ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(8, ltrs_2018, ptrnWideDraw, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__)
        if (doDwell(dwell, 1)) break;
        break;
     case 5: // 5 = draw rings
-       // save_return = doPatternDraw(10, ltr_Y, ptrnWide, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
-       save_return = doPatternDraw(100, ltr_Y, ptrnRingDraw, CRGB::Red, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       // save_return = doPatternDraw(10, ltrs_Poly, ptrnWide, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(100, ltrs_Poly, ptrnRingDraw, CRGB::Red, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__)
-       save_return = doPatternDraw(100, ltr_Y, ptrnRingQrtrDraw, CRGB::Red, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       save_return = doPatternDraw(100, ltrs_Poly, ptrnRingQrtrDraw, CRGB::Red, CRGB::Blue, CRGB::Green, 0, 0, 0);
        // DEBUG2_RETURN(save_return, __LINE__)
-       // save_return = doPatternDraw(1000, ltr_Y, 5, CRGB::Red, CRGB::Blue, CRGB::Green, 0, 0, 0);
+       // save_return = doPatternDraw(1000, ltrs_Poly, 5, CRGB::Red, CRGB::Blue, CRGB::Green, 0, 0, 0);
        doDwell(dwell, 1);
        break;
     case 6: // 6 = do surrounding around letter then fade one to the other
        if (oldPattern != pattern) {
-         save_return = doPatternDraw(8, ltrs_Poly[WHICH_ARDUINO], ptrnDblClkws, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
+         save_return = doPatternDraw(8, ltrs_Poly, ptrnDblClkws, CRGB::Gold, CRGB::Blue, CRGB::Green, 0, 0, 0);
          // DEBUG2_RETURN(save_return, __LINE__)
-         save_return = doPatternDraw(8, ltrs_2018[WHICH_ARDUINO], ptrnWideDrawShdw1Fade, CRGB::Green, CRGB::Gold, CRGB::Blue, 0, 0, 0);
+         save_return = doPatternDraw(8, ltrs_2018, ptrnWideDrawShdw1Fade, CRGB::Green, CRGB::Gold, CRGB::Blue, 0, 0, 0);
          // DEBUG2_RETURN(save_return, __LINE__)
        }
        break;

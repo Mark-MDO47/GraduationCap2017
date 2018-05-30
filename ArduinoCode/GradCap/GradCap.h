@@ -52,22 +52,31 @@
 //
 // letters and shapes
 //
-const int8_t ltr_2[18] = { -17, 53, 54, 55, 32, 33, 34, 35, 58, 85, 92, 89, 66, 47, 65, 64, 63, 41 };
-const int8_t ltr_0[25] = { -24, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55 };
-const int8_t ltr_1[16] = { -15, 53, 54, 55, 32, 56, 72, 84, 92, 88, 78, 47, 65, 64, 63, 41 };
-const int8_t ltr_8[25] = { -24, 54, 55, 32, 33, 34, 58, 74, 85, 92, 89, 80, 66, 46, 45, 44, 43, 42, 62, 76, 87, 91, 82, 70, 54 };
-
-const int8_t ltr_P[18] = { -17, 81, 82, 70, 54, 55, 32, 33, 34, 35, 59, 75, 86, 92, 90, 80, 66, 46 };
-#define ltr_O ltr_0 // using same for letter O and numeral 0
-const int8_t ltr_L[11] = { -10, 54, 70, 82, 81, 80, 66, 65, 64, 63, 41 };
-const int8_t ltr_Y[13] = { -12, 78, 64, 44, 53, 70, 82, 90, 88, 86, 74, 58, 35 };
+// Oh the things we do for RAM!!!
+//
+#if 0 == WHICH_ARDUINO
+const int8_t ltrs_2018[18] = { -17, 53, 54, 55, 32, 33, 34, 35, 58, 85, 92, 89, 66, 47, 65, 64, 63, 41 }; // ltr_2
+const int8_t ltrs_Poly[18] = { -17, 81, 82, 70, 54, 55, 32, 33, 34, 35, 59, 75, 86, 92, 90, 80, 66, 46 }; // ltr_P
+#endif // 0 == WHICH_ARDUINO
+#if 1 == WHICH_ARDUINO
+const int8_t ltrs_2018[25] = { -24, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55 }; // ltr_0
+#define ltrs_Poly ltrs_2018 // using same for letter O and numeral 0
+#endif // 1 == WHICH_ARDUINO
+#if 2 == WHICH_ARDUINO
+const int8_t ltrs_2018[16] = { -15, 53, 54, 55, 32, 56, 72, 84, 92, 88, 78, 47, 65, 64, 63, 41 }; // ltr_1
+const int8_t ltrs_Poly[11] = { -10, 54, 70, 82, 81, 80, 66, 65, 64, 63, 41 }; // ltr_L
+#endif // 2 == WHICH_ARDUINO
+#if 3 == WHICH_ARDUINO
+const int8_t ltrs_2018[25] = { -24, 54, 55, 32, 33, 34, 58, 74, 85, 92, 89, 80, 66, 46, 45, 44, 43, 42, 62, 76, 87, 91, 82, 70, 54 }; // ltr_8
+const int8_t ltrs_Poly[13] = { -12, 78, 64, 44, 53, 70, 82, 90, 88, 86, 74, 58, 35 }; // ltr_Y
+#endif // 3 == WHICH_ARDUINO
 
 // const int8_t ltr_T[13] = { -12, 53, 71, 56, 57, 35, 72, 84, 92, 88, 78, 64, 44 };
 // const int8_t ltr_H[18] = { -17, 54, 70, 82, 81, 80, 66, 46, 34, 58, 74, 75, 76, 62, 42, 90, 92, 86 };
 // const int8_t ltr_S[18] = { -17, 34, 33, 32, 55, 54, 70, 82, 91, 92, 87, 76, 62, 42, 43, 44, 45, 46 };
 
-const int8_t shape_star[32] = { -31, 0, 32, 71, 70, 69, 51, 25, 68, 80, 66, 47, 20, 65, 78, 63, 12, 41, 62, 76, 60, 7, 37, 59, 58, 57, 84, 91, 89, 87, 85, 92 };
-const int8_t shape_blot[] = { -3, 35, 58, 59 };
+// const int8_t shape_star[32] = { -31, 0, 32, 71, 70, 69, 51, 25, 68, 80, 66, 47, 20, 65, 78, 63, 12, 41, 62, 76, 60, 7, 37, 59, 58, 57, 84, 91, 89, 87, 85, 92 };
+// const int8_t shape_blot[] = { -3, 35, 58, 59 };
 
 // const int8_t ltr_all[94] = { -93, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92 };
 
@@ -448,9 +457,6 @@ static uint32_t data_guard_after = 0x55555555;
 // some radar functions that are useful in other areas
 #define RADAR_LED_CORRESPONDING_MIDDLE_RING(OUTER_LED, THIS_RING) ((uint16_t)radar_adv_per_LED_per_ring[THIS_RING]) * OUTER_LED / 256 + start_per_ring[THIS_RING]
 
-
-const int8_t * ltrs_Poly[] = { ltr_Y, ltr_O, ltr_L, ltr_P }; // starts with WHICH_ARDUINO; loops at NUM_ARDUINOS
-const int8_t * ltrs_2018[] = { ltr_8, ltr_0, ltr_1, ltr_2 }; // starts with WHICH_ARDUINO; loops at NUM_ARDUINOS
 
 const int8_t ptrnOff[]      = { SUPRSPCL_STOP_WHEN_DONE, SPCL_DRAW_BKGD_CLR_BLACK, SUPRSPCL_SKIP_STEP2, SUPRSPCL_SKIP_STEP1, SUPRSPCL_END_OF_PTRNS };
 const int8_t ptrnJustDraw[] = { SPCL_DRAW_BKGD_CLR_BKGND, SUPRSPCL_SKIP_STEP2, PER_LED_DRAW_BLNKING, PER_LED_DRAW_FORE, SUPRSPCL_END_OF_PTRNS };
