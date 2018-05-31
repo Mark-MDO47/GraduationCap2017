@@ -13,7 +13,7 @@ uses Mokungit 93 Leds WS2812B WS2812 5050 RGB LED Ring Lamp Light with Integrate
 
 Kudos to Daniel Garcia and Mark Kriegsman for the FANTASTIC Arduino FastLED library and examples!!!<br>
   https://github.com/FastLED/FastLED<br>
-  https://github.com/FastLED/FastLED/blob/master/examples/Fire2012WithPalette/Fire2012WithPalette.ino<br>
+  https://github.com/FastLED/FastLED/blob/master/examples<br>
 
 The Arduino pattern code here is pretty much done from scratch by me using the FastLED library.<br>
 I also tried a few items from Mark Kriegsman's classic DemoReel100.ino https://github.com/FastLED/FastLED/tree/master/examples/DemoReel100<br>
