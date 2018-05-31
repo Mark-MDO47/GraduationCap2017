@@ -22,7 +22,9 @@
 //    https://github.com/FastLED/FastLED/blob/master/examples/Fire2012WithPalette/Fire2012WithPalette.ino
 //
 // The Arduino pattern code here is pretty much done from scratch by me using the FastLED library.
-//    I also tried a few items from Mark Kriegsman's classic DemoReel100.ino https://gist.github.com/kriegsman/062e10f7f07ba8518af6
+//    I also tried a few items from Mark Kriegsman's classic DemoReel100.ino https://github.com/FastLED/FastLED/tree/master/examples/DemoReel100
+//    Okay, I succumbed and added in Mark's beautiful Fire2012withPalette https://github.com/FastLED/FastLED/tree/master/examples/Fire2012WithPalette
+// At this point the patterns are about 50-50 mine and Mark Kriegsman
 //
 // These LEDs use power that adds up. Can use this to estimate the power
 //   http://fastled.io/docs/3.1/group___power.html
