@@ -16,6 +16,9 @@ Kudos to Daniel Garcia and Mark Kriegsman for the FANTASTIC Arduino FastLED libr
   https://github.com/FastLED/FastLED/blob/master/examples/Fire2012WithPalette/Fire2012WithPalette.ino<br>
 
 The Arduino pattern code here is pretty much done from scratch by me using the FastLED library.<br>
+I also tried a few items from Mark Kriegsman's classic DemoReel100.ino https://github.com/FastLED/FastLED/tree/master/examples/DemoReel100<br>
+Okay, I succumbed and added in Mark's beautiful Fire2012withPalette https://github.com/FastLED/FastLED/tree/master/examples/Fire2012WithPalette<br>
+At this point the patterns are about 50-50 mine and Mark Kriegsman<br>
 
 Here is a (somewhat) spec on the 2812b LEDs<br>
   https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf<br>
