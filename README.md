@@ -47,3 +47,8 @@ Using DigiKey (https://digikey.com) 4610X-AP1-103LFCT-ND RES ARRAY 9 RES 10K OHM
    This way I have one component for all the 10K pull-up resistors I need<br>
 
 Pictures and pointers to videos of Graduation cap are in the /FirstCap directory<br>
+
+A few videos of the graduation cap:
+tour - https://youtu.be/3sHkcpifI_0 - Walkthrough of Graduation Cap<br>
+btn 1 - https://youtu.be/MmYY2umBRew - Down the Drain and Haunted<br>
+btn 2 - https://youtu.be/tLaOULMrv5k - Radar with POLY and 2018<br>
