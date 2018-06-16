@@ -50,9 +50,9 @@ Pictures and pointers to videos of Graduation cap are in the /FirstCap directory
 
 A few videos of the graduation cap:<br>
 tour - https://youtu.be/3sHkcpifI_0 - Walkthrough of Graduation Cap<br>
-Start plus the Down-the-Drain and Haunt patterns - https://youtu.be/SVAW7-W8W8M - my made-up patterns
-Radar - https://youtu.be/vZpsce-uMeo - my made-up pattern
-Circles - https://youtu.be/3rO7r-2uvlA - my made-up pattern
+Start plus the Down-the-Drain and Haunt patterns - https://youtu.be/SVAW7-W8W8M - my made-up patterns<br>
+Radar - https://youtu.be/vZpsce-uMeo - my made-up pattern<br>
+Circles - https://youtu.be/3rO7r-2uvlA - my made-up pattern<br>
 Kriegsman Fire - https://youtu.be/K7lBy67Jgzw - Mark Kriegsman's Fire2012 with Palette<br>
 Kriegsman Juggle - https://youtu.be/Ot5dQEGN8O8 - Mark Kriegsman's Juggle<br>
 Kriegsman BPM - https://youtu.be/0liTM4aSAok - Mark Kriegsman's BPM<br>
