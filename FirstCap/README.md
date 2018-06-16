@@ -22,8 +22,9 @@ P1010513.JPG - closeup Arduino Nano soldering complete reverse side<br>
 
 Videos of the graduation cap:<br>
 tour  - https://youtu.be/3sHkcpifI_0 - Walkthrough of Graduation Cap<br>
-btn 1 - https://youtu.be/MmYY2umBRew - Down the Drain and Haunted<br>
-btn 2 - https://youtu.be/tLaOULMrv5k - Radar with POLY and 2018<br>
-btn 3 - https://youtu.be/Dj8-MQJ5RHk - POLY and 2018<br>
-btn 1 & 2 - https://youtu.be/rxHV2zIuTHE - Concentric Circles then Color Fade<br>
-btn 1 & 3 - https://youtu.be/uFElwT2LZ7Y - Scribe POLY then fade to 2018<br>
+my ptrn 1 - https://youtu.be/MmYY2umBRew - Down the Drain and Haunted<br>
+my ptrn 2 - https://youtu.be/tLaOULMrv5k - Radar with POLY and 2018<br>
+my ptrn 3 - https://youtu.be/3rO7r-2uvlA - Circles<br>
+Kriegsman Fire - https://youtu.be/K7lBy67Jgzw - Mark Kriegsman's Fire2012 with Palette<br>
+Kriegsman Juggle - https://youtu.be/Ot5dQEGN8O8 - Mark Kriegsman's Juggle<br>
+Kriegsman BPM - https://youtu.be/0liTM4aSAok - Mark Kriegsman's BPM<br>
