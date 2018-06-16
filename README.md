@@ -53,6 +53,6 @@ tour - https://youtu.be/3sHkcpifI_0 - Walkthrough of Graduation Cap<br>
 my ptrn 1 - https://youtu.be/MmYY2umBRew - Down the Drain and Haunted<br>
 my ptrn 2 - https://youtu.be/tLaOULMrv5k - Radar with POLY and 2018<br>
 my ptrn 3 - https://youtu.be/3rO7r-2uvlA - Circles<br>
-Kriegsman Fire - https://youtu.be/K7lBy67Jgzw<br>
-Kriegsman Juggle - https://youtu.be/Ot5dQEGN8O8<br>
-Kriegsman BPM - https://youtu.be/0liTM4aSAok<br>
+Kriegsman Fire - https://youtu.be/K7lBy67Jgzw - Mark Kriegsman's Fire2012 with Palette<br>
+Kriegsman Juggle - https://youtu.be/Ot5dQEGN8O8 - Mark Kriegsman's Juggle<br>
+Kriegsman BPM - https://youtu.be/0liTM4aSAok - Mark Kriegsman's BPM<br>
