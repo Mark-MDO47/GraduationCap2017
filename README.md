@@ -50,5 +50,9 @@ Pictures and pointers to videos of Graduation cap are in the /FirstCap directory
 
 A few videos of the graduation cap:<br>
 tour - https://youtu.be/3sHkcpifI_0 - Walkthrough of Graduation Cap<br>
-btn 1 - https://youtu.be/MmYY2umBRew - Down the Drain and Haunted<br>
-btn 2 - https://youtu.be/tLaOULMrv5k - Radar with POLY and 2018<br>
+my ptrn 1 - https://youtu.be/MmYY2umBRew - Down the Drain and Haunted<br>
+my ptrn 2 - https://youtu.be/tLaOULMrv5k - Radar with POLY and 2018<br>
+my ptrn 3 - https://youtu.be/3rO7r-2uvlA - Circles<br>
+Kriegsman Fire - https://youtu.be/K7lBy67Jgzw<br>
+Kriegsman Juggle - https://youtu.be/Ot5dQEGN8O8<br>
+Kriegsman BPM - https://youtu.be/0liTM4aSAok<br>
