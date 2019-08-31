@@ -4,7 +4,17 @@ Graduation Cap Lights for my identical twin girls "I" and "T" - 2017-12-09<br>
 ![alt text](https://github.com/Mark-MDO47/GraduationCap2017/blob/master/imagesFinal/IMG_09516_all.png "Finished version of Graduation Cap; batteries inside purses")
 ![alt text](https://github.com/Mark-MDO47/GraduationCap2017/blob/master/imagesFinal/IMG_09671_CapsBeingUsed.png "Graduation Caps just before use")
 
- I am using an Arduino Nano with a USB mini-B connector<br>
+A few videos of the graduation cap:<br>
+tour - https://youtu.be/3sHkcpifI_0 - Walkthrough of Graduation Cap<br>
+Start plus the Down-the-Drain and Haunt patterns - https://youtu.be/SVAW7-W8W8M - my made-up patterns<br>
+Radar - https://youtu.be/vZpsce-uMeo - my made-up pattern<br>
+Circles - https://youtu.be/3rO7r-2uvlA - my made-up pattern<br>
+Kriegsman Fire - https://youtu.be/K7lBy67Jgzw - Mark Kriegsman's Fire2012 with Palette<br>
+Kriegsman Juggle - https://youtu.be/Ot5dQEGN8O8 - Mark Kriegsman's Juggle<br>
+Kriegsman BPM - https://youtu.be/0liTM4aSAok - Mark Kriegsman's BPM<br>
+Pictures and pointers to videos of Graduation cap are in the /FirstCap and imagesFinal directories<br>
+
+It uses four Arduino Nanos with USB mini-B connector<br>
    example: http://www.ebay.com/itm/Nano-V3-0-ATmega328P-5V-16M-CH340-Compatible-to-Arduino-Nano-V3-Without-Cable/201804111413?_trksid=p2141725.c100338.m3726&_trkparms=aid%3D222007%26algo%3DSIC.MBE%26ao%3D1%26asc%3D20150313114020%26meid%3Dea29973f227743f78772d7a22512af53%26pid%3D100338%26rk%3D1%26rkt%3D30%26sd%3D191602576205<br>
             V3.0 ATmega328P 5V 16M CH340 Compatible to Arduino Nano V3<br>
             32Kbyte Flash (program storage), 2Kbyte SRAM, 1Kbyte EEPROM<br>
@@ -48,14 +58,3 @@ These LEDs use power that adds up. Can use this to estimate the power<br>
 
 Using DigiKey (https://digikey.com) 4610X-AP1-103LFCT-ND RES ARRAY 9 RES 10K OHM 10SIP<br>
    This way I have one component for all the 10K pull-up resistors I need<br>
-
-Pictures and pointers to videos of Graduation cap are in the /FirstCap directory<br>
-
-A few videos of the graduation cap:<br>
-tour - https://youtu.be/3sHkcpifI_0 - Walkthrough of Graduation Cap<br>
-Start plus the Down-the-Drain and Haunt patterns - https://youtu.be/SVAW7-W8W8M - my made-up patterns<br>
-Radar - https://youtu.be/vZpsce-uMeo - my made-up pattern<br>
-Circles - https://youtu.be/3rO7r-2uvlA - my made-up pattern<br>
-Kriegsman Fire - https://youtu.be/K7lBy67Jgzw - Mark Kriegsman's Fire2012 with Palette<br>
-Kriegsman Juggle - https://youtu.be/Ot5dQEGN8O8 - Mark Kriegsman's Juggle<br>
-Kriegsman BPM - https://youtu.be/0liTM4aSAok - Mark Kriegsman's BPM<br>
