@@ -1,6 +1,9 @@
 # GraduationCap2017
 Graduation Cap Lights for my identical twin girls "I" and "T" - 2017-12-09<br>
 
+![alt text](https://github.com/Mark-MDO47/GraduationCap2017/blob/master/imagesFinal/IMG_09516_all.png "Finished version of Graduation Cap; batteries inside purses")
+![alt text](https://github.com/Mark-MDO47/GraduationCap2017/blob/master/imagesFinal/IMG_09671_CapsBeingUsed.png "Graduation Caps just before use")
+
  I am using an Arduino Nano with a USB mini-B connector<br>
    example: http://www.ebay.com/itm/Nano-V3-0-ATmega328P-5V-16M-CH340-Compatible-to-Arduino-Nano-V3-Without-Cable/201804111413?_trksid=p2141725.c100338.m3726&_trkparms=aid%3D222007%26algo%3DSIC.MBE%26ao%3D1%26asc%3D20150313114020%26meid%3Dea29973f227743f78772d7a22512af53%26pid%3D100338%26rk%3D1%26rkt%3D30%26sd%3D191602576205<br>
             V3.0 ATmega328P 5V 16M CH340 Compatible to Arduino Nano V3<br>
