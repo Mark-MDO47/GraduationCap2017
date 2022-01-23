@@ -58,3 +58,6 @@ These LEDs use power that adds up. Can use this to estimate the power<br>
 
 Using DigiKey (https://digikey.com) 4610X-AP1-103LFCT-ND RES ARRAY 9 RES 10K OHM 10SIP<br>
    This way I have one component for all the 10K pull-up resistors I need<br>
+
+Schematic and other build information can be found here<br>
+* https://github.com/Mark-MDO47/GraduationCap2017/blob/master/buildInfo/README.md
