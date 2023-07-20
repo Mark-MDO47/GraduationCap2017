@@ -110,7 +110,7 @@ static int8_t   ptrn_token_array_ptr_idx = -1;
 static int8_t * this_effect_ptr = &led_effect_varmem[0];
 static int8_t   this_ring = 0; // from ring_6 (value 0, outer ring) to ring_1 (value 5, inner ring (one LED)
 static int8_t   this_qrtr = 0; // from qrtr_1 (value 0) to qrtr_4 (value 3), count modulo in either direction
-static uint32_t radar_xray_bitmask[3] = {0, 0, 0}; // bitmask where X-Ray LEDs are for STEP2_RADAR_XRAY_SHDW1
+static uint32_t radar_xray_bitmask[(NUM_LEDS_PER_DISK+31)/32] = {0, 0, 0};  // bitmask where X-Ray LEDs are for STEP2_RADAR_XRAY_SHDW1; >= one bit per LED per ring
 static uint32_t bitmsk32; // used to pick out the bit in radar_xray_bitmask
 static uint8_t  idx_bitmsk32; // index to which array member for radar_xray_bitmask
 
@@ -1490,4 +1490,3 @@ void Fire2012WithPalette() {
 
 
 #endif
-
