@@ -5,10 +5,11 @@ Graduation Cap Lights for my identical twin girls "I" and "T" - 2017-12-09<br>
 * [Top](#graduationcap2017 "Top")
 * [Photos and Videos](#photos-and-videos "Photos and Videos")
 * [General Description](#general-description "General Description")
+  * [Details of Design - Arduino Code](#details-of-design-\--arduino-code "Details of Design - Arduino Code")
+  * [Details of Design - Schematics and etc.](#details-of-design-\--schematics-and-etc "Details of Design - Schematics and etc.")
   * [Details of Design - WS2812B LEDs](#details-of-design-\--ws2812b-leds "Details of Design - WS2812B LEDs")
   * [Details of Design - Keep the Wires Cool!](#details-of-design-\--keep-the-wires-cool "Details of Design - Keep the Wires Cool!")
   * [Details of Design - My Favorite Pullup Resistor Package](#details-of-design-\--my-favorite-pullup-resistor-package "Details of Design - My Favorite Pullup Resistor Package")
-  * [Details of Design - Schematics and etc.](#details-of-design-\--schematics-and-etc "Details of Design - Schematics and etc.")
 
 ## Photos and Videos
 [Top](#graduationcap2017 "Top")<br>
