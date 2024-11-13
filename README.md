@@ -35,8 +35,8 @@ The graduation cap electronics uses four Arduino Nanos with USB mini-B connector
   - http://www.mouser.com/pdfdocs/Gravitech_Arduino_Nano3_0.pdf<br>
   - http://www.pighixxx.com/test/pinouts/boards/nano.pdf<br>
 
-uses Mokungit 93 Leds WS2812B WS2812 5050 RGB LED Ring Lamp Light with Integrated Drivers<br>
-- https://smile.amazon.com/gp/product/B01EUAKLT0/ref=oh_aui_detailpage_o01_s00?ie=UTF8&psc=1<br>
+Uses 93 Leds WS2812B 5050 RGB LED Ring Lamp Light with Integrated Drivers<br>
+- https://www.amazon.com/WESIRI-WS2812B-Individually-Addressable-Controller/dp/B083W44B8N<br>
 
 Kudos to Daniel Garcia and Mark Kriegsman for the FANTASTIC Arduino FastLED library and examples!!!<br>
   https://github.com/FastLED/FastLED<br>
