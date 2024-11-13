@@ -29,14 +29,14 @@ Pictures and pointers to videos of Graduation cap are in the /FirstCap and image
 ## General Description
 [Top](#graduationcap2017 "Top")<br>
 The graduation cap electronics uses four Arduino Nanos with USB mini-B connector<br>
-   example: http://www.ebay.com/itm/Nano-V3-0-ATmega328P-5V-16M-CH340-Compatible-to-Arduino-Nano-V3-Without-Cable/201804111413?_trksid=p2141725.c100338.m3726&_trkparms=aid%3D222007%26algo%3DSIC.MBE%26ao%3D1%26asc%3D20150313114020%26meid%3Dea29973f227743f78772d7a22512af53%26pid%3D100338%26rk%3D1%26rkt%3D30%26sd%3D191602576205<br>
-            V3.0 ATmega328P 5V 16M CH340 Compatible to Arduino Nano V3<br>
-            32Kbyte Flash (program storage), 2Kbyte SRAM, 1Kbyte EEPROM<br>
-            http://www.mouser.com/pdfdocs/Gravitech_Arduino_Nano3_0.pdf<br>
-            http://www.pighixxx.com/test/pinouts/boards/nano.pdf<br>
+- example: https://www.aliexpress.us/item/2255800392785775.html ***Select Mini-USB Welding***<br>
+  - V3.0 ATmega328P 5V 16M CH340 Compatible to Arduino Nano V3<br>
+  - 32Kbyte Flash (program storage), 2Kbyte SRAM, 1Kbyte EEPROM<br>
+  - http://www.mouser.com/pdfdocs/Gravitech_Arduino_Nano3_0.pdf<br>
+  - http://www.pighixxx.com/test/pinouts/boards/nano.pdf<br>
 
 uses Mokungit 93 Leds WS2812B WS2812 5050 RGB LED Ring Lamp Light with Integrated Drivers<br>
-  https://smile.amazon.com/gp/product/B01EUAKLT0/ref=oh_aui_detailpage_o01_s00?ie=UTF8&psc=1<br>
+- https://smile.amazon.com/gp/product/B01EUAKLT0/ref=oh_aui_detailpage_o01_s00?ie=UTF8&psc=1<br>
 
 Kudos to Daniel Garcia and Mark Kriegsman for the FANTASTIC Arduino FastLED library and examples!!!<br>
   https://github.com/FastLED/FastLED<br>
